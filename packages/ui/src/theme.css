@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-shadow-950: #07070b;
+  --color-shadow-900: #0d0d14;
+  --color-shadow-800: #151521;
+  --color-shadow-700: #1f1f2e;
+  --color-shadow-500: #4a4a63;
+  --color-ash-200: #d4d4e0;
+  --color-ash-400: #8d8da3;
+  --color-chakra-400: #ff7a1a;
+  --color-chakra-500: #f25c00;
+  --color-chakra-600: #c44700;
+  --color-blood-500: #c0182d;
+}
+
+body {
+  background: var(--color-shadow-950);
+  color: var(--color-ash-200);
+}
