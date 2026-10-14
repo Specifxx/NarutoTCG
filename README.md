@@ -20,3 +20,10 @@ pnpm dev        # run all apps
 pnpm build
 pnpm typecheck
 ```
+
+## Monetization
+
+Affiliate links, AdSense readiness, and the content plan are packaged as a Claude Code skill in
+[`.claude/skills/monetize`](.claude/skills/monetize/SKILL.md). Run `/monetize` once the apps have real
+features. The reasoning and open decisions are in
+[`references/strategy.md`](.claude/skills/monetize/references/strategy.md).
