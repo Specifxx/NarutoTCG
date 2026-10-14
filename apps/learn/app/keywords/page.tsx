@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { KEYWORDS } from "@/content/keywords";
-import { RichText } from "@/components/ui/rich-text";
+import { FeaturedKeywords } from "@/components/keywords/featured-keywords";
+import { GlossaryDirectory } from "@/components/keywords/glossary-directory";
+import { KeywordsHero } from "@/components/keywords/keywords-hero";
 
-export const metadata: Metadata = { title: "Keywords & Glossary" };
+export const metadata: Metadata = {
+  title: "Keywords & Glossary",
+  description:
+    "Searchable NARUTO Mythos TCG glossary: AMBUSH, POWERUP, MAIN, SCORE, the Edge token and every rules term, with animated tooltips, examples and deep links.",
+};
 
 export default function KeywordsPage() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <h1 className="text-4xl font-black text-white">Keywords</h1>
-      <ul className="mt-6 space-y-2">
-        {KEYWORDS.map((k) => (
-          <li key={k.id} id={k.id}>
-            <RichText text={`[[${k.id}]] — ${k.short}`} />
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <KeywordsHero />
+      <FeaturedKeywords />
+      <GlossaryDirectory />
+    </div>
   );
 }
