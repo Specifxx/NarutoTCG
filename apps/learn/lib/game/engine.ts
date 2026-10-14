@@ -511,28 +511,32 @@ export function evaluateRound(state: GameState, catalog: CardCatalog): RoundEval
 /* ------------------------------------------------------------------ */
 
 export function describeAction(state: GameState, action: GameAction, catalog: CardCatalog): string {
-  const who = action.side === "you" ? "You" : "Opponent";
+  const mine = action.side === "you";
+  const who = mine ? "You" : "Opponent";
+  const verb = (base: string) => (mine ? base : `${base}s`);
   switch (action.type) {
     case "pass":
-      return `${who} pass${action.side === "you" ? "" : "es"}`;
+      return `${who} ${mine ? "pass" : "passes"}`;
     case "play": {
       const card = getCard(catalog, action.cardId);
       const mission = findMission(state, action.missionId);
       const where = mission ? ` on ${mission.def.name}` : "";
-      return action.hidden
-        ? `${who} play ${card.name} hidden${where} (1 Chakra)`
-        : `${who} play ${card.name}${where} (${card.cost} Chakra)`;
+      if (action.hidden) {
+        // Never name an opponent's face-down card.
+        return mine ? `You play ${card.name} hidden${where} (1 Chakra)` : `Opponent plays a face-down card${where} (1 Chakra)`;
+      }
+      return `${who} ${verb("play")} ${card.name}${where} (${card.cost} Chakra)`;
     }
     case "reveal": {
       const found = findUnit(state, action.uid);
       const card = found ? topCard(found.unit, catalog) : null;
-      return card ? `${who} reveal ${card.name} (${card.cost} Chakra)` : `${who} reveal a hidden character`;
+      return card ? `${who} ${verb("reveal")} ${card.name} (${card.cost} Chakra)` : `${who} ${verb("reveal")} a hidden character`;
     }
     case "upgrade": {
       const found = findUnit(state, action.uid);
       const card = getCard(catalog, action.cardId);
       const cost = found ? card.cost - topCard(found.unit, catalog).cost : card.cost;
-      return `${who} upgrade to ${card.name} — ${card.title} (${cost} Chakra)`;
+      return `${who} ${verb("upgrade")} to ${card.name} — ${card.title} (${cost} Chakra)`;
     }
   }
 }

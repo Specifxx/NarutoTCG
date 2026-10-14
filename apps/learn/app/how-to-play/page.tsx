@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { NinjaPath } from "@/components/lesson/ninja-path";
+import { OverviewHero } from "@/components/lesson/overview-hero";
+import { RoundAtAGlance } from "@/components/lesson/round-glance";
+import { toLessonSummary } from "@/components/lesson/lesson-summary";
 import { LESSONS } from "@/content/lessons";
 
-export const metadata: Metadata = { title: "How to Play" };
+export const metadata: Metadata = {
+  title: "How to Play",
+  description:
+    "Five animated lessons on the NARUTO Mythos TCG: deck setup, Chakra, hidden characters and ambushes, mission evaluation and the Edge token.",
+};
 
 export default function HowToPlayPage() {
+  const lessons = LESSONS.map(toLessonSummary);
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <h1 className="text-4xl font-black text-white">How to Play</h1>
-      <ul className="mt-6 space-y-2">
-        {LESSONS.map((l) => (
-          <li key={l.id}>
-            <Link href={`/how-to-play/${l.id}`} className="text-chakra-300">
-              {l.order}. {l.title}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+      <OverviewHero lessons={lessons} />
+      <NinjaPath lessons={lessons} />
+      <RoundAtAGlance lessons={lessons} />
+    </div>
   );
 }

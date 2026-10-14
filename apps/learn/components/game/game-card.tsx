@@ -71,7 +71,7 @@ function Orb({ value, kind, className, delta }: { value: number; kind: "cost" | 
         kind === "cost"
           ? "bg-gradient-to-br from-energy-300 to-energy-600 text-white ring-energy-200/60 shadow-[0_0_10px_rgba(56,196,255,0.6)]"
           : delta && delta > 0
-            ? "bg-gradient-to-br from-leaf-300 to-leaf-600 text-shadow-950 ring-leaf-200/70 shadow-[0_0_12px_rgba(74,222,128,0.7)]"
+            ? "bg-gradient-to-br from-leaf-300 to-leaf-600 text-shadow-950 ring-leaf-300/70 shadow-[0_0_12px_rgba(74,222,128,0.7)]"
             : "bg-gradient-to-br from-chakra-300 to-blood-500 text-white ring-chakra-200/60 shadow-[0_0_10px_rgba(255,122,26,0.55)]",
         className,
       )}
@@ -136,7 +136,7 @@ function CardFront({ card, size, power, tokens }: { card: CardDef; size: CardSiz
   );
 }
 
-function CardBack({ size, power }: { size: CardSize; power?: number }) {
+function CardBack({ size, power, showLabel = true }: { size: CardSize; power?: number; showLabel?: boolean }) {
   const s = SIZE[size];
   return (
     <div className="absolute inset-0 rounded-[11px] bg-gradient-to-br from-mist-300 via-mist-600 to-shadow-700 p-[2px]">
@@ -145,7 +145,7 @@ function CardBack({ size, power }: { size: CardSize; power?: number }) {
         <span className="relative text-mist-300 drop-shadow-[0_0_12px_rgba(167,139,250,0.9)]">
           <Emblem name="spiral" size={s.emblem} />
         </span>
-        {size !== "xs" && (
+        {size !== "xs" && showLabel && (
           <span className="eyebrow relative mt-1.5 !text-[8px] text-mist-200/90">Hidden</span>
         )}
         {power !== undefined && (
@@ -176,6 +176,10 @@ export interface GameCardProps {
   label?: string;
   className?: string;
   layoutId?: string;
+  /** Hide the Power badge on the hidden back (e.g. outside combat). */
+  hideBackPower?: boolean;
+  /** Hide the "Hidden" label on the back (e.g. for a deck pile). */
+  hideBackLabel?: boolean;
   children?: ReactNode;
 }
 
@@ -206,6 +210,8 @@ export function GameCard({
   label,
   className,
   layoutId,
+  hideBackPower,
+  hideBackLabel,
   children,
 }: GameCardProps) {
   const interactive = Boolean(onClick) && !disabled;
@@ -249,7 +255,11 @@ export function GameCard({
           <CardFront card={card} size={size} power={power} tokens={powerTokens} />
         </div>
         <div className="backface-hidden absolute inset-0 [transform:rotateY(180deg)]">
-          <CardBack size={size} power={faceDown ? power ?? powerTokens : undefined} />
+          <CardBack
+            size={size}
+            power={faceDown && !hideBackPower ? (power ?? powerTokens) : undefined}
+            showLabel={!hideBackLabel}
+          />
         </div>
       </motion.div>
       {powerTokens > 0 && (

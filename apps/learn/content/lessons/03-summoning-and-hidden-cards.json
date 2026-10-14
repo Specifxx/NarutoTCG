@@ -1,35 +1,133 @@
 {
+  "$schema": "../tutorial-lesson.schema.json",
   "schemaVersion": 1,
   "id": "summoning-and-hidden-cards",
   "order": 3,
   "title": "Summoning Ninjas & Playing Hidden Cards",
-  "subtitle": "Placeholder subtitle.",
-  "summary": "Placeholder summary.",
+  "subtitle": "Face-up, face-down, revealed or upgraded: four ways to put a ninja to work.",
+  "summary": "Learn every way to play a character: pay full cost face-up for its MAIN effects, slip one in hidden for 1 Chakra, reveal it later to spring an AMBUSH, or upgrade a same-name ninja for the difference.",
   "emblem": "mask",
   "accent": "mist",
-  "estMinutes": 4,
+  "estMinutes": 7,
   "steps": [
     {
-      "id": "intro",
-      "title": "Placeholder",
-      "body": "Placeholder step mentioning [[AMBUSH]]."
+      "id": "one-card-per-turn",
+      "title": "One card, then it's their turn",
+      "body": "The [[Action phase]] is a back-and-forth. The [[Edge token]] holder goes first, then players alternate, and on your turn you do exactly one thing: play one card, or [[pass]]. Once you pass you're out of the Action phase until next Round. If your opponent has already passed, you keep taking turns one after another until you pass too.",
+      "visual": {
+        "kind": "turn-order",
+        "sequence": [
+          { "side": "you", "action": "play" },
+          { "side": "opp", "action": "hidden" },
+          { "side": "you", "action": "hidden" },
+          { "side": "opp", "action": "pass" },
+          { "side": "you", "action": "reveal" },
+          { "side": "you", "action": "play" },
+          { "side": "you", "action": "pass" }
+        ]
+      },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Action phase" }
+    },
+    {
+      "id": "play-face-up",
+      "title": "Summon face-up",
+      "body": "The straightforward play: put a character from your hand face-up onto a mission and pay its printed Chakra cost. Its [[MAIN]] effects resolve right away. Naruto here pays 2, then his MAIN [[POWERUP]] 1 adds a [[Power token]], for 3 Power. Watch the name rule: each side of a mission can hold only **one character with a given name**.",
+      "callout": {
+        "tone": "rule",
+        "text": "One character per name, per mission, on each side. A second Naruto must go to another mission, or upgrade the first."
+      },
+      "visual": { "kind": "card", "cardId": "naruto-genin", "face": "up", "tokens": 1 },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 12, "section": "How to play Character cards" }
+    },
+    {
+      "id": "play-hidden",
+      "title": "Slip in hidden",
+      "body": "Any character can be played **face-down** to a mission for a flat **1 Chakra**, whatever its printed cost. While [[hidden]] it has **0 Power** and no active effects, but it is still a character: it adds 1 Chakra in your next [[Start phase]] and can carry [[Power tokens]]. Your opponent sees only a mystery card, and has to respect what it might be.",
+      "bullets": [
+        "Always costs **1 Chakra**",
+        "**0 Power**, effects off",
+        "Still counts for Chakra income",
+        "Can carry Power tokens"
+      ],
+      "visual": { "kind": "card", "cardId": "kakashi-copy", "face": "hidden" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 13, "section": "Hidden Characters" }
+    },
+    {
+      "id": "reveal-and-ambush",
+      "title": "Reveal: spring the AMBUSH",
+      "body": "On a later turn you can [[reveal]] a hidden character by paying its **printed cost**. It flips face-up and you apply its [[MAIN]] effects **and** its [[AMBUSH]] effects. Revealing counts as playing a character. Kakashi costs 1 to hide and 4 to reveal, 5 in total, and his ambush [[POWERUP]] 2 turns a 3-Power ninja into a 5-Power surprise.",
+      "callout": {
+        "tone": "warning",
+        "text": "AMBUSH never fires when you play the card face-up straight from your hand. It has to start hidden."
+      },
+      "visual": { "kind": "card", "cardId": "kakashi-copy", "face": "flip" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 13, "section": "Hidden Characters" }
+    },
+    {
+      "id": "upgrade-a-ninja",
+      "title": "Upgrade a ninja",
+      "body": "You can't put two same-name characters on your side of one mission, but you can [[upgrading|upgrade]]: play a same-name character with a **strictly higher cost** on top of the one in play and pay only the difference. The new card's [[MAIN]] and [[UPGRADE]] effects resolve, any [[Power tokens]] stay on the stack, and the stack still counts as a single character.",
+      "callout": {
+        "tone": "tip",
+        "text": "Same cost or lower isn't allowed. Naruto, Sage Mode (5) over Naruto, Genin (2) costs 5 − 2 = 3 Chakra."
+      },
+      "visual": { "kind": "upgrade-stack", "fromCardId": "naruto-genin", "toCardId": "naruto-sage" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 15, "section": "Characters Upgrades" }
+    },
+    {
+      "id": "choosing-your-play",
+      "title": "Which play, and when?",
+      "body": "Face-up gives you full Power and the MAIN effect now, but shows your hand. Hidden is cheap, works as a bluff and saves the [[AMBUSH]] for later, at the price of 0 Power until revealed. Upgrading turns an early, cheap ninja into a late powerhouse at a discount. Strong turns mix all three, and before you pass, count how much your opponent could still reveal.",
+      "bullets": [
+        "Face-up: Power now, MAIN now",
+        "Hidden: 1 Chakra, a bluff, AMBUSH later",
+        "Upgrade: pay the difference, keep the tokens"
+      ],
+      "visual": { "kind": "card", "cardId": "hinata-byakugan", "face": "flip" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 12, "section": "How to play Character cards" }
     }
   ],
   "widget": {
     "id": "hidden-card-sim",
-    "title": "Training ground",
-    "brief": "Placeholder brief."
+    "title": "Hidden Card Simulator",
+    "brief": "Play Kakashi Hatake [[hidden]] for 1 Chakra. On your next turn, click the face-down card and pay his printed 4 Chakra to reveal him. His [[AMBUSH]] fires POWERUP 2, which is enough to win the mission."
   },
   "quiz": [
     {
-      "id": "q1",
-      "prompt": "Placeholder?",
+      "id": "hidden-cost",
+      "prompt": "You play Zabuza Momochi (printed cost 4) face-down. How much Chakra do you pay?",
+      "choices": ["4", "0", "5", "1"],
+      "answerIndex": 3,
+      "explanation": "A [[hidden]] play always costs **1 Chakra**, whatever the printed cost. You pay the printed 4 only if you reveal him later."
+    },
+    {
+      "id": "ambush-from-hand",
+      "prompt": "You play Kakashi Hatake face-up straight from your hand. Does his AMBUSH: POWERUP 2 fire?",
       "choices": [
-        "Yes",
-        "No"
+        "Yes, AMBUSH fires whenever he enters play",
+        "No, AMBUSH fires only when he's revealed from hidden",
+        "Only if he's the first character you play this Round",
+        "Only if your opponent has already passed"
       ],
-      "answerIndex": 0,
-      "explanation": "Placeholder."
+      "answerIndex": 1,
+      "explanation": "[[AMBUSH]] fires only when you reveal a hidden character. Played face-up from hand, only his [[MAIN]] effects (he has none) would resolve."
+    },
+    {
+      "id": "upgrade-cost",
+      "prompt": "Naruto Uzumaki, Genin (cost 2) is in play. You upgrade him into Naruto Uzumaki, Sage Mode (cost 5). What do you pay, and what fires?",
+      "choices": [
+        "5 Chakra; MAIN effects only",
+        "3 Chakra; AMBUSH effects",
+        "0 Chakra; his Power tokens are removed",
+        "3 Chakra; MAIN and UPGRADE effects"
+      ],
+      "answerIndex": 3,
+      "explanation": "When [[upgrading]] you pay the difference (5 − 2 = 3) and resolve the new card's [[MAIN]] and [[UPGRADE]] effects. Power tokens stay on the stack."
     }
+  ],
+  "sources": [
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 12, "section": "How to play Character cards" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 13, "section": "Hidden Characters" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 15, "section": "Characters Upgrades" }
   ]
 }

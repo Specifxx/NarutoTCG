@@ -25,7 +25,8 @@ interface Batch {
 
 /**
  * Radial particle explosion. Increment `fire` to emit a burst from the centre
- * of the nearest positioned ancestor. Renders nothing for reduced motion.
+ * of the nearest positioned ancestor (or set `fireOnMount` to burst on first
+ * render). Renders nothing for reduced motion.
  */
 export function ParticleBurst({
   fire,
@@ -36,6 +37,7 @@ export function ParticleBurst({
   shape = "spark",
   ring = true,
   gravity = 30,
+  fireOnMount = false,
 }: {
   fire: number;
   palette?: FxPalette;
@@ -45,11 +47,13 @@ export function ParticleBurst({
   shape?: Shape | "mixed";
   ring?: boolean;
   gravity?: number;
+  /** Burst when mounted with a positive `fire` (otherwise only changes burst). */
+  fireOnMount?: boolean;
 }) {
   const reduce = useReducedMotion();
   const [batches, setBatches] = useState<Batch[]>([]);
   const seq = useRef(0);
-  const last = useRef(fire);
+  const last = useRef(fireOnMount ? Number.NaN : fire);
 
   useEffect(() => {
     if (fire === last.current) return;

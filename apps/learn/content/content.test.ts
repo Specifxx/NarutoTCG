@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { PRACTICE_CARDS } from "../lib/game/cards";
 import { keywordRefs, plainText, tokenize } from "../lib/rich-text";
 import { findKeyword, KEYWORDS } from "./keywords";
 import { LESSONS } from "./lessons";
 import { PUZZLES } from "./puzzles";
-import { parseLesson, WIDGET_IDS } from "./schema";
+import { ACCENTS, EMBLEMS, parseLesson, PHASES, TURN_ACTIONS, VISUAL_KINDS, WIDGET_IDS } from "./schema";
 
 function lessonText(): Array<[where: string, text: string]> {
   const out: Array<[string, string]> = [];
@@ -95,5 +97,28 @@ describe("puzzles", () => {
   it("has unique ids and teaches known keywords", () => {
     assert.equal(new Set(PUZZLES.map((p) => p.id)).size, PUZZLES.length);
     for (const p of PUZZLES) for (const t of p.teaches) assert.ok(findKeyword(t), `${p.id} teaches unknown ${t}`);
+  });
+});
+
+describe("JSON Schema", () => {
+  const schema = JSON.parse(readFileSync(new URL("./tutorial-lesson.schema.json", import.meta.url), "utf8")) as {
+    $defs: Record<string, { enum?: string[]; examples?: string[] } & Record<string, unknown>>;
+  };
+  const sorted = (xs: readonly string[]) => [...xs].sort();
+  const defEnum = (name: string) => sorted(schema.$defs[name]?.enum ?? []);
+
+  it("mirrors the TypeScript enums in content/schema.ts", () => {
+    assert.deepEqual(defEnum("emblem"), sorted(EMBLEMS));
+    assert.deepEqual(defEnum("accent"), sorted(ACCENTS));
+    assert.deepEqual(defEnum("widgetId"), sorted(WIDGET_IDS));
+    assert.deepEqual(defEnum("phase"), sorted(PHASES));
+    assert.deepEqual(defEnum("turnAction"), sorted(TURN_ACTIONS));
+  });
+
+  it("lists every visual kind and every practice card", () => {
+    const visual = schema.$defs.visual as { oneOf: Array<{ properties: { kind: { const: string } } }> };
+    assert.deepEqual(sorted(visual.oneOf.map((v) => v.properties.kind.const)), sorted(VISUAL_KINDS));
+    // Card ids are listed as examples (parseLesson enforces them against PRACTICE_CARDS).
+    assert.deepEqual(sorted(schema.$defs.practiceCardId?.examples ?? []), sorted(Object.keys(PRACTICE_CARDS)));
   });
 });

@@ -20,13 +20,14 @@ export const ChakraPool = forwardRef<
         size === "md" ? "px-3 py-2" : "px-2 py-1.5",
         className,
       )}
-      aria-label={`${label}: ${value}${max !== undefined ? ` of ${max}` : ""}`}
-      role="status"
     >
+      <span className="sr-only" role="status" aria-live="polite">
+        {`${label}: ${value}${max !== undefined ? ` of ${max}` : ""}`}
+      </span>
       <span className="text-energy-300 drop-shadow-[0_0_8px_rgba(56,196,255,0.9)]">
         <Emblem name="chakra" size={size === "md" ? 22 : 18} />
       </span>
-      <div className="flex flex-col">
+      <div className="flex flex-col" aria-hidden="true">
         <span className="eyebrow !text-[9px] text-energy-300/80">{label}</span>
         <span className={cn("font-black leading-none tabular-nums text-white", size === "md" ? "text-xl" : "text-base")}>
           <AnimatedNumber value={value} />

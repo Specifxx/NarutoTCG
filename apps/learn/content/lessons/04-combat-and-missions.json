@@ -1,35 +1,119 @@
 {
+  "$schema": "../tutorial-lesson.schema.json",
   "schemaVersion": 1,
   "id": "combat-and-missions",
   "order": 4,
   "title": "Combat Phase & Mission Evaluation",
-  "subtitle": "Placeholder subtitle.",
-  "summary": "Placeholder summary.",
+  "subtitle": "No attacks and no blockers: combat in Mythos is a clash of Power over every mission.",
+  "summary": "The ninjas you commit during the Action phase clash in Mission evaluation. Learn how Power is counted, why missions resolve from D to A, who wins ties, and how the points add up.",
   "emblem": "target",
   "accent": "blood",
-  "estMinutes": 4,
+  "estMinutes": 7,
   "steps": [
     {
-      "id": "intro",
-      "title": "Placeholder",
-      "body": "Placeholder step mentioning [[AMBUSH]]."
+      "id": "combat-is-a-clash",
+      "title": "Combat is a Power clash",
+      "body": "Mythos has no attack step and nothing to block. Combat happens on the missions: during the [[Action phase]] you commit ninjas to missions, and in [[Mission evaluation]] each mission becomes a clash of total Power. The side with more Power wins it. Every card you play is a move in up to four tug-of-wars running at the same time.",
+      "visual": { "kind": "power-clash", "you": 5, "opp": 3, "edge": "opp", "label": "Forest of Death" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Mission evaluation phase" }
+    },
+    {
+      "id": "counting-power",
+      "title": "Counting Power",
+      "body": "A face-up character's Power is its printed Power, plus its [[Power tokens]], plus any boosts from active effects such as Gaara's [[continuous]] bonus. A [[hidden]] character counts as **0**, plus any tokens it carries. Add up every character on your side of a mission to get your total. This hidden Shikamaru holds 1 token, so he adds 1 Power.",
+      "bullets": [
+        "Face-up: printed Power + tokens + effects",
+        "Hidden: 0 + tokens",
+        "Your total: everything on your side of that mission"
+      ],
+      "visual": { "kind": "card", "cardId": "shikamaru-shadow", "face": "hidden", "tokens": 1 },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 17, "section": "Power Tokens" }
+    },
+    {
+      "id": "evaluation-order",
+      "title": "Score D, then C, B, A",
+      "body": "Missions resolve one at a time, in [[rank]] order: the D-rank mission first, then C, B and A. Each mission's rank was fixed by the Round it entered play. Order matters when [[SCORE]] effects are involved, because each one resolves as soon as its mission is won, before the next mission is checked.",
+      "visual": { "kind": "mission-ladder" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Mission evaluation phase" }
+    },
+    {
+      "id": "ties-and-zero",
+      "title": "Ties and empty sides",
+      "body": "The higher total wins. If both sides are level, the [[Edge token]] holder wins the mission. There is also a floor: you need **at least 1 Power** to win. If neither side has any Power on a mission, nobody scores it. Even the Edge can't win a mission with 0 Power, and a hidden card without tokens doesn't count toward that floor.",
+      "callout": {
+        "tone": "rule",
+        "text": "Most Power wins. Tie: the Edge holder wins. 0 Power: you can't win."
+      },
+      "visual": { "kind": "power-clash", "you": 4, "opp": 4, "edge": "you", "label": "Tied at 4: the Edge decides" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Mission evaluation phase" }
+    },
+    {
+      "id": "scoring-points",
+      "title": "Points: base plus rank",
+      "body": "The winner gains the mission's printed base points plus its rank bonus: **+1** for D, **+2** for C, **+3** for B, **+4** for A. Then they activate any [[SCORE]] effects on the mission and on their own characters assigned to it. A 2-point mission that arrived in Round 3 is B-rank, so winning it is worth 2 + 3 = **5** [[Mission points]].",
+      "visual": { "kind": "mission-ladder", "highlight": "B" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 6, "section": "Mission Cards" }
+    },
+    {
+      "id": "every-mission-every-round",
+      "title": "Every mission, every Round",
+      "body": "Missions stay in play after they're scored, and so do your characters. **Every** mission in play is evaluated every Round: one in Round 1, two in Round 2, and all four in Round 4. The D-rank mission can be won four times, so early control keeps paying, while the A-rank mission is the biggest single prize of the game.",
+      "callout": {
+        "tone": "tip",
+        "text": "You score as many missions as the current Round number: 1 + 2 + 3 + 4 = 10 mission wins are up for grabs in a game."
+      },
+      "visual": { "kind": "phase-track", "active": "mission" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Mission evaluation phase" }
+    },
+    {
+      "id": "end-phase-cleanup",
+      "title": "Clean-up in the End phase",
+      "body": "After scoring, the [[End phase]] clears the board's extras: both players discard leftover Chakra and **all Power tokens** are removed. Characters stay where they are, so next Round every ninja starts again from its printed Power. After Round 4, the player with the most [[Mission points]] wins, and a tied score goes to the Edge holder.",
+      "visual": { "kind": "phase-track", "active": "end" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 11, "section": "End phase · Winning the game p.21" }
     }
   ],
   "widget": {
     "id": "mission-evaluator",
-    "title": "Training ground",
-    "brief": "Placeholder brief."
+    "title": "Mission Evaluator",
+    "brief": "Four missions, four clashes. Predict who wins each one, counting tokens, hidden cards and the [[Edge token]], then run [[Mission evaluation]] from D to A and watch the points land."
   },
   "quiz": [
     {
-      "id": "q1",
-      "prompt": "Placeholder?",
+      "id": "tie",
+      "prompt": "Both players have 4 Power on the C-rank mission, and your opponent holds the Edge token. Who wins it?",
       "choices": [
-        "Yes",
-        "No"
+        "You, because you played there first",
+        "Nobody; ties aren't scored",
+        "Your opponent, because the Edge holder wins ties",
+        "Both players score half"
       ],
+      "answerIndex": 2,
+      "explanation": "Ties in [[Mission evaluation]] go to the [[Edge token]] holder, as long as they have at least 1 Power there."
+    },
+    {
+      "id": "points",
+      "prompt": "You win a mission with 2 base points that entered play in Round 3. How many Mission points do you gain?",
+      "choices": ["5", "2", "3", "6"],
       "answerIndex": 0,
-      "explanation": "Placeholder."
+      "explanation": "Round 3 makes it a B-rank mission, worth its base points + 3. That's 2 + 3 = **5** [[Mission points]]."
+    },
+    {
+      "id": "hidden-power",
+      "prompt": "Your only character on a mission is a hidden card with 1 Power token. Your opponent has nothing there. What happens?",
+      "choices": [
+        "Nobody wins; hidden cards always have 0 Power",
+        "You win: a hidden card counts as 0 plus its tokens, so you have 1 Power",
+        "Your opponent wins with the Edge",
+        "The hidden card is revealed for free"
+      ],
+      "answerIndex": 1,
+      "explanation": "[[hidden|Hidden]] characters have 0 printed Power but keep their [[Power tokens]]. 1 Power beats 0, and meets the 1-Power minimum."
     }
+  ],
+  "sources": [
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 6, "section": "Mission Cards" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Mission evaluation phase" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 17, "section": "Power Tokens" }
   ]
 }

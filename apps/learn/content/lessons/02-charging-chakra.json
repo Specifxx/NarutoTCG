@@ -1,35 +1,133 @@
 {
+  "$schema": "../tutorial-lesson.schema.json",
   "schemaVersion": 1,
   "id": "charging-chakra",
   "order": 2,
   "title": "Charging Chakra & Energy Management",
-  "subtitle": "Placeholder subtitle.",
-  "summary": "Placeholder summary.",
+  "subtitle": "Chakra is your only currency. Learn where it comes from, how to spend it, and why saving it is a trap.",
+  "summary": "Every Start phase you charge up: 5 base Chakra, plus 1 for each character you have in play, plus CHAKRA +X bonuses. Spend it before the End phase, because leftover Chakra disappears.",
   "emblem": "chakra",
   "accent": "energy",
-  "estMinutes": 4,
+  "estMinutes": 6,
   "steps": [
     {
-      "id": "intro",
-      "title": "Placeholder",
-      "body": "Placeholder step mentioning [[AMBUSH]]."
+      "id": "the-only-currency",
+      "title": "Chakra pays for everything",
+      "body": "[[Chakra]] is the only resource in Mythos, and every play costs it: a character's printed cost to play it face-up, a flat **1** to play it [[hidden]], its printed cost again to [[reveal]] it, and the cost difference to upgrade. There are no resource cards to play and nothing to tap. You charge a fresh supply at the start of every Round and spend it during the [[Action phase]].",
+      "visual": { "kind": "phase-track", "active": "start" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 12, "section": "How to play Character cards" }
+    },
+    {
+      "id": "start-phase-income",
+      "title": "Charging up in the Start phase",
+      "body": "At the start of every Round, right after the new mission is revealed, each player gains Chakra: a base **5**, plus **1 for every character** they have in play, plus any [[CHAKRA +X]] bonuses. In Round 1 nobody has characters on the board yet, so both players start with exactly 5. Then each player draws 2 cards.",
+      "callout": {
+        "tone": "rule",
+        "text": "Start-phase Chakra = 5 + 1 per character you have in play + CHAKRA +X bonuses."
+      },
+      "visual": { "kind": "chakra-formula", "base": 5, "characters": 0 },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 9, "section": "Start phase" }
+    },
+    {
+      "id": "what-counts",
+      "title": "What counts as a character",
+      "body": "Every character you have in play adds 1, including [[hidden]] ones. A face-down card keeps feeding your income, so a 1-Chakra hidden play earns its cost back in every later Start phase it survives. An [[upgrade stack]] counts as **one** character, however many cards are in it. Cards in your hand add nothing; only the board counts.",
+      "bullets": [
+        "Face-up character: **+1**",
+        "Hidden character: **+1**",
+        "Upgrade stack: **+1** in total",
+        "Cards in hand: **+0**"
+      ],
+      "visual": { "kind": "chakra-formula", "base": 5, "characters": 3 },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 15, "section": "Start phase · Characters Upgrades" }
+    },
+    {
+      "id": "chakra-bonus",
+      "title": "CHAKRA +X boosts",
+      "body": "Some characters carry [[CHAKRA +X]]. In each Start phase they give X extra Chakra on top of the 1 every character provides. Choji here is worth 2 a Round: 1 for being in play and 1 from his bonus. Treat these characters as investments. Play them early and keep them on the board, because the bonus pays out every Round they stay.",
+      "callout": {
+        "tone": "tip",
+        "text": "In these lessons a hidden character still gives its +1, but its CHAKRA +X bonus waits until it's revealed, since hidden cards have no active effects."
+      },
+      "visual": { "kind": "card", "cardId": "choji-akimichi", "face": "up" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 23, "section": "Glossary" }
+    },
+    {
+      "id": "spending-chakra",
+      "title": "Spending: back to the pool",
+      "body": "To pay a cost, return that many Chakra tokens to the shared pool. On this site we call that [[EXHAUST|exhausting]] Chakra. EXHAUST is **our shorthand, not an official keyword**: you won't find it on any Mythos card. Spent Chakra is gone for the rest of the Round. You may check your own hidden cards' costs in private before you commit.",
+      "callout": {
+        "tone": "warning",
+        "text": "EXHAUST is a platform term. On real cards and in the rulebook you simply pay the Chakra cost."
+      },
+      "visual": { "kind": "card", "cardId": "kakashi-copy", "face": "up" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 12, "section": "How to play Character cards" }
+    },
+    {
+      "id": "use-it-or-lose-it",
+      "title": "Use it or lose it",
+      "body": "In the [[End phase]] both players discard any leftover Chakra and remove every [[Power tokens|Power token]]. Nothing is banked: Chakra you didn't spend this Round is simply lost, and next Round you recharge from the same formula. Saving Chakra never makes you stronger later. Only the characters you put on the board do, so aim to spend down to zero.",
+      "callout": {
+        "tone": "rule",
+        "text": "Leftover Chakra never carries over to the next Round."
+      },
+      "visual": { "kind": "phase-track", "active": "end" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 11, "section": "End phase" }
+    },
+    {
+      "id": "board-presence-is-income",
+      "title": "Board presence is income",
+      "body": "Each character in play adds 1 Chakra every Start phase, so early plays keep paying. A ninja placed in Round 1 feeds you in Rounds 2, 3 and 4. By Round 4 a wide board with a couple of [[CHAKRA +X]] characters might charge 5 + 6 + 2 = **13**. Mix your costs so every Round can be spent exactly: a 1-Chakra hidden play is perfect for using up an odd leftover.",
+      "bullets": [
+        "Round 1: 5 Chakra, e.g. a 2-cost plus a 3-cost",
+        "Hidden plays (1 Chakra) soak up leftovers",
+        "Save big reveals for Rounds with income to match"
+      ],
+      "visual": { "kind": "chakra-formula", "base": 5, "characters": 6, "bonus": 2 },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 9, "section": "Start phase" }
     }
   ],
   "widget": {
     "id": "chakra-charger",
-    "title": "Training ground",
-    "brief": "Placeholder brief."
+    "title": "Chakra Charger",
+    "brief": "Tap every Chakra source to charge your gauge: the base 5, each character in play, and each [[CHAKRA +X]] bonus. Then spend all of it on plays that add up exactly, so nothing is wasted when the [[End phase]] arrives."
   },
   "quiz": [
     {
-      "id": "q1",
-      "prompt": "Placeholder?",
+      "id": "income",
+      "prompt": "Start of Round 3. You have 2 face-up characters, 1 hidden character and a 2-card upgrade stack, and no CHAKRA +X. How much Chakra do you gain?",
+      "choices": ["8", "10", "9", "5"],
+      "answerIndex": 2,
+      "explanation": "5 base + 1 per character. The 2 face-up characters, the hidden one and the [[upgrade stack]] (which counts once) make 4 characters, so 5 + 4 = **9**."
+    },
+    {
+      "id": "leftover",
+      "prompt": "You finish the Action phase with 3 unspent Chakra. What happens to it?",
       "choices": [
-        "Yes",
-        "No"
+        "It's discarded in the End phase; nothing carries over",
+        "It carries over to next Round",
+        "It turns into 3 Power tokens",
+        "It wins you the Edge token"
       ],
       "answerIndex": 0,
-      "explanation": "Placeholder."
+      "explanation": "Leftover Chakra is discarded in the [[End phase]]. Next Round you recharge from the formula, so unspent Chakra is wasted."
+    },
+    {
+      "id": "exhaust",
+      "prompt": "What does EXHAUST mean on this site?",
+      "choices": [
+        "An official Mythos keyword printed on cards",
+        "This site's shorthand for spending Chakra; it is not an official keyword",
+        "A status that stops a character from scoring",
+        "An effect that drains your opponent's Chakra"
+      ],
+      "answerIndex": 1,
+      "explanation": "[[EXHAUST]] is platform shorthand for paying Chakra back to the pool. The official rules simply say you pay the Chakra cost."
     }
+  ],
+  "sources": [
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 9, "section": "Start phase" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 11, "section": "End phase" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 12, "section": "How to play Character cards" }
   ]
 }

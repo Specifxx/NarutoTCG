@@ -1,35 +1,136 @@
 {
+  "$schema": "../tutorial-lesson.schema.json",
   "schemaVersion": 1,
   "id": "deck-setup",
   "order": 1,
   "title": "Deck Setup & Leader Mechanics",
-  "subtitle": "Placeholder subtitle.",
-  "summary": "Placeholder summary.",
+  "subtitle": "Build a legal deck, seed the Mission deck and take command of your village.",
+  "summary": "Mythos has no Leader card, because you are the leader. Learn the deck rules, the setup ritual before Round 1, and how the Edge token decides who leads each Round.",
   "emblem": "kage",
   "accent": "gold",
-  "estMinutes": 4,
+  "estMinutes": 6,
   "steps": [
     {
-      "id": "intro",
-      "title": "Placeholder",
-      "body": "Placeholder step mentioning [[AMBUSH]]."
+      "id": "you-are-the-kage",
+      "title": "You are the Kage",
+      "body": "In NARUTO Mythos there is no Leader card to put on the table, because **you** are the leader. You play as the [[Kage]] of your hidden village and choose which ninja to send on which mission. Who leads each Round is tracked by the [[Edge token]]: its holder takes the first turn and wins ties. A game lasts exactly **4 Rounds**, and whoever has the most [[Mission points]] at the end wins.",
+      "callout": {
+        "tone": "rule",
+        "text": "There is no Leader card in Mythos. When this site says \"leader\", it means you as the Kage, or the Edge holder who leads the Round."
+      },
+      "visual": {
+        "kind": "edge-token",
+        "holder": "you",
+        "caption": "The Edge holder leads the Round: first turn, and every tie."
+      },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 3, "section": "Welcome · Gameplay Overview" }
+    },
+    {
+      "id": "build-your-deck",
+      "title": "Build a legal deck",
+      "body": "Your [[deck]] needs **at least 30 cards**. You can run as many characters with the same name as you like, but no more than **2 copies of one specific version**. The version is the set name and number printed at the bottom of the card, and art variants share their original's limit. Four different Naruto Uzumaki cards, two of each? Legal. Three copies of the same Naruto? Illegal.",
+      "bullets": [
+        "**30+** cards in the deck",
+        "Max **2 copies** per version (set + number)",
+        "Any number of different versions of one name",
+        "**3 different Missions**, kept outside the deck"
+      ],
+      "visual": { "kind": "deck-stack", "deckSize": 30, "missions": 3, "hand": 0 },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 7, "section": "How to build your first deck" }
+    },
+    {
+      "id": "seed-the-mission-deck",
+      "title": "Seed the Mission deck",
+      "body": "Your three Missions never go into your deck. At setup, each player shuffles their three face-down and picks **2 at random**. The four chosen cards form one Mission deck, alternating owners so the Edge player's missions sit **1st and 3rd** from the top. One mission is revealed each Round, and the Round it arrives in sets its [[rank]]: D in Round 1, then C, B and A.",
+      "callout": {
+        "tone": "tip",
+        "text": "Your unused third Mission stays face-down for the whole game, so your opponent never learns what you left out. Bring three you'd be happy to fight over."
+      },
+      "visual": { "kind": "mission-ladder" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 8, "section": "Setup" }
+    },
+    {
+      "id": "who-leads-first",
+      "title": "Who leads first?",
+      "body": "Pick the first player at random with a coin, a die, or any method you both trust. That player gains the [[Edge token]] and leads Round 1: they take the first turn and win any tied mission. That's the only time luck decides it. In every Round after that, the first player to [[pass]] takes the Edge, or keeps it, so you earn the lead through your play.",
+      "visual": {
+        "kind": "edge-token",
+        "holder": "opp",
+        "caption": "Setup: a random first player starts with the Edge."
+      },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 8, "section": "Setup" }
+    },
+    {
+      "id": "draw-and-mulligan",
+      "title": "Draw five, mulligan once",
+      "body": "Both players shuffle their decks and draw **5 cards**. Then the Edge player chooses first whether to [[mulligan]]: shuffle the whole hand back and draw 5 new cards. The other player then makes the same choice. Each player may do this only once, so keep a hand that can get cheap ninjas onto the board early.",
+      "callout": {
+        "tone": "tip",
+        "text": "Look for characters costing 1 to 3. Round 1 gives you only 5 Chakra to spend."
+      },
+      "visual": { "kind": "deck-stack", "deckSize": 30, "missions": 3, "hand": 5 },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 22, "section": "Setup · Simplified game plan" }
+    },
+    {
+      "id": "round-at-a-glance",
+      "title": "A Round at a glance",
+      "body": "Every Round runs the same four phases. In the [[Start phase]] a new mission arrives, then you gain Chakra and draw 2. In the [[Action phase]] players take turns committing ninjas to missions. In [[Mission evaluation]] every mission in play is scored. The [[End phase]] clears leftover Chakra and Power tokens, and the next Round begins.",
+      "bullets": [
+        "Start: reveal a mission, gain Chakra, draw 2",
+        "Action: one card per turn, or pass",
+        "Mission: score every mission, D to A",
+        "End: discard Chakra and Power tokens"
+      ],
+      "visual": { "kind": "phase-track", "active": "start" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 9, "section": "Round phases" }
     }
   ],
   "widget": {
     "id": "deck-forge",
-    "title": "Training ground",
-    "brief": "Placeholder brief."
+    "title": "Deck Forge",
+    "brief": "This decklist breaks the rules. Find every illegal entry and fix it until the [[deck]] is legal, then run the setup ritual: pick the first player, seed the Mission deck and draw your opening hand."
   },
   "quiz": [
     {
-      "id": "q1",
-      "prompt": "Placeholder?",
+      "id": "leader-card",
+      "prompt": "Where is your Leader card in NARUTO Mythos?",
       "choices": [
-        "Yes",
-        "No"
+        "Face-up in play before Round 1",
+        "On top of your Mission deck",
+        "There isn't one: you are the Kage, and the Edge holder leads each Round",
+        "Shuffled into your 30-card deck"
+      ],
+      "answerIndex": 2,
+      "explanation": "Mythos has no Leader card. You play as the [[Kage]], and the [[Edge token]] marks who leads each Round: that player takes the first turn and wins ties."
+    },
+    {
+      "id": "legal-deck",
+      "prompt": "Which of these decks is legal?",
+      "choices": [
+        "28 cards, all different",
+        "32 cards, including 4 different Naruto Uzumaki versions with 2 copies each",
+        "30 cards with 3 copies of Naruto Uzumaki, Genin of the Leaf",
+        "27 cards plus your 3 Missions shuffled in"
+      ],
+      "answerIndex": 1,
+      "explanation": "Same-name characters are unlimited; the cap is **2 copies of a specific version**. You need at least 30 cards, and your Missions are never part of the [[deck]]."
+    },
+    {
+      "id": "mission-deck",
+      "prompt": "How is the Mission deck built at setup?",
+      "choices": [
+        "Each player picks 2 of their 3 Missions at random; the 4 alternate, with the Edge player's 1st and 3rd from the top",
+        "Both players shuffle all 6 Missions together",
+        "The Edge player chooses all 4 Missions",
+        "Each player openly picks their best 2 Missions"
       ],
       "answerIndex": 0,
-      "explanation": "Placeholder."
+      "explanation": "Two random Missions from each player form a 4-card deck, alternated so the Edge player's sit 1st and 3rd. One is revealed each Round, and that Round sets its [[rank]]."
     }
+  ],
+  "sources": [
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 7, "section": "How to build your first deck" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 8, "section": "Setup" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 22, "section": "Simplified game plan" }
   ]
 }
