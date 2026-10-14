@@ -6,11 +6,14 @@
     "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start --port 3003",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test lib/game/engine.test.ts content/content.test.ts",
+    "verify:puzzles": "tsx scripts/verify-puzzles.ts"
   },
   "dependencies": {
     "@naruto-tcg/types": "workspace:*",
     "@naruto-tcg/ui": "workspace:*",
+    "framer-motion": "^14.2.0",
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -21,6 +24,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.1.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.0"
   }
 }

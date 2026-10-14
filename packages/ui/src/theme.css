@@ -6,12 +6,19 @@
   --color-shadow-800: #151521;
   --color-shadow-700: #1f1f2e;
   --color-shadow-500: #4a4a63;
+  --color-ash-100: #ececf3;
   --color-ash-200: #d4d4e0;
+  --color-ash-300: #b3b3c6;
   --color-ash-400: #8d8da3;
+  --color-ash-500: #6b6b82;
   --color-chakra-400: #ff7a1a;
   --color-chakra-500: #f25c00;
   --color-chakra-600: #c44700;
   --color-blood-500: #c0182d;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {

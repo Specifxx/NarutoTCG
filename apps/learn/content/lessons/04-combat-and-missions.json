@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "combat-and-missions",
+  "order": 4,
+  "title": "Combat Phase & Mission Evaluation",
+  "subtitle": "Placeholder subtitle.",
+  "summary": "Placeholder summary.",
+  "emblem": "target",
+  "accent": "blood",
+  "estMinutes": 4,
+  "steps": [
+    {
+      "id": "intro",
+      "title": "Placeholder",
+      "body": "Placeholder step mentioning [[AMBUSH]]."
+    }
+  ],
+  "widget": {
+    "id": "mission-evaluator",
+    "title": "Training ground",
+    "brief": "Placeholder brief."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "prompt": "Placeholder?",
+      "choices": [
+        "Yes",
+        "No"
+      ],
+      "answerIndex": 0,
+      "explanation": "Placeholder."
+    }
+  ]
+}
