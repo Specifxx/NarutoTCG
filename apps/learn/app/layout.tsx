@@ -6,13 +6,26 @@ import { LearnSubnav } from "@/components/layout/learn-subnav";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
+const SITE_URL = process.env.NEXT_PUBLIC_LEARN_URL?.trim() || "http://localhost:3003/learn";
+const DESCRIPTION =
+  "Learn to play the NARUTO Mythos TCG with animated lessons, interactive Chakra and Ambush simulators, Lethal Puzzles and a searchable keyword glossary. Free, fan-made, no sign-up.";
+
 export const metadata: Metadata = {
+  // Absolute base for the Open Graph image (social link previews need full URLs).
+  metadataBase: new URL(new URL(SITE_URL).origin),
+  openGraph: {
+    type: "website",
+    siteName: "Naruto TCG · Learn",
+    title: "Learn to play Naruto Mythos TCG: free interactive rulebook",
+    description: DESCRIPTION,
+    url: SITE_URL,
+  },
+  twitter: { card: "summary_large_image" },
   title: {
     default: "Naruto TCG · Learn",
     template: "%s · Naruto TCG Learn",
   },
-  description:
-    "Learn to play the NARUTO Mythos TCG with animated lessons, interactive Chakra and Ambush simulators, Lethal Puzzles and a searchable keyword glossary.",
+  description: DESCRIPTION,
 };
 
 export const viewport: Viewport = {
