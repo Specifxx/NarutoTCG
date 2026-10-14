@@ -1,8 +1,11 @@
-import { SiteHeader } from "@naruto-tcg/ui";
+import { ReleaseRoadmap, SiteHeader } from "@naruto-tcg/ui";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { CardsNav } from "@/components/CardsNav";
 import "./globals.css";
+
+// Re-render hourly so date-driven UI (roadmap, release countdowns) follows the calendar.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: { default: "Naruto TCG · Card Database", template: "%s · Naruto TCG Cards" },
@@ -27,6 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main id="main" className="flex-1">
           {children}
         </main>
+        <ReleaseRoadmap current="cards" />
         <footer className="border-t border-shadow-800 py-8 text-center text-xs text-ash-400">
           Fan-made card database. Card data shown is sample data for development.
         </footer>

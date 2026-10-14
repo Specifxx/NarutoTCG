@@ -2,6 +2,8 @@
 
 Turborepo monorepo (pnpm) with Next.js App Router, TypeScript and Tailwind CSS.
 
+Release phases and target dates for each app are in [SCHEDULE.md](SCHEDULE.md).
+
 | App | Port | Purpose |
 | --- | --- | --- |
 | `apps/simulator` | 3000 | Play-test the game |
