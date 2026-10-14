@@ -5,7 +5,7 @@ import {
   parseEffectLine,
   parseEffectText,
   referencedKeywords,
-} from "@/components/detail/effect-text";
+} from "@/lib/effect-text";
 import { KEYWORD_GLOSSARY } from "@/lib/keywords";
 
 describe("parseEffectLine", () => {

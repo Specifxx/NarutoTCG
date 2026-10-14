@@ -7,7 +7,8 @@ import {
   type CardSet,
   type NarutoCard,
 } from "@naruto-tcg/types";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { GET, generateStaticParams } from "@/app/art/[id]/[setId]/[number]/[variant]/route";
 import {
   ART_HEIGHT,
   ART_WIDTH,
@@ -18,6 +19,17 @@ import {
   renderCardArtSvg,
   wrapText,
 } from "@/lib/art";
+import { getAllCards } from "@/lib/data";
+import { generatedArtSrc } from "@/lib/meta";
+
+// The /art route reads the real dataset through the server-only data module.
+// Tests may register extra fixture cards (e.g. same-variant reprints) beside it.
+const extraCards = vi.hoisted(() => new Map<string, NarutoCard>());
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/data", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/data")>();
+  return { ...actual, getCard: (id: string) => extraCards.get(id) ?? actual.getCard(id) };
+});
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -318,6 +330,28 @@ describe("renderCardArtSvg", () => {
     expectSafeSvg(svg);
   });
 
+  it("classifies brackets exactly like the rules readout", () => {
+    // "Piercing" is only on the card, not in the glossary; the tags are
+    // tag-shaped phrases outside TIMING_TAGS. parseEffectLine reads both as pills.
+    const card = makeCard({
+      keywords: ["Piercing"],
+      effect: "[Piercing] [Activate: Battle] Draw 1 card.\n[Once Per Game] If you control [Kakashi Hatake], gain [piercing].",
+    });
+    const svg = renderCardArtSvg(card, makePrinting(), SET);
+    const keywordPill = (label: string) => new RegExp(`font-weight="700" fill="#f6efe0"[^>]*>${label}</tspan>`);
+    const timingPill = (label: string) => new RegExp(`font-weight="700" fill="#fff"[^>]*>${label}</tspan>`);
+    expect(svg.match(new RegExp(keywordPill("Piercing").source, "g"))).toHaveLength(2);
+    expect(svg).toMatch(timingPill("Activate: Battle"));
+    expect(svg).toMatch(timingPill("Once Per Game"));
+    expect(svg).toMatch(/font-weight="700"[^>]*>\[Kakashi Hatake\]<\/tspan>/);
+    expect(svg).not.toMatch(/\[(?:Piercing|piercing|Activate: Battle|Once Per Game)\]/);
+    expectSafeSvg(svg);
+
+    const vanilla = renderCardArtSvg(makeCard({ effect: "", keywords: ["Piercing"] }), makePrinting(), SET);
+    expect(vanilla).toMatch(keywordPill("Piercing"));
+    expect(vanilla).not.toContain("[Piercing]");
+  });
+
   it("applies variant and rarity treatments", () => {
     const card = makeCard();
     const parallel = renderCardArtSvg(card, makePrinting({ variant: "parallel", rarity: "parallel-rare" }), SET);
@@ -490,6 +524,134 @@ describe("seeded randomness", () => {
     for (let k = 0; k < 100; k++) {
       const value = rng.int(2, 4);
       expect([2, 3, 4]).toContain(value);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Generated art URLs and the /art route
+// ---------------------------------------------------------------------------
+
+/** A card reprinted in two booster sets and two promo packs: two printings per variant. */
+const REPRINTED = makeCard({
+  id: "TS-REPRINT",
+  printings: [
+    makePrinting({ setId: "ST01", number: "ST01-099", rarity: "rare" }),
+    makePrinting({ setId: "NR02", number: "NR02-045", rarity: "common" }),
+    makePrinting({ setId: "PR01", number: "P-007", rarity: "promo", variant: "promo" }),
+    makePrinting({ setId: "PR02", number: "P-015", rarity: "promo", variant: "promo" }),
+  ],
+});
+
+type ArtRouteParams = Awaited<Parameters<typeof GET>[1]["params"]>;
+
+async function fetchArt(params: ArtRouteParams): Promise<Response> {
+  return GET(new Request("http://localhost/art"), { params: Promise.resolve(params) });
+}
+
+/** Route params for a generated-art URL, exactly as the browser requests it. */
+function paramsFromSrc(src: string): ArtRouteParams {
+  const [, root, id = "", setId = "", number = "", variant = ""] = src.split("/");
+  expect(root).toBe("art");
+  return { id, setId, number, variant };
+}
+
+describe("generatedArtSrc", () => {
+  it("names the whole printing, so reprints that share a variant get their own URL", () => {
+    expect(REPRINTED.printings.map((printing) => generatedArtSrc(REPRINTED, printing))).toEqual([
+      "/art/TS-REPRINT/ST01/ST01-099/standard",
+      "/art/TS-REPRINT/NR02/NR02-045/standard",
+      "/art/TS-REPRINT/PR01/P-007/promo",
+      "/art/TS-REPRINT/PR02/P-015/promo",
+    ]);
+    expect(generatedArtSrc(REPRINTED)).toBe("/art/TS-REPRINT/ST01/ST01-099/standard");
+  });
+
+  it("encodes every path segment", () => {
+    const card = makeCard({ id: "TS 01" });
+    expect(generatedArtSrc(card, makePrinting({ setId: "T/S", number: "001/120 #A?" }))).toBe(
+      "/art/TS%2001/T%2FS/001%2F120%20%23A%3F/standard",
+    );
+  });
+});
+
+describe("/art/[id]/[setId]/[number]/[variant] route", () => {
+  afterEach(() => extraCards.clear());
+
+  it("prerenders exactly one URL per printing", () => {
+    const srcs = getAllCards().flatMap((card) => card.printings.map((printing) => generatedArtSrc(card, printing)));
+    const params = generateStaticParams();
+    expect(params).toHaveLength(srcs.length);
+    expect(new Set(srcs).size).toBe(srcs.length);
+    expect(params.map((p) => `/art/${[p.id, p.setId, p.number, p.variant].map((s) => encodeURIComponent(s)).join("/")}`)).toEqual(srcs);
+  });
+
+  it("serves every printing in the dataset its own face", async () => {
+    for (const card of getAllCards()) {
+      for (const printing of card.printings) {
+        const src = generatedArtSrc(card, printing);
+        const response = await fetchArt(paramsFromSrc(src));
+        expect(response.status, src).toBe(200);
+        expect(response.headers.get("Content-Type")).toBe("image/svg+xml; charset=utf-8");
+        expect(await response.text(), src).toContain(`(${escapeXml(printing.number)})</title>`);
+      }
+    }
+  });
+
+  it("draws ST01-002's Promo Pack 1 printing with its promo number and stamp", async () => {
+    const response = await fetchArt({ id: "ST01-002", setId: "PR01", number: "P-007", variant: "promo" });
+    expect(response.status).toBe(200);
+    const { text } = parseSvg(await response.text());
+    expect(text).toContain("P-007");
+    expect(text).toContain("PROMO PACK 1");
+    expect(text).not.toContain("ST01-002");
+  });
+
+  it("keeps reprints that share a variant apart", async () => {
+    extraCards.set(REPRINTED.id, REPRINTED);
+    const faces = await Promise.all(
+      REPRINTED.printings.map(async (printing) => {
+        const response = await fetchArt(paramsFromSrc(generatedArtSrc(REPRINTED, printing)));
+        expect(response.status).toBe(200);
+        return parseSvg(await response.text()).text;
+      }),
+    );
+    const [st01, nr02, pr01, pr02] = faces;
+    expect(st01).toContain("ST01-099");
+    expect(st01).not.toContain("NR02-045");
+    expect(nr02).toContain("NR02-045");
+    expect(nr02).not.toContain("ST01-099");
+    expect(pr01).toContain("P-007");
+    expect(pr01).toContain("PROMO PACK 1");
+    expect(pr01).not.toContain("P-015");
+    expect(pr02).toContain("P-015");
+    expect(pr02).toContain("PROMO PACK 2");
+    expect(pr02).not.toContain("P-007");
+  });
+
+  it("accepts URL-encoded params", async () => {
+    extraCards.set("TS-ENC", makeCard({ id: "TS-ENC", printings: [makePrinting({ number: "001/120 #A" })] }));
+    const encoded = await fetchArt(paramsFromSrc("/art/TS-ENC/TS01/001%2F120%20%23A/standard"));
+    expect(encoded.status).toBe(200);
+    expect(await encoded.text()).toContain("(001/120 #A)</title>");
+
+    const decoded = await fetchArt({ id: "TS-ENC", setId: "TS01", number: "001/120 #A", variant: "standard" });
+    expect(decoded.status).toBe(200);
+  });
+
+  it("returns 404 unless the set, number and variant all name one printing", async () => {
+    const valid = { id: "ST01-002", setId: "PR01", number: "P-007", variant: "promo" };
+    expect((await fetchArt(valid)).status).toBe(200);
+    for (const params of [
+      { ...valid, id: "NOPE-000" },
+      { ...valid, setId: "ST01" }, // ST01 printing is ST01-002 standard
+      { ...valid, number: "ST01-002" },
+      { ...valid, variant: "standard" },
+      { ...valid, number: "%E0%A4%A" }, // malformed escape
+    ]) {
+      const response = await fetchArt(params);
+      expect(response.status, JSON.stringify(params)).toBe(404);
+      expect(response.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
     }
   });
 });
