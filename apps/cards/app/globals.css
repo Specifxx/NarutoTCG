@@ -1,0 +1,12 @@
+@import "@naruto-tcg/ui/theme.css";
+@source "../../../packages/ui/src";
+
+html {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-chakra-500) 45%, transparent);
+  color: white;
+}

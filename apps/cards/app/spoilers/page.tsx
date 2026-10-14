@@ -1,0 +1,4 @@
+// Placeholder; replaced by the Spoilers feature.
+export default function Page() {
+  return <div className="mx-auto max-w-7xl px-6 py-16 text-ash-400">Spoilers coming soon.</div>;
+}

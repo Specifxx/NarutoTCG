@@ -1,0 +1,29 @@
+[
+  {
+    "id": "st01-team-7-precon",
+    "name": "Team 7 (Out of the Box)",
+    "owner": "Starter Deck 01",
+    "description": "The Starter Deck 01 decklist exactly as it comes in the box.",
+    "leaderId": "ST01-001",
+    "archetype": "Team 7 Midrange",
+    "cards": [
+      { "cardId": "ST01-002", "quantity": 4 },
+      { "cardId": "ST01-003", "quantity": 4 },
+      { "cardId": "ST01-004", "quantity": 3 },
+      { "cardId": "ST01-005", "quantity": 4 },
+      { "cardId": "ST01-006", "quantity": 4 },
+      { "cardId": "ST01-007", "quantity": 4 },
+      { "cardId": "ST01-008", "quantity": 2 },
+      { "cardId": "ST01-009", "quantity": 3 },
+      { "cardId": "ST01-010", "quantity": 2 },
+      { "cardId": "ST01-011", "quantity": 4 },
+      { "cardId": "ST01-012", "quantity": 3 },
+      { "cardId": "ST01-013", "quantity": 4 },
+      { "cardId": "ST01-014", "quantity": 3 },
+      { "cardId": "ST01-015", "quantity": 3 },
+      { "cardId": "ST01-016", "quantity": 3 }
+    ],
+    "createdAt": "2026-03-06",
+    "updatedAt": "2026-03-06"
+  }
+]

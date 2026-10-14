@@ -12,6 +12,13 @@
   --color-chakra-500: #f25c00;
   --color-chakra-600: #c44700;
   --color-blood-500: #c0182d;
+
+  /* Chakra natures */
+  --color-fire: #ff5b2e;
+  --color-water: #3b9dff;
+  --color-lightning: #ffd23f;
+  --color-earth: #d0914f;
+  --color-wind: #3fdc9a;
 }
 
 body {
