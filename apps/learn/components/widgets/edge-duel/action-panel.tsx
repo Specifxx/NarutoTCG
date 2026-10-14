@@ -281,6 +281,7 @@ export function ActionPanel({
           size="lg"
           className="w-full"
           disabled={!yourTurn}
+          data-duel-pass
           onClick={() => onAct({ type: "pass", side: "you" })}
           aria-describedby="edge-duel-pass-hint"
         >

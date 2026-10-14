@@ -79,7 +79,7 @@ npm run build       # LESSONS are validated at module load, so a bad file fails 
 
 ## Importing from official PDFs, FAQs and manuals
 
-Use a structured extractor (for example the Claude Chrome extension prompt shipped with this project) to turn a rulebook page, FAQ or manual into an array of `TutorialStep` objects. Then do the following:
+Use a structured extractor (for example the Claude Chrome extension prompt in `chrome-import-prompt.md`) to turn a rulebook page, FAQ or manual into an array of `TutorialStep` objects. Then do the following:
 
 1. **Paste into the right lesson** (or a new `0N-<id>.json` plus an entry in `lessons/index.ts`) and keep the `source` block (document, page, section, URL) on every step.
 2. **Run `npm test`.** Fix any unknown keyword in `[[…]]` (map it to an existing id or alias, or add a glossary entry in `keywords.ts`) and replace any real card names in visuals with practice card ids.

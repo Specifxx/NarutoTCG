@@ -81,6 +81,8 @@ export function DuelBoard({
   onRetry,
   onNext,
   nextLabel,
+  intro = false,
+  finale = false,
 }: {
   duel: DuelDef;
   index: number;
@@ -91,10 +93,71 @@ export function DuelBoard({
   onRetry: () => void;
   onNext?: () => void;
   nextLabel?: string;
+  /** Opened via Next / Retry / the track: bring the briefing into view and hold the rival's first move. */
+  intro?: boolean;
+  /** Every duel is won: show the all-clear where the learner is looking. */
+  finale?: boolean;
 }) {
-  const { state, phase, log, evaluation, firstPasser, flourish, fresh, yourActions, act } = useDuel(duel);
+  const { state, phase, log, evaluation, firstPasser, flourish, fresh, yourActions, act } = useDuel(
+    duel,
+    intro ? 900 : 0,
+  );
   const compact = useMediaQuery("(max-width: 479px)");
+  const stacked = useMediaQuery("(max-width: 1023px)");
   const reported = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const engaged = intro || yourActions.length > 0;
+  const smooth = (): ScrollBehavior =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+
+  // Next / Retry: show the new title and briefing, and put focus on the title.
+  useEffect(() => {
+    if (!intro) return;
+    titleRef.current?.scrollIntoView({ block: "start", behavior: smooth() });
+    titleRef.current?.focus({ preventScroll: true });
+  }, [intro]);
+
+  // Follow the action on the board: the lane a card landed in, then the seat that took the Edge.
+  useEffect(() => {
+    if (!engaged || fresh.length === 0) return;
+    const lane = state.missions.find((m) => m.units.some((u) => fresh.includes(u.uid)));
+    if (!lane) return;
+    rootRef.current
+      ?.querySelector<HTMLElement>(`[data-lane="${lane.def.id}"]`)
+      ?.scrollIntoView({ block: "center", behavior: smooth() });
+  }, [fresh]);
+  useEffect(() => {
+    if (!engaged || !flourish) return;
+    rootRef.current
+      ?.querySelector<HTMLElement>(`[data-seat="${flourish.side}"]`)
+      ?.scrollIntoView({ block: "center", behavior: smooth() });
+  }, [flourish]);
+
+  // Back to your controls (phones: they sit below the board), and keep keyboard focus on the next control.
+  useEffect(() => {
+    if (!engaged || (phase !== "your-turn" && phase !== "over")) return;
+    const t = window.setTimeout(
+      () => {
+        const root = rootRef.current;
+        if (!root) return;
+        if (stacked) {
+          root
+            .querySelector<HTMLElement>("[data-duel-controls]")
+            ?.scrollIntoView({ block: "start", behavior: smooth() });
+        }
+        const a = document.activeElement;
+        if (a && a !== document.body) return;
+        const target =
+          phase === "over"
+            ? root.querySelector<HTMLElement>("#edge-duel-result-title")
+            : root.querySelector<HTMLElement>("[data-duel-pass]");
+        target?.focus({ preventScroll: true });
+      },
+      stacked ? 700 : 120,
+    );
+    return () => window.clearTimeout(t);
+  }, [phase]);
 
   useEffect(() => {
     if (phase !== "over" || !evaluation || reported.current) return;
@@ -109,7 +172,7 @@ export function DuelBoard({
   const score = evaluation && phase === "over" ? evaluation.scoreAfter : state.score;
 
   return (
-    <div className="space-y-4">
+    <div ref={rootRef} className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1 text-gold-300">
@@ -118,7 +181,13 @@ export function DuelBoard({
             <span className="text-ash-500">·</span>
             <span className="text-ash-400">{duel.roundLabel}</span>
           </p>
-          <h3 className="mt-1.5 text-xl font-black tracking-tight text-white sm:text-2xl">{duel.title}</h3>
+          <h3
+            ref={titleRef}
+            tabIndex={-1}
+            className="mt-1.5 scroll-mt-[200px] text-xl font-black tracking-tight text-white outline-none sm:scroll-mt-[220px] sm:text-2xl"
+          >
+            {duel.title}
+          </h3>
           <p className="mt-0.5 text-sm text-ash-400">{duel.tagline}</p>
         </div>
         <div className="flex shrink-0 items-center gap-3 self-start rounded-2xl border border-white/[0.08] bg-black/30 px-3 py-2">
@@ -168,6 +237,7 @@ export function DuelBoard({
       <LayoutGroup id={`edge-duel-${duel.id}`}>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
           <div className="min-w-0 space-y-3">
+            <div data-seat="opp">
             <Seat
               side="opp"
               chakra={state.chakra.opp}
@@ -178,16 +248,13 @@ export function DuelBoard({
               hand={state.hands.opp}
               cards={duel.cards}
             />
+            </div>
             {state.missions.map((m) => (
-              <MissionLane
-                key={m.def.id}
-                mission={m}
-                state={state}
-                cards={duel.cards}
-                fresh={fresh}
-                compact={compact}
-              />
+              <div key={m.def.id} data-lane={m.def.id}>
+                <MissionLane mission={m} state={state} cards={duel.cards} fresh={fresh} compact={compact} />
+              </div>
             ))}
+            <div data-seat="you">
             <Seat
               side="you"
               chakra={state.chakra.you}
@@ -197,13 +264,26 @@ export function DuelBoard({
               active={phase === "your-turn"}
               cards={duel.cards}
             />
+            </div>
           </div>
 
-          <div className="min-w-0 space-y-3">
+          {/* Desktop: the controls ride along beside the board so the hand, Pass and the board share the screen. */}
+          <div
+            data-duel-controls
+            className="min-w-0 scroll-mt-[176px] space-y-3 sm:scroll-mt-[200px] lg:sticky lg:top-[200px] lg:max-h-[calc(100vh-216px)] lg:self-start lg:overflow-y-auto lg:overscroll-contain"
+          >
             <TurnIndicator phase={phase} state={state} />
             <AnimatePresence mode="wait" initial={false}>
               {phase === "over" && evaluation ? (
                 <motion.div key="result" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  {finale && (
+                    <p className="mb-3 flex items-center gap-2 rounded-2xl border border-gold-400/40 bg-gold-400/10 px-3 py-2 text-[13px] text-ash-200">
+                      <Emblem name="edge" size={18} className="shrink-0 text-gold-300" />
+                      <span>
+                        <span className="font-black text-gold-200">Edge mastered.</span> All three duels won.
+                      </span>
+                    </p>
+                  )}
                   <DuelResult
                     evaluation={evaluation}
                     state={state}

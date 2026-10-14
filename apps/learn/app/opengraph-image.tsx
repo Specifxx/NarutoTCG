@@ -141,7 +141,7 @@ export default function OpengraphImage() {
                 {rank}
               </div>
             ))}
-            <div style={{ display: "flex", alignItems: "center", marginLeft: 10, color: "#fcd96a", fontSize: 24, fontWeight: 700 }}>Ties → Edge token</div>
+            <div style={{ display: "flex", alignItems: "center", marginLeft: 10, color: "#fcd96a", fontSize: 24, fontWeight: 700 }}>Ties go to the Edge</div>
           </div>
         </div>
 

@@ -217,7 +217,8 @@ export interface DuelController {
  * the scripted rival answers on a short beat, and the Round is scored with
  * `evaluateRound` once both players have passed. Remount (change `key`) to retry.
  */
-export function useDuel(duel: DuelDef): DuelController {
+/** `startDelay` holds the rival's opening move so a freshly opened duel's briefing can be read first. */
+export function useDuel(duel: DuelDef, startDelay = 0): DuelController {
   const reduce = useReducedMotion();
   const [run, setRun] = useState<Run>(() => initialRun(duel));
   const timers = useRef<number[]>([]);
@@ -296,7 +297,8 @@ export function useDuel(duel: DuelDef): DuelController {
     const initial = createGame(duel.setup);
     locked.current = initial.active === "opp";
     cursor.current = 0;
-    proceed(initial, 0);
+    if (startDelay > 0 && initial.active === "opp") schedule(() => proceed(initial, 0), startDelay);
+    else proceed(initial, 0);
     const pending = timers.current;
     return () => {
       pending.forEach((t) => window.clearTimeout(t));

@@ -135,7 +135,7 @@ export const DUELS: DuelDef[] = [
       { type: "play", cardId: "kankuro-puppet", missionId: "forest-of-death", hidden: false },
       { type: "pass" },
     ],
-    explain: ({ won, evaluation, state }) => {
+    explain: ({ won, evaluation, state, yourActions }) => {
       const o = evaluation.outcomes[0];
       const you = o?.power.you ?? 0;
       const opp = o?.power.opp ?? 0;
@@ -148,6 +148,13 @@ export const DUELS: DuelDef[] = [
         return `You took the Edge, but too soon: it only wins ties, and they finished ahead ${opp} to ${you}. Get level first, then pass.`;
       }
       if (you === opp) {
+        // Did your own (power-changing) play make it level? Then the rival got the next turn and passed first.
+        const lastMove = [...yourActions].reverse().find((a) => a.type !== "pass");
+        const levelledByYou =
+          lastMove !== undefined && (lastMove.type !== "play" || !lastMove.hidden);
+        if (levelledByYou) {
+          return `You drew level at ${you} with your own play, which gave your rival the next turn: they passed first and kept the Edge, so the tie went to them. Get level on their play, then pass straight away.`;
+        }
         return `You got level at ${you}, but your rival passed first and kept the Edge, so the tie went to them. Pass the moment you have matched them.`;
       }
       return `Your rival kept the Edge and finished ahead ${opp} to ${you}. Match their Power first, then pass before they do.`;

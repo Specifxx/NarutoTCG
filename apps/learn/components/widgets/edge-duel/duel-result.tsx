@@ -154,7 +154,8 @@ export function DuelResult({
           </span>
           <h3
             id="edge-duel-result-title"
-            className={cn("text-xl font-black", won ? "text-leaf-300" : "text-blood-400")}
+            tabIndex={-1}
+            className={cn("text-xl font-black outline-none", won ? "text-leaf-300" : "text-blood-400")}
           >
             {won ? "Duel won!" : "Duel lost"}
           </h3>

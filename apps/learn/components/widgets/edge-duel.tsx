@@ -192,6 +192,8 @@ export default function EdgeDuel({ onComplete, completed }: WidgetProps) {
           onRetry={() => setAttempt((a) => a + 1)}
           onNext={isLast ? undefined : () => select(current + 1)}
           nextLabel={isLast ? undefined : `Next: ${DUELS[current + 1]!.title}`}
+          intro={attempt > 0}
+          finale={allWon && celebrate > 0}
         />
       </div>
     </div>
