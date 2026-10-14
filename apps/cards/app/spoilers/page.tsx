@@ -63,7 +63,10 @@ export default function SpoilersPage() {
         summary: summarizeSet(set, entries),
         // The rarest card goes last so it renders on top of the fan.
         showcase: showcaseEntries(entries, (entry) => RARITY_META[entry.printing.rarity].rank).reverse(),
-        hasReveals: entries.some((entry) => entry.card.reveal !== undefined),
+        // A reveal belongs to the card's debut set; reprints in this set don't count.
+        hasReveals: entries.some(
+          (entry) => entry.card.reveal !== undefined && entry.printing.setId === primaryPrinting(entry.card).setId,
+        ),
       };
     })
     .filter((item) => item.hasReveals);
@@ -162,8 +165,7 @@ export default function SpoilersPage() {
                 </h2>
                 {latest && (
                   <p className="text-sm text-ash-400">
-                    <NewBadge className="relative mr-1.5 align-middle" /> = revealed in the 7 days up to{" "}
-                    <time dateTime={latest}>{formatDate(latest)}</time>
+                    <NewBadge className="relative mr-1.5 align-middle" /> = revealed in the last 7 days
                   </p>
                 )}
               </div>
@@ -179,7 +181,7 @@ export default function SpoilersPage() {
                       id={revealDayId(day.date)}
                       labelledBy={headingId}
                       keys={keys}
-                      className="scroll-mt-32"
+                      className="scroll-mt-4"
                     >
                       <div
                         className={`${styles.dayHeader} sticky top-[var(--cards-header-h)] z-20 -mx-4 mb-4 flex items-center gap-3 border-b border-shadow-800 px-4 py-3 sm:-mx-6 sm:px-6`}
@@ -189,9 +191,9 @@ export default function SpoilersPage() {
                             {formatWeekdayMonthDay(day.date)}
                           </time>
                         </h2>
-                        {isNewReveal(day.date, latest) && (
+                        {isNewReveal(day.date, today) && (
                           <span className="rounded-full bg-chakra-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-chakra-400">
-                            This week
+                            New
                           </span>
                         )}
                         <span className="ml-auto text-sm tabular-nums text-ash-400">
@@ -210,7 +212,7 @@ export default function SpoilersPage() {
                             <RevealCard
                               card={card}
                               set={setById.get(primaryPrinting(card).setId)}
-                              isNew={isNewReveal(card.reveal?.date, latest)}
+                              isNew={isNewReveal(card.reveal?.date, today)}
                               priority={eagerIds.has(card.id)}
                             />
                           </FeedItem>

@@ -8,7 +8,9 @@ export function revealDayId(date: string): string {
 /**
  * Compact column chart of cards revealed per day. Single series, so no legend;
  * each column links to its day in the feed and carries an sr-only value, and
- * hover/focus shows a tooltip. Only the peak column is direct-labelled.
+ * hover/focus shows a tooltip. Only the peak column is direct-labelled. Below
+ * `sm` the columns are too narrow to tap reliably (WCAG 2.5.8), so they ignore
+ * pointer input there; keyboard users keep the links.
  */
 export function RevealTimeline({ data, headingId }: { data: RevealTimelineData; headingId: string }) {
   const { days, total, peak, peakDate, trimmed } = data;
@@ -67,7 +69,7 @@ export function RevealTimeline({ data, headingId }: { data: RevealTimelineData; 
             <li key={day.date} className="flex h-full min-w-0 flex-1 justify-center">
               <a
                 href={`#${revealDayId(day.date)}`}
-                className="group/bar relative block h-full w-full max-w-6 rounded-t-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+                className="group/bar relative block h-full w-full max-w-6 rounded-t-[4px] max-sm:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
               >
                 <span className="sr-only">
                   {formatMonthDay(day.date)}: {pluralize(day.count, "card")} revealed

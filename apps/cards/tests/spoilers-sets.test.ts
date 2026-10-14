@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { validateDataset } from "@/lib/schema";
-import { printingKey } from "@/lib/meta";
+import { primaryPrinting, printingKey } from "@/lib/meta";
 import {
   addDaysIso,
   formatMonthDay,
@@ -36,12 +36,15 @@ describe("date helpers", () => {
     expect(addDaysIso("2026-03-01", -1)).toBe("2026-02-28");
     expect(formatMonthDay("2026-10-13")).toBe("Oct 13");
   });
-  it("isNewReveal uses a 7-day inclusive window ending at the latest reveal", () => {
+  it("isNewReveal uses a 7-day inclusive window ending on the anchor date (pages pass today)", () => {
     expect(isNewReveal("2026-10-13", "2026-10-13")).toBe(true);
     expect(isNewReveal("2026-10-07", "2026-10-13")).toBe(true);
     expect(isNewReveal("2026-10-06", "2026-10-13")).toBe(false);
     expect(isNewReveal(undefined, "2026-10-13")).toBe(false);
     expect(isNewReveal("2026-10-14", "2026-10-13")).toBe(false);
+    // Anchored to today, old reveals stop being NEW even when no newer reveal exists.
+    expect(isNewReveal("2026-10-13", "2026-12-15")).toBe(false);
+    expect(isNewReveal(undefined, undefined)).toBe(false);
   });
 });
 
@@ -87,7 +90,31 @@ describe("public/data reveals and sets", () => {
       expect(s.completion).toBeLessThanOrEqual(1);
       const showcase = showcaseEntries(entries, () => 0);
       expect(new Set(showcase.map((e) => e.card.id)).size).toBe(showcase.length);
+      // Only cards that debut in the set lend it their reveal date.
+      const debutReveals = entries
+        .filter((e) => primaryPrinting(e.card).setId === set.id)
+        .flatMap((e) => (e.card.reveal ? [e.card.reveal.date] : []));
+      expect(s.latestReveal).toBe(debutReveals.length > 0 ? debutReveals.sort().at(-1) : undefined);
     }
+  });
+
+  it("attributes a card's reveal to its debut set, not to sets that reprint it", () => {
+    const card = revealed.find((c) => c.printings.length > 1);
+    expect(card).toBeDefined();
+    if (!card) return;
+    const debut = primaryPrinting(card);
+    const parallel = card.printings.find((p) => p !== debut && p.setId === debut.setId);
+    const reprint = { ...debut, setId: "PR99", number: "PR99-001" };
+    const withReprint = { ...card, printings: [...card.printings, reprint] };
+    const entry = (printing: typeof debut) => ({ card: withReprint, printing, key: printingKey(printing) });
+
+    expect(summarizeSet({ totalCards: 30 }, [entry(debut)]).latestReveal).toBe(card.reveal?.date);
+    // The debut set's own parallels still count.
+    if (parallel) expect(summarizeSet({ totalCards: 30 }, [entry(parallel)]).latestReveal).toBe(card.reveal?.date);
+    // A later promo that reprints the card lists it, but it was not revealed for that set.
+    const promo = summarizeSet({ totalCards: 8 }, [entry(reprint)]);
+    expect(promo.knownNumbers).toBe(1);
+    expect(promo.latestReveal).toBeUndefined();
   });
 });
 
@@ -105,6 +132,12 @@ describe("checklist model", () => {
     expect(matchesQuery(index[0]!.search, normalizeSearch("naruto ninja"))).toBe(true);
     expect(matchesQuery(index[0]!.search, normalizeSearch("naruto sasuke"))).toBe(false);
     expect(matchesQuery(index[0]!.search, "")).toBe(true);
+  });
+  it("drops invisible format characters instead of splitting words", () => {
+    expect(normalizeSearch("Naruto Uzu­maki")).toBe("naruto uzumaki");
+    expect(normalizeSearch("Sasuke Uchi​ha")).toBe("sasuke uchiha");
+    expect(normalizeSearch("‮Kakashi‬ Hatake﻿")).toBe("kakashi hatake");
+    expect(matchesQuery(searchHaystack(["Naruto Uzu­maki", undefined, "ST01-001"]), normalizeSearch("uzumaki"))).toBe(true);
   });
   it("filters by status, rarity and query", () => {
     const owned = new Set(["b"]);

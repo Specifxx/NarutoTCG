@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+// Rendered through the layout's title template: "Page not found · Naruto TCG Cards".
+export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (

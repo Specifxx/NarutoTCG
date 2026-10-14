@@ -28,6 +28,9 @@ export function normalizeSearch(text: string): string {
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
+    // Invisible format characters (soft hyphen, zero-width space, bidi controls)
+    // vanish rather than split a word in two.
+    .replace(/\p{Cf}/gu, "")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }

@@ -98,7 +98,7 @@ export default async function SetChecklistPage({ params }: Params) {
             <span className="rounded-md border border-shadow-500 bg-shadow-800 px-2 py-0.5 font-mono font-semibold tracking-wider text-ash-200">
               {set.id}
             </span>
-            <span className="font-semibold uppercase tracking-[0.14em] text-ash-400">{SET_KIND_LABEL[set.kind]}</span>
+            <span className="font-semibold uppercase tracking-[0.14em] text-ash-200">{SET_KIND_LABEL[set.kind]}</span>
             {!released && <UpcomingBadge />}
           </div>
           <h1 className="mt-3 text-balance text-3xl font-black tracking-tight text-white sm:text-5xl">{set.name}</h1>
@@ -188,8 +188,10 @@ export default async function SetChecklistPage({ params }: Params) {
                     <CardImage card={card} printing={printing} className="rounded-[3px] shadow shadow-black/60" />
                   </div>
                   <div className={styles.cellName}>
+                    {/* No viewport prefetch: a booster checklist can list hundreds of printings. */}
                     <Link
                       href={cardHref(card.id)}
+                      prefetch={false}
                       className="rounded-sm font-semibold text-white transition hover:text-chakra-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
                     >
                       {card.name}

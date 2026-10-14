@@ -116,7 +116,7 @@ export default function OverviewPage() {
             decks: getDecks().length,
           }}
         />
-        <LatestReveals cards={revealed.slice(0, LATEST_REVEALS)} latest={latest} season={season} />
+        <LatestReveals cards={revealed.slice(0, LATEST_REVEALS)} today={today} season={season} />
         <ElementTiles counts={elementCounts} />
         <TypeLinks counts={typeCounts} />
         {/* Newest first: upcoming and recent sets are what people check most. */}

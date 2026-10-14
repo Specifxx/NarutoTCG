@@ -35,14 +35,20 @@ function emit(): void {
 }
 
 function onStorage(event: StorageEvent): void {
-  if (event.key !== STORAGE_KEY) return;
+  // `key` is null when another tab calls localStorage.clear().
+  if (event.key !== null && event.key !== STORAGE_KEY) return;
   snapshot = read();
   emit();
 }
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
-  if (listeners.size === 1) window.addEventListener("storage", onStorage);
+  if (listeners.size === 1) {
+    // Other tabs may have written while nothing was listening, so the cached
+    // snapshot can be stale. Drop it; React re-reads it right after subscribing.
+    snapshot = null;
+    window.addEventListener("storage", onStorage);
+  }
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0) window.removeEventListener("storage", onStorage);
@@ -90,3 +96,6 @@ export function useCollection(): Collection {
 
   return { owned, isOwned, toggle, setMany };
 }
+
+/** The external store behind `useCollection`, exposed for unit tests. */
+export const collectionStore = { subscribe, getSnapshot } as const;

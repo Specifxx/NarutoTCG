@@ -1,9 +1,10 @@
 import type { CardPrinting, NarutoCard } from "@naruto-tcg/types";
 import Link from "next/link";
 import { CardImage } from "@/components/CardImage";
+import { cardImageSrc } from "@/lib/meta";
 import { SearchIcon } from "./icons";
 import styles from "./home.module.css";
-import { cardsHref } from "@/lib/search";
+import { cardsHref, phraseQuery } from "@/lib/search";
 
 export interface HeroCard {
   card: NarutoCard;
@@ -72,7 +73,7 @@ export function HomeHero({
               {suggestions.map((term) => (
                 <Link
                   key={term}
-                  href={cardsHref({ query: term })}
+                  href={cardsHref({ query: phraseQuery(term) })}
                   className="rounded-full border border-shadow-700 bg-shadow-900/80 px-3 py-1 text-ash-200 transition hover:border-chakra-500/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
                 >
                   {term}
@@ -88,6 +89,15 @@ export function HomeHero({
             <div className={`${styles.fan} max-w-[22rem] lg:max-w-[30rem]`}>
               {showcase.map(({ card, printing }) => (
                 <div key={`${card.id}-${printing.number}-${printing.variant}`} className={styles.fanCard}>
+                  {/* From `sm` up the fan holds the LCP element (a tilted card's box is the largest),
+                      so fetch all three early. The media query skips phones, where the fan is hidden. */}
+                  <link
+                    rel="preload"
+                    as="image"
+                    href={cardImageSrc(card, printing)}
+                    media="(min-width: 40rem)"
+                    fetchPriority="high"
+                  />
                   <CardImage card={card} printing={printing} />
                 </div>
               ))}

@@ -171,12 +171,12 @@ export interface SpoilerSeason {
 
 export function LatestReveals({
   cards,
-  latest,
+  today,
   season,
 }: {
   cards: readonly NarutoCard[];
-  /** Most recent reveal date in the dataset; anchors the NEW window. */
-  latest: string | undefined;
+  /** ISO date of the render (`todayIso()`); anchors the NEW window. */
+  today: string;
   season: SpoilerSeason | undefined;
 }) {
   return (
@@ -226,14 +226,17 @@ export function LatestReveals({
           {cards.map((card) => (
             <li key={card.id} className="group relative">
               <div className="relative transition duration-300 motion-safe:group-hover:-translate-y-1">
-                <CardImage card={card} className="shadow-lg shadow-black/50" />
+                {/* Decorative: the heading below names the card. */}
+                <CardImage card={card} alt="" className="shadow-lg shadow-black/50" />
               </div>
-              {isNewReveal(card.reveal?.date, latest) && (
+              {isNewReveal(card.reveal?.date, today) && (
                 <NewBadge className="pointer-events-none absolute -top-2 right-1.5 z-10" />
               )}
               <h3 className="mt-2 truncate text-sm font-semibold text-white">
                 <Link href={cardHref(card.id)} className={`rounded-sm group-hover:text-chakra-400 ${STRETCHED} after:rounded-lg`}>
                   {card.name}
+                  {/* With the art decorative, the title tells same-name cards apart. */}
+                  {card.title && <span className="sr-only">, {card.title}</span>}
                 </Link>
               </h3>
               {card.reveal && (
@@ -369,7 +372,7 @@ export function SetsRow({ items }: { items: readonly SetRowItem[] }) {
                   <span className="rounded-md border border-shadow-500 bg-shadow-800 px-1.5 py-0.5 font-mono font-semibold text-ash-200">
                     {set.id}
                   </span>
-                  <span className="font-semibold uppercase tracking-[0.14em] text-ash-400">{SET_KIND_LABEL[set.kind]}</span>
+                  <span className="font-semibold uppercase tracking-[0.14em] text-ash-200">{SET_KIND_LABEL[set.kind]}</span>
                 </span>
                 <span className="relative mt-3 line-clamp-2 font-bold leading-snug text-white group-hover:text-chakra-400">
                   {set.name}
