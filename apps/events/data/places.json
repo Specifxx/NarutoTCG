@@ -1,0 +1,4 @@
+[
+  { "name": "Los Angeles", "admin": "CA", "country": "US", "lat": 34.0522, "lng": -118.2437, "aliases": ["LA", "L.A."], "postalCodes": ["90012", "90013", "90015"] },
+  { "name": "Manchester", "admin": "England", "country": "GB", "lat": 53.4808, "lng": -2.2426, "postalCodes": ["M1", "M2", "M4"] }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bcgf-los-angeles-2026",
+    "title": "Bandai Card Games Fest 26-27 · Los Angeles — Naruto TCG Showcase",
+    "type": "convention-showcase",
+    "format": "learn-to-play",
+    "description": "Sample listing. The Naruto TCG showcase booth at Bandai Card Games Fest with guided demo games, set reveals and side events all weekend.",
+    "venue": {
+      "name": "Los Angeles Convention Center",
+      "hall": "West Hall · Booth 2140",
+      "address": { "line1": "1201 S Figueroa St", "city": "Los Angeles", "region": "CA", "postalCode": "90015", "country": "US" },
+      "location": { "lat": 34.0403, "lng": -118.2696 }
+    },
+    "start": "2026-11-21T10:00",
+    "end": "2026-11-22T18:00",
+    "timeZone": "America/Los_Angeles",
+    "entryFee": { "amount": 0, "currency": "USD" },
+    "capacity": 1200,
+    "registeredCount": 836,
+    "registration": { "method": "external", "url": "https://example.com/bcgf-la-tickets", "opens": "2026-09-01T09:00" },
+    "organizer": { "name": "Bandai Card Games (sample)", "kind": "official", "verified": true, "website": "https://example.com/bcgf" },
+    "prizes": ["Showcase promo card for every demo completed", "Playmat raffle each hour"],
+    "tags": ["bandai-fest", "demo", "family-friendly"]
+  },
+  {
+    "id": "hidden-leaf-weekly",
+    "title": "Thursday Night Naruto TCG",
+    "type": "lgs-weekly",
+    "format": "constructed",
+    "description": "Casual weekly constructed night. Loaner decks available.",
+    "storeSlug": "hidden-leaf-games-los-angeles",
+    "start": "2026-10-08T18:30",
+    "end": "2026-10-08T22:00",
+    "entryFee": { "amount": 5, "currency": "USD" },
+    "capacity": 32,
+    "registeredCount": 18,
+    "registration": { "method": "in-store" },
+    "recurrence": { "frequency": "weekly", "until": "2026-12-17", "except": ["2026-11-26"] },
+    "prizes": ["Weekly promo pack to top 4"],
+    "tags": ["casual", "loaner-decks"]
+  },
+  {
+    "id": "mist-harbour-store-championship-q4-2026",
+    "title": "Store Championship — Season 1",
+    "type": "store-championship",
+    "format": "constructed",
+    "description": "Competitive Swiss rounds with a top-8 cut.",
+    "storeSlug": "mist-harbour-cards-manchester",
+    "start": "2026-11-14T11:00",
+    "end": "2026-11-14T19:00",
+    "entryFee": { "amount": 12.5, "currency": "GBP" },
+    "capacity": 48,
+    "registeredCount": 41,
+    "registration": { "method": "online", "opens": "2026-10-01T10:00", "closes": "2026-11-13T20:00" },
+    "participants": [
+      { "displayName": "KageBunshinKid", "country": "GB" },
+      { "displayName": "SakuraPetal", "country": "IE" }
+    ],
+    "prizes": ["Champion playmat", "Store Champion title"],
+    "tags": ["competitive"]
+  }
+]

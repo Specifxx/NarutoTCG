@@ -53,3 +53,6 @@ export function PageShell({ title, tagline, children }: { title: string; tagline
     </main>
   );
 }
+
+export { SiteHeader, PLATFORM_NAV, zoneHref } from "./site-header";
+export type { PlatformZone, PlatformNavItem, SiteHeaderProps, ZoneUrls } from "./site-header";

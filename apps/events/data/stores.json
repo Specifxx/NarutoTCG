@@ -1,0 +1,41 @@
+[
+  {
+    "slug": "hidden-leaf-games-los-angeles",
+    "name": "Hidden Leaf Games",
+    "tagline": "Little Tokyo's home for card battles",
+    "description": "A two-floor hobby store in Little Tokyo with 24 tournament tables, weekly Naruto TCG nights and official demo kits on hand every day.",
+    "verified": true,
+    "verifiedSince": "2026-03-14",
+    "address": { "line1": "318 E 2nd St", "city": "Los Angeles", "region": "CA", "postalCode": "90012", "country": "US" },
+    "location": { "lat": 34.0497, "lng": -118.2399 },
+    "timeZone": "America/Los_Angeles",
+    "contact": { "phone": "+1 (213) 555-0142", "email": "events@hiddenleafgames.example", "website": "https://hiddenleafgames.example" },
+    "social": { "instagram": "https://instagram.com/hiddenleafgames.example", "discord": "https://discord.gg/example-leaf" },
+    "hours": {
+      "mon": [], "tue": [["12:00", "21:00"]], "wed": [["12:00", "22:00"]], "thu": [["12:00", "21:00"]],
+      "fri": [["12:00", "23:00"]], "sat": [["10:00", "23:00"]], "sun": [["10:00", "19:00"]]
+    },
+    "features": ["demo-kits", "weekly-play", "tournament-host", "play-space", "singles", "sealed-product", "accessible"],
+    "tableCount": 24,
+    "languages": ["en", "ja", "es"]
+  },
+  {
+    "slug": "mist-harbour-cards-manchester",
+    "name": "Mist Harbour Cards",
+    "description": "Northern Quarter card shop and café with a dedicated tournament room and Friday night play.",
+    "verified": true,
+    "verifiedSince": "2026-05-02",
+    "address": { "line1": "41 Oldham Street", "city": "Manchester", "region": "Greater Manchester", "postalCode": "M1 1JG", "country": "GB" },
+    "location": { "lat": 53.4831, "lng": -2.2346 },
+    "timeZone": "Europe/London",
+    "contact": { "phone": "+44 161 496 0321", "email": "hello@mistharbourcards.example", "website": "https://mistharbourcards.example" },
+    "social": { "instagram": "https://instagram.com/mistharbourcards.example" },
+    "hours": {
+      "mon": [["11:00", "18:00"]], "tue": [["11:00", "18:00"]], "wed": [["11:00", "21:00"]], "thu": [["11:00", "21:00"]],
+      "fri": [["11:00", "23:00"]], "sat": [["10:00", "20:00"]], "sun": [["11:00", "17:00"]]
+    },
+    "features": ["demo-kits", "weekly-play", "play-space", "food-drink"],
+    "tableCount": 16,
+    "languages": ["en"]
+  }
+]
