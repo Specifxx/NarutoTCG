@@ -175,15 +175,17 @@ export function FoilCard({ card, options }: { card: NarutoCard; options: readonl
 
         <figcaption className="mt-5 text-center">
           <p id={captionId} aria-live="polite" className="text-sm text-ash-200">
-            <span className="font-mono text-white">{printing.number}</span>
-            <span aria-hidden="true" className="px-1.5 text-shadow-500">
+            {/* Each part is its own element with plain spaces around the hidden dots, so the announced caption
+                reads "ST01-002 Super Rare Standard" instead of running together. */}
+            <span className="font-mono text-white">{printing.number}</span>{" "}
+            <span aria-hidden="true" className="px-0.5 text-shadow-500">
               ·
-            </span>
-            {RARITY_META[printing.rarity].label}
-            <span aria-hidden="true" className="px-1.5 text-shadow-500">
+            </span>{" "}
+            <span>{RARITY_META[printing.rarity].label}</span>{" "}
+            <span aria-hidden="true" className="px-0.5 text-shadow-500">
               ·
-            </span>
-            {VARIANT_LABEL[printing.variant]}
+            </span>{" "}
+            <span>{VARIANT_LABEL[printing.variant]}</span>
             <span className="block text-xs text-ash-400">
               {current?.setName ?? printing.setId} · {FOIL_LABEL[foil]}
             </span>

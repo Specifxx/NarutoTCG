@@ -73,7 +73,7 @@ export function PrintingsChecklist({ cardName, rows }: { cardName: string; rows:
           <caption className="sr-only">Printings of {cardName} and whether you own them</caption>
           <thead>
             <tr className="text-[11px] uppercase tracking-[0.14em] text-ash-400">
-              <th scope="col" className="w-14 px-4 py-2.5 font-semibold sm:px-5">
+              <th scope="col" className="w-14 px-2 py-2.5 font-semibold sm:px-5">
                 Owned
               </th>
               <th scope="col" className="px-3 py-2.5 font-semibold">
@@ -121,7 +121,9 @@ export function PrintingsChecklist({ cardName, rows }: { cardName: string; rows:
                       href={setHref(row.setId)}
                       className={`rounded-sm font-semibold text-white underline decoration-transparent underline-offset-4 transition hover:decoration-chakra-400 ${FOCUS}`}
                     >
-                      {row.setName}
+                      {/* Full set names wrap to several lines on phones; the kind subline keeps the context. */}
+                      <span className="sm:hidden">{row.setShortName}</span>
+                      <span className="hidden sm:inline">{row.setName}</span>
                     </Link>
                     <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ash-400">
                       {kind && <span>{kind}</span>}

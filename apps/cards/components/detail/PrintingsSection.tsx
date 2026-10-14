@@ -49,7 +49,7 @@ export function PrintingsSection({ cardName, rows }: { cardName: string; rows: r
   const upcoming = sets.filter((set) => set.upcoming);
 
   return (
-    <section aria-labelledby="printings-heading" className="scroll-mt-32">
+    <section aria-labelledby="printings-heading" className="scroll-mt-4">
       <SectionHeading
         id="printings-heading"
         eyebrow="Set listing"

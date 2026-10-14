@@ -184,7 +184,7 @@ export function RelatedDecks({
   const hidden = Math.max(0, total - decks.length);
   const decksAppHref = platformHref("decks");
   return (
-    <section aria-labelledby="decks-heading" className="scroll-mt-32">
+    <section aria-labelledby="decks-heading" className="scroll-mt-4">
       <SectionHeading id="decks-heading" eyebrow="In the meta" title="Related decks">
         {total > 0 && (
           <p className="text-sm text-ash-400">

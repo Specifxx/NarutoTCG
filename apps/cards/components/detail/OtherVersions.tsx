@@ -13,7 +13,7 @@ export function OtherVersions({ card, versions }: { card: NarutoCard; versions: 
   if (versions.length === 0) return null;
   const shown = versions.slice(0, MAX_SHOWN);
   return (
-    <section aria-labelledby="versions-heading" className="scroll-mt-32">
+    <section aria-labelledby="versions-heading" className="scroll-mt-4">
       <SectionHeading id="versions-heading" eyebrow="Same shinobi" title="Other versions">
         <p className="text-sm text-ash-400">
           {versions.length} other {versions.length === 1 ? "card" : "cards"} named {card.name}
