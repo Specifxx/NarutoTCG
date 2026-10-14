@@ -8,7 +8,8 @@
     "start": "next start --port 3004",
     "typecheck": "node -e \"require('fs').rmSync('.next/types',{recursive:true,force:true})\" && next typegen && tsc --noEmit",
     "test": "vitest run",
-    "validate:data": "vitest run tests/data.test.ts"
+    "validate:data": "vitest run tests/data.test.ts",
+    "merge:cards": "node scripts/merge-cards.mjs"
   },
   "dependencies": {
     "@naruto-tcg/types": "workspace:*",

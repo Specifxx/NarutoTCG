@@ -20,6 +20,23 @@ pnpm --filter @naruto-tcg/cards validate:data   # validate public/data
 CARDS_JSON=/path/to/staged.json pnpm --filter @naruto-tcg/cards validate:data   # also SETS_JSON, DECKS_JSON
 ```
 
+## Merging scraped cards
+
+Scrapers should not hand-edit `cards.json`. Save the scraped records (an array of
+card objects in the format below, or `{ "cards": [...] }`) to a file and merge it:
+
+```bash
+pnpm --filter @naruto-tcg/cards merge:cards path/to/scraped.json --dry-run   # preview
+pnpm --filter @naruto-tcg/cards merge:cards path/to/scraped.json             # write
+pnpm --filter @naruto-tcg/cards validate:data
+```
+
+`merge:cards` upserts by `id`: new cards are appended, scraped values replace stored
+ones, but missing or empty values (`""`, `[]`, `null`) never erase existing data.
+Printings are unioned by `setId` + `number` + `variant` (a scraped `imageUrl` or
+rarity fills in the matching printing), the earliest `reveal` is kept, and cards are
+re-sorted by debut set release date and collector number.
+
 ## Rules for every file
 
 - Each file is a JSON array of objects. Anything else is an error.
