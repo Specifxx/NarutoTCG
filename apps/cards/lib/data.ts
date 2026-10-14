@@ -1,21 +1,29 @@
 // Server-only access to the validated card dataset. The JSON files are
-// validated once per server process; any error fails `next build` loudly.
+// validated once per server process; any error fails `next build` loudly,
+// and warnings are logged without failing it.
 import "server-only";
 import type { CardPrinting, CardSet, Deck, NarutoCard } from "@naruto-tcg/types";
 import cardsJson from "../public/data/cards.json";
 import decksJson from "../public/data/decks.json";
 import setsJson from "../public/data/sets.json";
 import { RARITY_META, compareCollectorNumbers, primaryPrinting, printingKey } from "./meta";
-import { validateDataset, type Dataset } from "./schema";
+import { orderPrintingsByRelease, validateDataset, type Dataset } from "./schema";
 
 function loadDataset(): Dataset {
-  const { data, errors } = validateDataset({ cards: cardsJson, sets: setsJson, decks: decksJson });
+  const { data, errors, warnings } = validateDataset({ cards: cardsJson, sets: setsJson, decks: decksJson });
   if (errors.length > 0) {
     throw new Error(
       `public/data contains ${errors.length} invalid record(s). Run \`pnpm --filter @naruto-tcg/cards validate:data\`.\n  - ${errors.join("\n  - ")}`,
     );
   }
-  return data;
+  if (warnings.length > 0) {
+    console.warn(
+      `public/data has ${warnings.length} warning(s); \`pnpm --filter @naruto-tcg/cards validate:data\` fails on these.\n  - ${warnings.join("\n  - ")}`,
+    );
+  }
+  // printings[0] drives the debut set, canonical order, breadcrumbs and pager,
+  // so never trust the listed order.
+  return { ...data, cards: orderPrintingsByRelease(data.cards, data.sets) };
 }
 
 const dataset = loadDataset();

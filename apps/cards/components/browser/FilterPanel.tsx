@@ -1,7 +1,7 @@
 "use client";
 
 import type { CardSet, CardType } from "@naruto-tcg/types";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { ElementIcon } from "@/components/ElementIcon";
 import { CARD_TYPES, CHAKRA_ELEMENTS, ELEMENT_META, RARITIES, RARITY_META, TYPE_META } from "@/lib/meta";
 import type { CardFilters, FacetCounts, FacetKey, FacetValueMap } from "@/lib/search";
@@ -38,11 +38,13 @@ function FacetSection({
 }) {
   const [open, setOpen] = useState(true);
   const panelId = useId();
+  const toggleRef = useRef<HTMLButtonElement>(null);
   return (
     <section className="border-b border-shadow-800 py-3 last:border-b-0">
       <div className="flex items-center gap-2">
         <h3 className="min-w-0 flex-1">
           <button
+            ref={toggleRef}
             type="button"
             aria-expanded={open}
             aria-controls={panelId}
@@ -64,7 +66,11 @@ function FacetSection({
         {selected > 0 && (
           <button
             type="button"
-            onClick={onReset}
+            onClick={() => {
+              onReset();
+              // This button disappears with the selection; keep focus in the section.
+              toggleRef.current?.focus();
+            }}
             className={`rounded px-1.5 py-1 text-xs text-ash-400 transition hover:text-chakra-400 ${FOCUS_RING}`}
           >
             Reset<span className="sr-only"> {title}</span>
@@ -116,7 +122,7 @@ function CheckOption({
         <span
           aria-hidden="true"
           className={`grid h-4 w-4 shrink-0 place-items-center rounded border transition peer-focus-visible:ring-2 peer-focus-visible:ring-chakra-400 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-shadow-900 ${
-            checked ? "border-chakra-500 bg-chakra-500 text-shadow-950" : "border-shadow-500 bg-shadow-950"
+            checked ? "border-chakra-500 bg-chakra-500 text-shadow-950" : "border-ash-400 bg-shadow-950"
           }`}
         >
           {checked && <CheckIcon className="h-3 w-3 [stroke-width:3]" />}

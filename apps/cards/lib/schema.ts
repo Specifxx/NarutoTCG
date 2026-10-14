@@ -14,6 +14,7 @@ import {
   type DeckEntry,
   type NarutoCard,
 } from "@naruto-tcg/types";
+import { KEYWORD_GLOSSARY } from "./keywords";
 import { printingKey } from "./meta";
 
 export const DECK_SIZE = 50;
@@ -29,13 +30,65 @@ export interface ValidationResult {
   data: Dataset;
   /** Problems that make the data unusable; the build must fail. */
   errors: string[];
-  /** Suspicious but renderable data, e.g. an incomplete set. */
+  /** Suspicious but renderable data, e.g. a short deck. The build logs these; `validate:data` fails on them. */
   warnings: string[];
 }
 
 export const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$/;
+// Invisible formatting characters that scraped DOM text can carry (soft
+// hyphen, zero-width spaces/joiners, bidi controls, BOM). They break search
+// and can visually reorder text, so every string drops them. "\n" is kept.
+const FORMAT_CHARS = /[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g;
+
+// Known fields per record. Anything else is reported as a likely typo
+// (e.g. `imageURL`), since it would otherwise be dropped silently.
+const CARD_FIELDS = [
+  "id",
+  "name",
+  "title",
+  "type",
+  "element",
+  "cost",
+  "power",
+  "traits",
+  "keywords",
+  "effect",
+  "flavor",
+  "artist",
+  "imageUrl",
+  "printings",
+  "reveal",
+] as const satisfies readonly (keyof NarutoCard)[];
+const PRINTING_FIELDS = ["setId", "number", "rarity", "variant", "imageUrl"] as const satisfies readonly (keyof CardPrinting)[];
+const REVEAL_FIELDS = ["date", "source", "url"] as const satisfies readonly (keyof CardReveal)[];
+const SET_FIELDS = [
+  "id",
+  "name",
+  "shortName",
+  "kind",
+  "releaseDate",
+  "totalCards",
+  "description",
+] as const satisfies readonly (keyof CardSet)[];
+const DECK_FIELDS = [
+  "id",
+  "name",
+  "owner",
+  "description",
+  "leaderId",
+  "archetype",
+  "cards",
+  "createdAt",
+  "updatedAt",
+] as const satisfies readonly (keyof Deck)[];
+const DECK_ENTRY_FIELDS = ["cardId", "quantity"] as const satisfies readonly (keyof DeckEntry)[];
+
+// Same folding as the effect-text parser, so `rush` and `Double  Attack`
+// resolve to the glossary's `Rush` and `Double Attack`.
+const foldKeyword = (value: string) => value.trim().replace(/\s+/g, " ").toLowerCase();
+const GLOSSARY_BY_FOLD = new Map(Object.keys(KEYWORD_GLOSSARY).map((keyword) => [foldKeyword(keyword), keyword]));
 
 class Issues {
   readonly errors: string[] = [];
@@ -64,6 +117,17 @@ function isValidIsoDate(value: string): boolean {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
+/** Strips invisible formatting characters, then trims. */
+function clean(value: string): string {
+  return value.replace(FORMAT_CHARS, "").trim();
+}
+
+function warnUnknownFields(obj: Json, allowed: readonly string[], path: string, issues: Issues): void {
+  for (const key of Object.keys(obj)) {
+    if (!allowed.includes(key)) issues.warn(`${path}.${key}`, "unknown field (typo?)");
+  }
+}
+
 function isHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -75,11 +139,11 @@ function isHttpUrl(value: string): boolean {
 
 function requiredString(obj: Json, key: string, path: string, issues: Issues): string | undefined {
   const value = obj[key];
-  if (typeof value !== "string" || value.trim() === "") {
+  if (typeof value !== "string" || clean(value) === "") {
     issues.error(`${path}.${key}`, "must be a non-empty string");
     return undefined;
   }
-  return value.trim();
+  return clean(value);
 }
 
 function optionalString(obj: Json, key: string, path: string, issues: Issues): string | undefined {
@@ -89,8 +153,8 @@ function optionalString(obj: Json, key: string, path: string, issues: Issues): s
     issues.error(`${path}.${key}`, "must be a string when present");
     return undefined;
   }
-  const trimmed = value.trim();
-  return trimmed === "" ? undefined : trimmed;
+  const cleaned = clean(value);
+  return cleaned === "" ? undefined : cleaned;
 }
 
 function optionalInteger(
@@ -109,6 +173,21 @@ function optionalInteger(
   return value;
 }
 
+/** Like optionalInteger, but a missing or `null` value is an error. */
+function requiredInteger(
+  obj: Json,
+  key: string,
+  path: string,
+  issues: Issues,
+  range: { min: number; max: number },
+): number | undefined {
+  if (obj[key] === undefined || obj[key] === null) {
+    issues.error(`${path}.${key}`, "is required");
+    return undefined;
+  }
+  return optionalInteger(obj, key, path, issues, range);
+}
+
 function stringList(obj: Json, key: string, path: string, issues: Issues): string[] {
   const value = obj[key];
   if (value === undefined || value === null) return [];
@@ -118,14 +197,34 @@ function stringList(obj: Json, key: string, path: string, issues: Issues): strin
   }
   const out: string[] = [];
   value.forEach((item, i) => {
-    if (typeof item !== "string" || item.trim() === "") {
+    if (typeof item !== "string" || clean(item) === "") {
       issues.error(`${path}.${key}[${i}]`, "must be a non-empty string");
       return;
     }
-    const trimmed = item.trim();
-    if (out.includes(trimmed)) issues.warn(`${path}.${key}`, `duplicate entry "${trimmed}"`);
-    else out.push(trimmed);
+    const cleaned = clean(item);
+    if (out.includes(cleaned)) issues.warn(`${path}.${key}`, `duplicate entry "${cleaned}"`);
+    else out.push(cleaned);
   });
+  return out;
+}
+
+/**
+ * Keywords in glossary spelling, so reminder text and the effect parser's
+ * keyword pills agree. Variants that differ only in case or spacing are
+ * duplicates; keywords missing from the glossary keep their own spelling.
+ */
+function keywordList(obj: Json, path: string, issues: Issues): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const keyword of stringList(obj, "keywords", path, issues)) {
+    const folded = foldKeyword(keyword);
+    if (seen.has(folded)) {
+      issues.warn(`${path}.keywords`, `duplicate entry "${keyword}"`);
+      continue;
+    }
+    seen.add(folded);
+    out.push(GLOSSARY_BY_FOLD.get(folded) ?? keyword);
+  }
   return out;
 }
 
@@ -162,8 +261,11 @@ function parsePrinting(raw: unknown, path: string, issues: Issues): CardPrinting
     issues.error(path, "must be an object");
     return undefined;
   }
+  warnUnknownFields(raw, PRINTING_FIELDS, path, issues);
   const setId = requiredId(raw, "setId", path, issues);
-  const number = requiredString(raw, "number", path, issues);
+  // Collector numbers end up in URLs (e.g. generated art), so they follow the
+  // same URL-safe pattern as ids.
+  const number = requiredId(raw, "number", path, issues);
   const rarity = raw.rarity;
   if (!isOneOf(RARITIES, rarity)) issues.error(`${path}.rarity`, `must be one of ${RARITIES.join(", ")}`);
   // Scrapers usually only see the base printing, so default the variant.
@@ -184,11 +286,18 @@ function parseReveal(raw: unknown, path: string, issues: Issues): CardReveal | u
     issues.error(path, "must be an object when present");
     return undefined;
   }
+  warnUnknownFields(raw, REVEAL_FIELDS, path, issues);
   const date = requiredIsoDate(raw, "date", path, issues);
+  // A future date (mistyped year, scheduled reveal) would take over the
+  // Spoiler Center's "latest reveal". One day of slack covers timezones: a
+  // JST reveal can be dated "tomorrow" in UTC.
+  const latestAllowed = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+  const future = date !== undefined && date > latestAllowed;
+  if (future) issues.error(`${path}.date`, `"${date}" is in the future`);
   const source = requiredString(raw, "source", path, issues);
   const url = requiredString(raw, "url", path, issues);
   if (url !== undefined && !isHttpUrl(url)) issues.error(`${path}.url`, `"${url}" must be an http(s) URL`);
-  if (date === undefined || source === undefined || url === undefined || !isHttpUrl(url)) return undefined;
+  if (date === undefined || future || source === undefined || url === undefined || !isHttpUrl(url)) return undefined;
   return { date, source, url };
 }
 
@@ -199,6 +308,7 @@ function parseCard(raw: unknown, path: string, issues: Issues): NarutoCard | und
   }
   const id = requiredId(raw, "id", path, issues);
   const label = id ? `cards[${id}]` : path;
+  warnUnknownFields(raw, CARD_FIELDS, label, issues);
   const name = requiredString(raw, "name", label, issues);
   const title = optionalString(raw, "title", label, issues);
 
@@ -221,10 +331,10 @@ function parseCard(raw: unknown, path: string, issues: Issues): NarutoCard | und
   }
 
   const traits = stringList(raw, "traits", label, issues);
-  const keywords = stringList(raw, "keywords", label, issues);
+  const keywords = keywordList(raw, label, issues);
   const effectRaw = raw.effect ?? "";
   if (typeof effectRaw !== "string") issues.error(`${label}.effect`, "must be a string");
-  const effect = typeof effectRaw === "string" ? effectRaw.trim() : "";
+  const effect = typeof effectRaw === "string" ? clean(effectRaw) : "";
   const flavor = optionalString(raw, "flavor", label, issues);
   const artist = optionalString(raw, "artist", label, issues);
   const imageUrl = optionalImageUrl(raw, "imageUrl", label, issues);
@@ -276,13 +386,13 @@ function parseSet(raw: unknown, path: string, issues: Issues): CardSet | undefin
   }
   const id = requiredId(raw, "id", path, issues);
   const label = id ? `sets[${id}]` : path;
+  warnUnknownFields(raw, SET_FIELDS, label, issues);
   const name = requiredString(raw, "name", label, issues);
   const shortName = optionalString(raw, "shortName", label, issues) ?? name;
   const kind = raw.kind;
   if (!isOneOf(SET_KINDS, kind)) issues.error(`${label}.kind`, `must be one of ${SET_KINDS.join(", ")}`);
   const releaseDate = requiredIsoDate(raw, "releaseDate", label, issues);
-  const totalCards = optionalInteger(raw, "totalCards", label, issues, { min: 0, max: 10_000 });
-  if (raw.totalCards === undefined) issues.error(`${label}.totalCards`, "is required");
+  const totalCards = requiredInteger(raw, "totalCards", label, issues, { min: 1, max: 10_000 });
   const description = optionalString(raw, "description", label, issues);
   if (
     id === undefined ||
@@ -304,6 +414,7 @@ function parseDeck(raw: unknown, path: string, issues: Issues): Deck | undefined
   }
   const id = requiredId(raw, "id", path, issues);
   const label = id ? `decks[${id}]` : path;
+  warnUnknownFields(raw, DECK_FIELDS, label, issues);
   const name = requiredString(raw, "name", label, issues);
   const owner = optionalString(raw, "owner", label, issues);
   const description = optionalString(raw, "description", label, issues);
@@ -315,8 +426,10 @@ function parseDeck(raw: unknown, path: string, issues: Issues): Deck | undefined
     ["createdAt", createdAt],
     ["updatedAt", updatedAt],
   ] as const) {
-    if (value !== undefined && !ISO_DATETIME_PATTERN.test(value)) {
-      issues.error(`${label}.${key}`, `"${value}" must be an ISO date or datetime`);
+    // The date part must be a real calendar day: "2026-13-01" would crash
+    // formatDate() during prerender and "2026-02-30" would render as Mar 2.
+    if (value !== undefined && (!ISO_DATETIME_PATTERN.test(value) || !isValidIsoDate(value.slice(0, 10)))) {
+      issues.error(`${label}.${key}`, `"${value}" must be a valid ISO date or datetime`);
     }
   }
 
@@ -330,9 +443,9 @@ function parseDeck(raw: unknown, path: string, issues: Issues): Deck | undefined
         issues.error(entryPath, "must be an object");
         return;
       }
+      warnUnknownFields(entry, DECK_ENTRY_FIELDS, entryPath, issues);
       const cardId = requiredId(entry, "cardId", entryPath, issues);
-      const quantity = optionalInteger(entry, "quantity", entryPath, issues, { min: 1, max: MAX_COPIES });
-      if (entry.quantity === undefined) issues.error(`${entryPath}.quantity`, "is required");
+      const quantity = requiredInteger(entry, "quantity", entryPath, issues, { min: 1, max: MAX_COPIES });
       if (cardId !== undefined && quantity !== undefined) cards.push({ cardId, quantity });
     });
   }
@@ -376,9 +489,13 @@ function checkIntegrity(data: Dataset, issues: Issues): void {
     if (setIds.has(set.id)) issues.error(`sets[${set.id}]`, "duplicate set id");
     setIds.add(set.id);
   }
+  const releaseById = new Map(data.sets.map((set) => [set.id, set.releaseDate]));
 
   const cardsById = new Map<string, NarutoCard>();
   const printingOwners = new Map<string, string>();
+  // A collector number belongs to one card; only that card's own variants
+  // (parallel, alt-art) may share it.
+  const numberOwners = new Map<string, string>();
   const numbersBySet = new Map<string, Set<string>>();
   for (const card of data.cards) {
     if (cardsById.has(card.id)) issues.error(`cards[${card.id}]`, "duplicate card id");
@@ -389,11 +506,31 @@ function checkIntegrity(data: Dataset, issues: Issues): void {
       }
       const key = printingKey(printing);
       const owner = printingOwners.get(key);
+      const numberKey = `${printing.setId}:${printing.number}`;
+      const numberOwner = numberOwners.get(numberKey);
       if (owner !== undefined) issues.error(`cards[${card.id}].printings`, `printing ${key} is also listed on ${owner}`);
+      else if (numberOwner !== undefined && numberOwner !== card.id) {
+        issues.error(`cards[${card.id}].printings`, `collector number ${numberKey} already belongs to ${numberOwner}`);
+      }
       printingOwners.set(key, card.id);
+      if (numberOwner === undefined) numberOwners.set(numberKey, card.id);
       const numbers = numbersBySet.get(printing.setId) ?? new Set<string>();
       numbers.add(printing.number);
       numbersBySet.set(printing.setId, numbers);
+    }
+
+    // printings[0] should be the debut. lib/data.ts re-sorts by release date
+    // (orderPrintingsByRelease), but out-of-order input hints at a scraper bug.
+    const debut = card.printings[0];
+    const debutRelease = debut && releaseById.get(debut.setId);
+    if (debut && debutRelease !== undefined) {
+      const earlier = card.printings.find((p) => (releaseById.get(p.setId) ?? debutRelease) < debutRelease);
+      if (earlier) {
+        issues.warn(
+          `cards[${card.id}].printings`,
+          `first entry should be the debut printing (${earlier.setId} released ${releaseById.get(earlier.setId)}, before ${debut.setId} on ${debutRelease})`,
+        );
+      }
     }
   }
 
@@ -426,6 +563,22 @@ function checkIntegrity(data: Dataset, issues: Issues): void {
     }
     if (total !== DECK_SIZE) issues.warn(`${label}.cards`, `deck has ${total} cards (expected ${DECK_SIZE})`);
   }
+}
+
+/**
+ * Stable-sorts each card's printings by set release date, so printings[0] is
+ * the debut printing whatever order the data lists them in. Unknown sets sort
+ * last; ties (same-day sets, variants within one set) keep their listed order.
+ */
+export function orderPrintingsByRelease(cards: readonly NarutoCard[], sets: readonly CardSet[]): NarutoCard[] {
+  const releaseById = new Map(sets.map((set) => [set.id, set.releaseDate]));
+  const compare = (a: CardPrinting, b: CardPrinting): number => {
+    const ra = releaseById.get(a.setId);
+    const rb = releaseById.get(b.setId);
+    if (ra === undefined || rb === undefined) return Number(ra === undefined) - Number(rb === undefined);
+    return ra.localeCompare(rb);
+  };
+  return cards.map((card) => ({ ...card, printings: [...card.printings].sort(compare) }));
 }
 
 export function validateDataset(raw: { cards: unknown; sets: unknown; decks: unknown }): ValidationResult {

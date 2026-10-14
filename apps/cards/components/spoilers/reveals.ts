@@ -1,9 +1,9 @@
 // Pure, client-safe helpers for reveal (spoiler) data. Pages pass in data from
 // lib/data.ts; nothing here touches the dataset directly.
 import type { CardPrinting, CardSet, ChakraElement, NarutoCard } from "@naruto-tcg/types";
-import { compareCollectorNumbers, daysBetween, parseIsoDate } from "@/lib/meta";
+import { compareCollectorNumbers, daysBetween, parseIsoDate, primaryPrinting } from "@/lib/meta";
 
-/** A card counts as "NEW" when revealed within this many days of the latest reveal. */
+/** A card counts as "NEW" when revealed within this many days up to today. */
 export const NEW_REVEAL_WINDOW_DAYS = 7;
 
 /** Longest stretch of days the reveal timeline draws before it trims older days. */
@@ -48,10 +48,13 @@ export function latestRevealDate(cards: readonly NarutoCard[]): string | undefin
   return latest;
 }
 
-/** True when `date` falls inside the NEW window that ends on `latest` (inclusive). */
-export function isNewReveal(date: string | undefined, latest: string | undefined): boolean {
-  if (date === undefined || latest === undefined) return false;
-  const age = daysBetween(date, latest);
+/**
+ * True when `date` falls inside the NEW window that ends on `asOf` (inclusive).
+ * Pages pass `todayIso()`, so the label expires even when reveals stop coming.
+ */
+export function isNewReveal(date: string | undefined, asOf: string | undefined): boolean {
+  if (date === undefined || asOf === undefined) return false;
+  const age = daysBetween(date, asOf);
   return age >= 0 && age < NEW_REVEAL_WINDOW_DAYS;
 }
 
@@ -163,7 +166,7 @@ export interface SetSummary {
   printings: number;
   /** `knownNumbers / set.totalCards`, clamped to 0–1. */
   completion: number;
-  /** Most recent reveal date among the set's cards. */
+  /** Most recent reveal date among cards that debut in the set (reprints excluded). */
   latestReveal?: string;
   /** Collection keys for every printing in the set. */
   keys: string[];
@@ -179,7 +182,9 @@ export function summarizeSet(set: Pick<CardSet, "totalCards">, entries: readonly
   let latestReveal: string | undefined;
   for (const entry of entries) {
     numbers.add(entry.printing.number);
-    const date = entry.card.reveal?.date;
+    // `reveal` is card-level and belongs to the debut set. Compare set ids, not
+    // printings, so a debut set's own parallels still count.
+    const date = entry.printing.setId === primaryPrinting(entry.card).setId ? entry.card.reveal?.date : undefined;
     if (date !== undefined && (latestReveal === undefined || date > latestReveal)) latestReveal = date;
   }
   const knownNumbers = numbers.size;

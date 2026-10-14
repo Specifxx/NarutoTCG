@@ -186,9 +186,14 @@ export function cardImageSrc(card: NarutoCard, printing: CardPrinting = primaryP
   return generatedArtSrc(card, printing);
 }
 
-/** Procedural frame art served by /art/[id]/[variant]; always available for every printing. */
+/**
+ * Procedural frame art served by /art/[id]/[setId]/[number]/[variant]; always
+ * available for every printing. The URL names the whole printing so reprints
+ * that share a variant each show their own set, number and rarity.
+ */
 export function generatedArtSrc(card: NarutoCard, printing: CardPrinting = primaryPrinting(card)): string {
-  return `/art/${encodeURIComponent(card.id)}/${printing.variant}`;
+  const segments = [card.id, printing.setId, printing.number, printing.variant].map((part) => encodeURIComponent(part));
+  return `/art/${segments.join("/")}`;
 }
 
 export function cardHref(id: string): `/card/${string}` {

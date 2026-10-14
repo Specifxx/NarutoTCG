@@ -3,6 +3,7 @@
 import { useId, type RefObject } from "react";
 import { SORT_KEYS, SORT_LABELS, VIEW_MODES, type SortKey, type ViewMode } from "@/lib/search";
 import { ChevronIcon, FilterIcon, GridIcon, ListIcon } from "./icons";
+import styles from "./browser.module.css";
 
 const VIEW_LABEL: Record<ViewMode, string> = { grid: "Grid view", list: "List view" };
 
@@ -51,7 +52,7 @@ export function ResultsToolbar({
         )}
       </button>
 
-      <p className="order-last w-full text-sm text-ash-400 sm:order-none sm:w-auto sm:flex-1">
+      <p className={`${styles.pending} order-last w-full text-sm text-ash-400 sm:order-none sm:w-auto sm:flex-1`}>
         <span className="font-semibold tabular-nums text-white">{total.toLocaleString("en-US")}</span>{" "}
         {total === 1 ? "card" : "cards"}
         {total !== all && <span className="tabular-nums"> of {all.toLocaleString("en-US")}</span>}

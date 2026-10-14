@@ -8,6 +8,7 @@ import {
   CARD_TYPES,
   CHAKRA_ELEMENTS,
   RARITIES,
+  type CardPrinting,
   type CardSet,
   type CardType,
   type ChakraElement,
@@ -100,13 +101,19 @@ export const DEFAULT_STATE: BrowserState = Object.freeze({
 // ---------------------------------------------------------------------------
 
 const COMBINING_MARKS = /\p{M}+/gu;
+/** Invisible format characters: soft hyphen, zero-width space/joiners, bidi controls, BOM. */
+const FORMAT_CHARS = /\p{Cf}/gu;
 const APOSTROPHES = /['’‘`´]/g;
 const WHITESPACE = /\s+/g;
 const WORD_CHAR = /[\p{L}\p{N}]/u;
 
-/** Lowercase, strip diacritics and apostrophes, fold width variants, collapse whitespace. */
+/**
+ * Lowercase, strip diacritics, apostrophes and invisible format characters,
+ * fold width variants, collapse whitespace.
+ */
 export function normalize(text: string): string {
   return text
+    .replace(FORMAT_CHARS, "")
     .normalize("NFKD")
     .replace(COMBINING_MARKS, "")
     .toLowerCase()
@@ -145,10 +152,6 @@ export interface IndexedCard {
   readonly traits: readonly string[];
   readonly keywords: readonly string[];
   readonly effect: string;
-  /** Rarities across all printings. */
-  readonly rarities: ReadonlySet<Rarity>;
-  /** Set IDs across all printings. */
-  readonly sets: ReadonlySet<string>;
   /** Rarest rarity across all printings. */
   readonly bestRarity: Rarity;
   /** Release rank of the debut set; higher is newer. */
@@ -184,9 +187,8 @@ export function buildSearchIndex(
   const costs = new Set<number>();
   const entries = cards.map((card, order): IndexedCard => {
     if (card.cost !== undefined) costs.add(card.cost);
-    const rarities = new Set(card.printings.map((p) => p.rarity));
     let bestRarity: Rarity = card.printings[0]?.rarity ?? "common";
-    for (const rarity of rarities) if (RARITY_META[rarity].rank > RARITY_META[bestRarity].rank) bestRarity = rarity;
+    for (const { rarity } of card.printings) if (RARITY_META[rarity].rank > RARITY_META[bestRarity].rank) bestRarity = rarity;
     const debutSet = card.printings[0]?.setId;
     return {
       card,
@@ -197,8 +199,6 @@ export function buildSearchIndex(
       traits: card.traits.map(normalize),
       keywords: card.keywords.map(normalize),
       effect: normalize(card.effect),
-      rarities,
-      sets: new Set(card.printings.map((p) => p.setId)),
       bestRarity,
       setRank: debutSet === undefined ? -1 : (setRank.get(debutSet) ?? -1),
     };
@@ -342,9 +342,20 @@ function compileFacets(filters: CardFilters): CompiledFacets {
   };
 }
 
-function intersects<T>(values: ReadonlySet<T>, wanted: ReadonlySet<T>): boolean {
-  for (const value of values) if (wanted.has(value)) return true;
-  return false;
+function printingPasses(printing: CardPrinting, facets: CompiledFacets): boolean {
+  return (
+    (facets.rarities === null || facets.rarities.has(printing.rarity)) &&
+    (facets.sets === null || facets.sets.has(printing.setId))
+  );
+}
+
+/**
+ * Rarity and set describe a printing, not a card, so both must hold for the
+ * SAME printing: "Promo in Starter Deck 01" must not match a card whose only
+ * promo printing is in a promo pack.
+ */
+function passesPrintings(entry: IndexedCard, facets: CompiledFacets): boolean {
+  return (facets.rarities === null && facets.sets === null) || entry.card.printings.some((p) => printingPasses(p, facets));
 }
 
 function passesFacet(entry: IndexedCard, facets: CompiledFacets, key: FacetKey): boolean {
@@ -357,9 +368,8 @@ function passesFacet(entry: IndexedCard, facets: CompiledFacets, key: FacetKey):
       // Cards without a cost (leaders) never match an active cost filter.
       return facets.costs === null || (entry.card.cost !== undefined && facets.costs.has(entry.card.cost));
     case "rarities":
-      return facets.rarities === null || intersects(entry.rarities, facets.rarities);
     case "sets":
-      return facets.sets === null || intersects(entry.sets, facets.sets);
+      return passesPrintings(entry, facets);
   }
 }
 
@@ -477,6 +487,9 @@ function zeroMap<K>(keys: Iterable<K>): Map<K, number> {
   return map;
 }
 
+/** Facets that test the card itself; rarity and set are tested per printing. */
+const CARD_FACET_KEYS: readonly FacetKey[] = ["types", "elements", "costs"];
+
 /**
  * Standard faceted-search counts: each option's count is the number of
  * results if that facet's own selection were replaced by just that option,
@@ -494,7 +507,7 @@ export function countFacets(index: SearchIndex, result: QueryResult, filters: Ca
   for (const { entry } of result.matches) {
     let failed: FacetKey | null = null;
     let failures = 0;
-    for (const key of FACET_KEYS) {
+    for (const key of CARD_FACET_KEYS) {
       if (!passesFacet(entry, facets, key)) {
         failed = key;
         failures += 1;
@@ -502,14 +515,31 @@ export function countFacets(index: SearchIndex, result: QueryResult, filters: Ca
       }
     }
     if (failures > 1) continue;
-    if (failures === 0) total += 1;
-    // A card that fails exactly one facet still counts toward that facet's options.
-    const counts = (key: FacetKey) => failures === 0 || failed === key;
-    if (counts("types")) bump(types, entry.card.type);
-    if (counts("elements")) bump(elements, entry.card.element);
-    if (counts("costs") && entry.card.cost !== undefined) bump(costs, entry.card.cost);
-    if (counts("rarities")) for (const rarity of entry.rarities) bump(rarities, rarity);
-    if (counts("sets")) for (const setId of entry.sets) bump(sets, setId);
+    const printingsPass = passesPrintings(entry, facets);
+    if (failures === 1) {
+      // A card that fails exactly one card facet still counts toward that facet's options.
+      if (!printingsPass) continue;
+      if (failed === "types") bump(types, entry.card.type);
+      if (failed === "elements") bump(elements, entry.card.element);
+      if (failed === "costs" && entry.card.cost !== undefined) bump(costs, entry.card.cost);
+      continue;
+    }
+    if (printingsPass) {
+      total += 1;
+      bump(types, entry.card.type);
+      bump(elements, entry.card.element);
+      if (entry.card.cost !== undefined) bump(costs, entry.card.cost);
+    }
+    // Rarity option r counts the card when a printing of rarity r passes the
+    // set facet; set option s when a printing in s passes the rarity facet.
+    const printingRarities = new Set<Rarity>();
+    const printingSets = new Set<string>();
+    for (const printing of entry.card.printings) {
+      if (facets.sets === null || facets.sets.has(printing.setId)) printingRarities.add(printing.rarity);
+      if (facets.rarities === null || facets.rarities.has(printing.rarity)) printingSets.add(printing.setId);
+    }
+    for (const rarity of printingRarities) bump(rarities, rarity);
+    for (const setId of printingSets) bump(sets, setId);
   }
 
   return { types, elements, rarities, costs, sets, total };

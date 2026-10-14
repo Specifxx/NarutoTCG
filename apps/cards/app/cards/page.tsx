@@ -2,7 +2,10 @@ import type { CardSet, NarutoCard } from "@naruto-tcg/types";
 import type { Metadata } from "next";
 import { CardBrowser, type BrowserCard, type BrowserSet } from "@/components/browser/CardBrowser";
 import { DatabaseHeader } from "@/components/browser/DatabaseHeader";
+import { PendingResultsScript } from "@/components/browser/PendingResults";
+import { isNewReveal } from "@/components/spoilers/reveals";
 import { getAllCards, getSets } from "@/lib/data";
+import { todayIso } from "@/lib/meta";
 
 export const metadata: Metadata = {
   title: "Card Database",
@@ -28,11 +31,15 @@ export default function CardsPage() {
     sets: new Set(cards.flatMap((card) => card.printings.map((printing) => printing.setId))).size,
     reveals: cards.filter((card) => card.reveal !== undefined).length,
   };
+  // Static page: the layout's hourly revalidation keeps "today" current.
+  const today = todayIso();
+  const newIds = cards.filter((card) => isNewReveal(card.reveal?.date, today)).map((card) => card.id);
 
   return (
     <>
       <DatabaseHeader stats={stats} />
-      <CardBrowser cards={cards.map(toBrowserCard)} sets={getSets().map(toBrowserSet)} />
+      <PendingResultsScript />
+      <CardBrowser cards={cards.map(toBrowserCard)} sets={getSets().map(toBrowserSet)} newIds={newIds} />
     </>
   );
 }

@@ -49,12 +49,23 @@ export function useProgressiveList(resetKey: string, total: number, pageSize: nu
   return { visible, hasMore, showMore, sentinelRef };
 }
 
-/** `value`, updated only after it has been stable for `delay` ms. */
-export function useDebouncedValue<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value);
+/**
+ * Text for a polite live region: `message`, updated once it has been stable
+ * for `delay` ms. It stays empty until `ready`, and the message it becomes
+ * ready with is the baseline rather than news, so neither the static
+ * placeholder state nor the page load itself is announced.
+ */
+export function useAnnouncement(message: string, ready: boolean, delay: number): string {
+  const [announcement, setAnnouncement] = useState("");
+  const baseline = useRef<string | null>(null);
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delay);
+    if (!ready) return;
+    if (baseline.current === null) {
+      baseline.current = message;
+      return;
+    }
+    const timer = window.setTimeout(() => setAnnouncement(message), delay);
     return () => window.clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
+  }, [message, ready, delay]);
+  return announcement;
 }

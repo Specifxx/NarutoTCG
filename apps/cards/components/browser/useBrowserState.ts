@@ -3,10 +3,11 @@
 // Browser state (filters, sort, view) synced with the /cards URL contract.
 //
 // The server renders the unfiltered default so the static HTML always matches
-// the first client render. After mount the URL (and the stored view
-// preference) is applied, and later changes are written back with
-// history.replaceState — no navigation, no new history entries.
-import { useCallback, useEffect, useState } from "react";
+// the first client render. The URL (and the stored view preference) is applied
+// in a layout effect, before the browser paints the first client render, and
+// later changes are written back with history.replaceState — no navigation,
+// no new history entries. See PendingResults for full page loads.
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {
   DEFAULT_STATE,
   URL_PARAMS,
@@ -19,8 +20,8 @@ import {
   type SortKey,
   type ViewMode,
 } from "@/lib/search";
+import { VIEW_STORAGE_KEY, clearPendingResults } from "./PendingResults";
 
-const VIEW_STORAGE_KEY = "naruto-tcg:cards:view";
 /** Debounce for URL writes so typing doesn't spam history.replaceState. */
 const URL_WRITE_DELAY_MS = 300;
 
@@ -72,10 +73,14 @@ export function useBrowserState(setIds: readonly string[]): BrowserStateApi {
   const [state, setState] = useState<BrowserState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
 
-  // Apply the URL after mount and whenever the user goes back/forward.
-  useEffect(() => {
+  // Apply the URL on mount and whenever the user goes back/forward. Updates
+  // from a layout effect render before the next paint, so a client navigation
+  // never shows the default results first, and the pre-hydration guard of a
+  // full page load ends in the same frame the URL state appears.
+  useLayoutEffect(() => {
     setState(readLocation(setIds));
     setHydrated(true);
+    clearPendingResults();
     const onPopState = () => setState(readLocation(setIds));
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);

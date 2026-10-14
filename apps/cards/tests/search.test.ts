@@ -1,5 +1,8 @@
-import type { CardPrinting, CardSet, NarutoCard } from "@naruto-tcg/types";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { RARITIES, type CardPrinting, type CardSet, type NarutoCard } from "@naruto-tcg/types";
 import { describe, expect, it } from "vitest";
+import { validateDataset } from "@/lib/schema";
 import {
   EMPTY_FILTERS,
   MAX_QUERY_LENGTH,
@@ -23,6 +26,11 @@ import {
   tokenize,
   type BrowserState,
   type CardFilters,
+  type FacetCounts,
+  type FacetKey,
+  type FacetValueMap,
+  type QueryResult,
+  type SearchIndex,
   type SortKey,
   cardsHref,
   phraseQuery,
@@ -157,6 +165,12 @@ describe("normalize", () => {
     expect(normalize("Opponent’s Turn")).toBe("opponents turn");
     expect(normalize("ＮＡＲＵＴＯ")).toBe("naruto");
   });
+
+  it("strips invisible format characters (soft hyphen, zero-width, bidi controls)", () => {
+    expect(normalize("Uzu­maki")).toBe("uzumaki");
+    expect(normalize("Uchi​ha‍")).toBe("uchiha");
+    expect(normalize("﻿‮On Play‬")).toBe("on play");
+  });
 });
 
 describe("tokenize", () => {
@@ -204,6 +218,15 @@ describe("text matching", () => {
   it("matches phrases only as contiguous text", () => {
     expect(ids({ query: '"team 7"' })).toEqual(["ST01-001", "ST01-002", "ST01-003", "NR02-003"]);
     expect(ids({ query: '"7 team"' })).toEqual([]);
+  });
+
+  it("finds names that contain invisible format characters", () => {
+    const local = buildSearchIndex([
+      card({ id: "A-001", name: "Naruto Uzu­maki" }),
+      card({ id: "A-002", name: "Sasuke Uchi​ha" }),
+    ]);
+    expect(search(local, { ...EMPTY_FILTERS, query: "uzumaki" }).map((h) => h.card.id)).toEqual(["A-001"]);
+    expect(search(local, { ...EMPTY_FILTERS, query: "uchiha" }).map((h) => h.card.id)).toEqual(["A-002"]);
   });
 
   it("does not match short tokens in the middle of rules-text words", () => {
@@ -269,12 +292,44 @@ describe("facets", () => {
     expect(ids({ sets: ["EMPTY"] })).toEqual([]);
   });
 
+  it("requires rarity and set to match the same printing", () => {
+    // ST01-002 is a Super Rare in ST01 and a Promo in PR01, never a Promo in ST01.
+    expect(ids({ rarities: ["promo"], sets: ["ST01"] })).toEqual([]);
+    expect(ids({ rarities: ["super-rare"], sets: ["PR01"] })).toEqual([]);
+    expect(ids({ rarities: ["promo"], sets: ["PR01"] })).toEqual(["ST01-002"]);
+    expect(ids({ rarities: ["super-rare"], sets: ["ST01"] })).toEqual(["ST01-001", "ST01-002"]);
+    // OR within each facet still applies per printing.
+    expect(ids({ rarities: ["promo", "rare"], sets: ["ST01"] })).toEqual(["ST01-003", "ST01-011"]);
+    expect(ids({ rarities: ["promo"], sets: ["ST01", "PR01"] })).toEqual(["ST01-002"]);
+  });
+
   it("never matches leaders (no cost) against an active cost filter", () => {
     expect(ids({ costs: [2] })).toEqual(["ST01-003", "ST01-011"]);
     expect(ids({ costs: [0, 1, 2, 3, 4, 5, 6] })).not.toContain("ST01-001");
     expect(ids({ types: ["leader"], costs: [2] })).toEqual([]);
   });
 });
+
+/**
+ * Reference definition of facet counts: an option's count is the number of
+ * results with that facet's selection replaced by just that option.
+ */
+function expectBruteForceCounts(target: SearchIndex, filters: CardFilters): void {
+  const result: QueryResult = matchQuery(target, filters.query);
+  const counts: FacetCounts = countFacets(target, result, filters);
+  const check = <K extends FacetKey>(key: K, options: ReadonlyMap<FacetValueMap[K], number>) => {
+    for (const [option, count] of options) {
+      const only = toggleFacetValue(clearFacet(filters, key), key, option);
+      expect(count, `${toQueryString({ filters })} ${key}=${option}`).toBe(applyFilters(result, only).length);
+    }
+  };
+  check("types", counts.types);
+  check("elements", counts.elements);
+  check("costs", counts.costs);
+  check("rarities", counts.rarities);
+  check("sets", counts.sets);
+  expect(counts.total, toQueryString({ filters })).toBe(applyFilters(result, filters).length);
+}
 
 describe("facet counts", () => {
   it("counts every option against the query and the other facets only", () => {
@@ -320,6 +375,65 @@ describe("facet counts", () => {
       const expected = applyFilters(result, { ...base, rarities: [rarity] }).length;
       expect(countFacets(index, result, base).rarities.get(rarity)).toBe(expected);
     }
+  });
+
+  it("counts rarities only for printings in the selected sets, and vice versa", () => {
+    const inStarter = facetCounts(index, { ...EMPTY_FILTERS, sets: ["ST01"] });
+    expect(inStarter.rarities.get("promo")).toBe(0);
+    expect(inStarter.rarities.get("super-rare")).toBe(2);
+    expect(inStarter.total).toBe(4);
+    const promos = facetCounts(index, { ...EMPTY_FILTERS, rarities: ["promo"] });
+    expect(promos.sets.get("ST01")).toBe(0);
+    expect(promos.sets.get("PR01")).toBe(1);
+  });
+
+  it("matches a brute-force reference for every option", () => {
+    const combos: Partial<CardFilters>[] = [
+      {},
+      { rarities: ["promo"], sets: ["ST01"] },
+      { rarities: ["promo"] },
+      { sets: ["PR01"] },
+      { rarities: ["super-rare", "promo"], sets: ["PR01"] },
+      { types: ["character"], rarities: ["promo"], sets: ["ST01", "PR01"] },
+      { types: ["leader"], elements: ["fire"], sets: ["ST01"] },
+      { elements: ["lightning"], sets: ["ST01"] },
+      { query: "uchiha", sets: ["PR01"] },
+      { costs: [4], rarities: ["super-rare"], types: ["jutsu"] },
+    ];
+    for (const combo of combos) expectBruteForceCounts(index, { ...EMPTY_FILTERS, ...combo });
+  });
+});
+
+describe("facets on the real dataset", () => {
+  const dataDir = resolve(__dirname, "../public/data");
+  const readJson = (file: string): unknown => JSON.parse(readFileSync(resolve(dataDir, file), "utf8"));
+  const { data } = validateDataset({ cards: readJson("cards.json"), sets: readJson("sets.json"), decks: [] });
+  const real = buildSearchIndex(data.cards, data.sets);
+  const realIds = (filters: Partial<CardFilters>) => search(real, { ...EMPTY_FILTERS, ...filters }).map((h) => h.card.id);
+
+  it("finds no Promo printings in Starter Deck 01", () => {
+    // Precondition: some ST01 cards do have a promo printing (in a promo set).
+    const promos = new Set(realIds({ rarities: ["promo"] }));
+    expect(realIds({ sets: ["ST01"] }).filter((id) => promos.has(id))).not.toEqual([]);
+
+    expect(realIds({ rarities: ["promo"], sets: ["ST01"] })).toEqual([]);
+    expect(facetCounts(real, { ...EMPTY_FILTERS, sets: ["ST01"] }).rarities.get("promo")).toBe(0);
+  });
+
+  it("matches a brute-force reference for every option", () => {
+    const combos: Partial<CardFilters>[] = [{}];
+    for (const setId of real.setIds) {
+      combos.push({ sets: [setId] });
+      for (const rarity of RARITIES) combos.push({ rarities: [rarity], sets: [setId] });
+    }
+    for (const rarity of RARITIES) combos.push({ rarities: [rarity] });
+    combos.push(
+      { rarities: ["promo", "common"], sets: ["ST01", "PR01"] },
+      { types: ["character"], elements: ["fire"], sets: ["PR01"] },
+      { costs: [2, 3], rarities: ["rare"] },
+      { query: "uchiha", rarities: ["super-rare"] },
+    );
+    for (const combo of combos) expectBruteForceCounts(real, { ...EMPTY_FILTERS, ...combo });
   });
 });
 
@@ -466,6 +580,7 @@ describe("highlightSegments", () => {
 
   it("maps normalized matches back to the original characters", () => {
     expect(marked("Kankurō", "kuro")).toBe("Kan[kurō]");
+    expect(marked("Uzu­maki", "uzumaki")).toBe("[Uzu­maki]");
     expect(marked("Opponent’s  Turn", "opponents turn")).toBe("[Opponent’s]  [Turn]");
     expect(marked("Team  7", '"team 7"')).toBe("[Team  7]");
   });

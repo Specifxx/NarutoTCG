@@ -1,11 +1,11 @@
 "use client";
 
-import type { NarutoCard, Rarity } from "@naruto-tcg/types";
+import type { NarutoCard } from "@naruto-tcg/types";
 import Link from "next/link";
 import { memo, useId, type CSSProperties } from "react";
 import { CardImage } from "@/components/CardImage";
 import { ElementBadge, RarityBadge } from "@/components/badges";
-import { ELEMENT_META, RARITY_META, TYPE_META, cardHref, formatPower } from "@/lib/meta";
+import { ELEMENT_META, RARITY_META, TYPE_META, cardHref, formatPower, primaryPrinting } from "@/lib/meta";
 import type { SearchHit } from "@/lib/search";
 import { Highlight } from "./Highlight";
 import { CostIcon, PowerIcon } from "./icons";
@@ -18,11 +18,14 @@ export function CardGrid({
   hits,
   tokens,
   eagerCount,
+  newIds,
 }: {
   hits: readonly SearchHit[];
   tokens: readonly string[];
   /** Leading tiles that load eagerly (above the fold). */
   eagerCount: number;
+  /** Cards to flag as new reveals. */
+  newIds: ReadonlySet<string>;
 }) {
   const idPrefix = useId();
   return (
@@ -34,7 +37,7 @@ export function CardGrid({
         <CardTile
           key={hit.card.id}
           card={hit.card}
-          bestRarity={hit.bestRarity}
+          isNew={newIds.has(hit.card.id)}
           tokens={tokens}
           priority={i < eagerCount}
           idPrefix={idPrefix}
@@ -48,13 +51,13 @@ export function CardGrid({
 // skips tiles whose card and highlight tokens are unchanged.
 const CardTile = memo(function CardTile({
   card,
-  bestRarity,
+  isNew,
   tokens,
   priority,
   idPrefix,
 }: {
   card: NarutoCard;
-  bestRarity: Rarity;
+  isNew: boolean;
   tokens: readonly string[];
   priority: boolean;
   idPrefix: string;
@@ -62,6 +65,8 @@ const CardTile = memo(function CardTile({
   const nameId = `${idPrefix}${card.id}-name`;
   const metaId = `${idPrefix}${card.id}-meta`;
   const style: TileStyle = { "--el": ELEMENT_META[card.element].hex };
+  // Badge and foil describe the printing whose art is shown.
+  const rarity = primaryPrinting(card).rarity;
 
   return (
     <li className={styles.cell}>
@@ -70,22 +75,29 @@ const CardTile = memo(function CardTile({
         prefetch={false}
         aria-labelledby={nameId}
         aria-describedby={metaId}
-        data-foil={RARITY_META[bestRarity].foil}
+        data-foil={RARITY_META[rarity].foil}
         style={style}
         className={`${styles.tile} group flex h-full flex-col rounded-[6px]`}
       >
         <div className={styles.art}>
-          <CardImage card={card} priority={priority} />
-          {card.reveal && (
+          {/* The name, number and rarity are in the tile text right below. */}
+          <CardImage card={card} priority={priority} alt="" />
+          {/* Tabs pinned above the art's top corners never cover the printed cost, name or element. */}
+          {card.type === "leader" && (
+            // The type is already announced with the ID below.
             <span
-              className={`${styles.newBadge} absolute left-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-[0.14em] text-shadow-950`}
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-2 left-2 z-10 rounded-full border border-chakra-400/50 bg-shadow-950 px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.14em] text-chakra-400"
             >
-              New<span className="sr-only"> reveal</span>
+              Leader
             </span>
           )}
-          {card.type === "leader" && (
-            <span className="absolute right-1.5 top-1.5 rounded-full border border-chakra-400/50 bg-shadow-950/85 px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.14em] text-chakra-400 backdrop-blur-sm">
-              Leader
+          {isNew && (
+            <span
+              aria-hidden="true"
+              className={`${styles.newBadge} pointer-events-none absolute -top-2 right-2 z-10 rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-[0.14em] text-shadow-950`}
+            >
+              New
             </span>
           )}
         </div>
@@ -107,6 +119,7 @@ const CardTile = memo(function CardTile({
           </h3>
 
           <div id={metaId} className="mt-auto pt-2">
+            {isNew && <span className="sr-only">New reveal, </span>}
             <div className="flex items-center gap-2 text-[11px] text-ash-400">
               <span className="font-mono tracking-tight">
                 <span className="sr-only">{TYPE_META[card.type].label} </span>
@@ -131,7 +144,7 @@ const CardTile = memo(function CardTile({
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1">
               <ElementBadge element={card.element} className="px-1.5! text-[11px]!" />
-              <RarityBadge rarity={bestRarity} compact className="px-1.5! text-[11px]!" />
+              <RarityBadge rarity={rarity} compact className="px-1.5! text-[11px]!" />
             </div>
           </div>
         </div>

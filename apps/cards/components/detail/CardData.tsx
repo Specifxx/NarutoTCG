@@ -6,6 +6,7 @@ import { RarityBadge, TypeBadge } from "@/components/badges";
 import { keywordReminder } from "@/lib/keywords";
 import { ELEMENT_META, TYPE_META, cardRarities, formatDate, setHref } from "@/lib/meta";
 import { EffectText } from "./EffectText";
+import type { EffectKeyword } from "./effect-keywords";
 import { keywordAnchorId, type EffectToken } from "./effect-text";
 import { cardSearchHref } from "./links";
 
@@ -53,7 +54,7 @@ export function CardStats({ card }: { card: NarutoCard }) {
     borderColor: `${element.hex}55`,
   };
   return (
-    <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+    <dl className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
       <StatTile label="Cost">
         {card.cost === undefined ? (
           <NoValue note={card.type === "leader" ? "Leaders have no cost" : undefined} />
@@ -70,7 +71,7 @@ export function CardStats({ card }: { card: NarutoCard }) {
           card.power.toLocaleString("en-US")
         )}
       </StatTile>
-      <StatTile label="Chakra Element" style={elementStyle} className="col-span-2 sm:col-span-1">
+      <StatTile label="Chakra Element" style={elementStyle} className="col-span-2 xl:col-span-1">
         <span className={`flex items-center gap-2 text-xl sm:text-2xl ${element.text}`}>
           <ElementIcon element={card.element} className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />
           <span className="min-w-0 truncate">{element.label}</span>
@@ -120,9 +121,13 @@ function FactRow({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function KeywordGlossary({ card, granted }: { card: NarutoCard; granted: readonly string[] }) {
+function KeywordGlossary({ card, mentioned }: { card: NarutoCard; mentioned: readonly EffectKeyword[] }) {
   const own = new Set(card.keywords);
-  const entries = [...card.keywords, ...granted.filter((keyword) => !own.has(keyword))];
+  // Keywords only the effect text names, mapped to whether the effect grants them.
+  const fromEffect = new Map(
+    mentioned.filter(({ label }) => !own.has(label)).map(({ label, granted }) => [label, granted]),
+  );
+  const entries = [...card.keywords, ...fromEffect.keys()];
   if (entries.length === 0) return <NoValue />;
   return (
     <ul className="space-y-2.5">
@@ -133,7 +138,7 @@ function KeywordGlossary({ card, granted }: { card: NarutoCard; granted: readonl
           <li
             key={keyword}
             id={anchor}
-            className="scroll-mt-36 rounded-lg transition target:bg-violet-400/10 target:ring-2 target:ring-violet-400/50 target:ring-offset-4 target:ring-offset-shadow-900"
+            className="scroll-mt-8 rounded-lg transition target:bg-violet-400/10 target:ring-2 target:ring-violet-400/50 target:ring-offset-4 target:ring-offset-shadow-900"
           >
             <span className="flex flex-wrap items-center gap-2">
               <Link
@@ -142,8 +147,10 @@ function KeywordGlossary({ card, granted }: { card: NarutoCard; granted: readonl
               >
                 {keyword}
               </Link>
-              {!own.has(keyword) && (
-                <span className="text-[11px] font-medium uppercase tracking-wider text-ash-400">Granted by effect</span>
+              {fromEffect.has(keyword) && (
+                <span className="text-[11px] font-medium uppercase tracking-wider text-ash-400">
+                  {fromEffect.get(keyword) === true ? "Granted by effect" : "Referenced in effect"}
+                </span>
               )}
             </span>
             {reminder && (
@@ -163,12 +170,13 @@ export function CardFacts({
   card,
   debutSet,
   debutUpcoming,
-  grantedKeywords,
+  effectKeywords,
 }: {
   card: NarutoCard;
   debutSet: CardSet | undefined;
   debutUpcoming: boolean;
-  grantedKeywords: readonly string[];
+  /** Keywords named in the rules text (see `effectKeywords()`). */
+  effectKeywords: readonly EffectKeyword[];
 }) {
   const debut = card.printings[0];
   return (
@@ -205,7 +213,7 @@ export function CardFacts({
         )}
       </FactRow>
       <FactRow label="Keywords">
-        <KeywordGlossary card={card} granted={grantedKeywords} />
+        <KeywordGlossary card={card} mentioned={effectKeywords} />
       </FactRow>
       <FactRow label="Rarity">
         <span className="flex flex-wrap gap-2">

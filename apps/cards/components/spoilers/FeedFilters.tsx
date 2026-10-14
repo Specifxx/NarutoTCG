@@ -4,7 +4,7 @@
 // streamed from the server in full; these wrappers only toggle `hidden` on
 // items and day groups, so the page works (unfiltered) without JavaScript.
 import type { ChakraElement } from "@naruto-tcg/types";
-import { createContext, useContext, useId, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useId, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ElementIcon } from "@/components/ElementIcon";
 import { CHAKRA_ELEMENTS, ELEMENT_META } from "@/lib/meta";
 import type { FeedKey } from "./reveals";
@@ -22,6 +22,8 @@ interface FeedContextValue {
   matches: (key: FeedKey) => boolean;
   index: readonly FeedKey[];
   visibleCount: number;
+  /** The Set select: where focus goes when a reset button hides itself. */
+  filterFocusRef: RefObject<HTMLSelectElement | null>;
 }
 
 const FeedContext = createContext<FeedContextValue | null>(null);
@@ -39,10 +41,11 @@ function keyMatches(filter: FeedFilter, key: FeedKey): boolean {
 /** Holds the filter state. `index` lists every feed item's keys in feed order. */
 export function RevealFeedProvider({ index, children }: { index: readonly FeedKey[]; children: ReactNode }) {
   const [filter, setFilter] = useState<FeedFilter>(NO_FILTER);
+  const filterFocusRef = useRef<HTMLSelectElement>(null);
   const value = useMemo<FeedContextValue>(() => {
     let visibleCount = 0;
     for (const key of index) if (keyMatches(filter, key)) visibleCount++;
-    return { filter, setFilter, matches: (key) => keyMatches(filter, key), index, visibleCount };
+    return { filter, setFilter, matches: (key) => keyMatches(filter, key), index, visibleCount, filterFocusRef };
   }, [filter, index]);
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
 }
@@ -111,7 +114,7 @@ export interface FeedSetOption {
 
 /** Set + element filters with a live result count. */
 export function FeedFilterBar({ sets }: { sets: readonly FeedSetOption[] }) {
-  const { filter, setFilter, index, visibleCount } = useFeed();
+  const { filter, setFilter, index, visibleCount, filterFocusRef } = useFeed();
   const uid = useId();
   const selectId = `${uid}-set`;
   const radioName = `${uid}-element`;
@@ -147,6 +150,7 @@ export function FeedFilterBar({ sets }: { sets: readonly FeedSetOption[] }) {
         </label>
         <div className="relative">
           <select
+            ref={filterFocusRef}
             id={selectId}
             value={filter.set ?? ""}
             onChange={(event) => setFilter({ ...filter, set: event.target.value === "" ? null : event.target.value })}
@@ -225,7 +229,11 @@ export function FeedFilterBar({ sets }: { sets: readonly FeedSetOption[] }) {
         </p>
         <button
           type="button"
-          onClick={() => setFilter(NO_FILTER)}
+          onClick={() => {
+            setFilter(NO_FILTER);
+            // The button hides itself once nothing is filtered; keep focus in the filters.
+            filterFocusRef.current?.focus();
+          }}
           disabled={!active}
           className="rounded-md px-2 py-1 text-sm font-semibold text-chakra-400 transition hover:text-chakra-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 disabled:invisible"
         >
@@ -238,7 +246,7 @@ export function FeedFilterBar({ sets }: { sets: readonly FeedSetOption[] }) {
 
 /** Shown in place of the feed when the filters exclude every card. */
 export function FeedNoMatches() {
-  const { visibleCount, index, setFilter } = useFeed();
+  const { visibleCount, index, setFilter, filterFocusRef } = useFeed();
   if (index.length === 0 || visibleCount > 0) return null;
   return (
     <div className="rounded-2xl border border-dashed border-shadow-700 bg-shadow-900/60 px-6 py-12 text-center">
@@ -246,7 +254,10 @@ export function FeedNoMatches() {
       <p className="mt-1 text-sm text-ash-400">Try another set or element.</p>
       <button
         type="button"
-        onClick={() => setFilter(NO_FILTER)}
+        onClick={() => {
+          setFilter(NO_FILTER);
+          filterFocusRef.current?.focus();
+        }}
         className="mt-4 rounded-md bg-chakra-500 px-4 py-2 text-sm font-semibold text-shadow-950 transition hover:bg-chakra-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 focus-visible:ring-offset-2 focus-visible:ring-offset-shadow-950"
       >
         Show all reveals

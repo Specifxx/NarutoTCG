@@ -7,7 +7,8 @@
 // Every interpolated string goes through `escapeXml`: card data may come from
 // scraped sources, and a single unescaped character would break the document.
 import type { CardPrinting, CardSet, ChakraElement, NarutoCard, Rarity } from "@naruto-tcg/types";
-import { KEYWORD_GLOSSARY, TIMING_TAGS } from "./keywords";
+import { parseEffectLine } from "./effect-text";
+import { KEYWORD_GLOSSARY } from "./keywords";
 import { ELEMENT_GLYPHS, ELEMENT_META, RARITY_META, TYPE_META } from "./meta";
 
 /** Card face size in SVG user units: 63 × 88 mm at 10 units per mm. */
@@ -219,9 +220,6 @@ const PILL_PAD = 0.3; // em, each side
 const PILL_SCALE = 0.84; // pill label size relative to body text
 const ELLIPSIS = "…";
 
-const TIMING_LOOKUP = new Map<string, string>(TIMING_TAGS.map((tag) => [tag.toLowerCase(), tag]));
-const KEYWORD_LOOKUP = new Map<string, string>(Object.keys(KEYWORD_GLOSSARY).map((kw) => [kw.toLowerCase(), kw]));
-
 const isPill = (style: RunStyle) => style === "timing" || style === "keyword";
 
 function runWidth(run: Run, size: number): number {
@@ -242,11 +240,34 @@ function runWidth(run: Run, size: number): number {
 const wordWidth = (word: Word, size: number) => word.runs.reduce((sum, run) => sum + runWidth(run, size), 0);
 
 /**
+ * Style one `[...]` or `{...}` group with the rules readout's classifier
+ * (lib/effect-text.ts), so the art and the card page always agree on what is
+ * a timing tag, a keyword, a card name or a trait.
+ */
+function markupRun(group: string, keywords: readonly string[]): Run | undefined {
+  const [token, ...rest] = parseEffectLine(group, { keywords });
+  if (!token || rest.length > 0) return undefined;
+  switch (token.kind) {
+    case "tag":
+      return { text: token.label, style: "timing" };
+    case "keyword":
+      return { text: token.label, style: "keyword" };
+    case "trait":
+      return { text: `{${token.label}}`, style: "trait" };
+    case "card":
+      return { text: `[${token.name}]`, style: "name" };
+    case "text":
+      return undefined;
+  }
+}
+
+/**
  * Split text into words. In rich mode, `[Timing Tag]`, `[Keyword]`,
  * `[Card Name]` and `{Trait}` groups become single styled runs that never
- * break internally (unless they are wider than a whole line).
+ * break internally (unless they are wider than a whole line). `keywords` are
+ * the card's own keywords, recognised even when the glossary lacks them.
  */
-function tokenize(text: string, baseStyle: RunStyle, rich: boolean): Word[] {
+function tokenize(text: string, baseStyle: RunStyle, rich: boolean, keywords: readonly string[] = []): Word[] {
   const words: Word[] = [];
   let runs: Run[] = [];
   let buffer = "";
@@ -272,18 +293,10 @@ function tokenize(text: string, baseStyle: RunStyle, rich: boolean): Word[] {
       const close = ch === "[" ? "]" : "}";
       const end = text.indexOf(close, pos + 1);
       const inner = end > pos ? text.slice(pos + 1, end).replace(/\s+/g, " ").trim() : "";
-      if (inner && end - pos <= 64 && !inner.includes(ch)) {
+      const run = inner && end - pos <= 64 && !inner.includes(ch) ? markupRun(`${ch}${inner}${close}`, keywords) : undefined;
+      if (run) {
         flushBuffer();
-        if (ch === "{") {
-          runs.push({ text: `{${inner}}`, style: "trait" });
-        } else {
-          const key = inner.toLowerCase();
-          const timing = TIMING_LOOKUP.get(key);
-          const keyword = KEYWORD_LOOKUP.get(key);
-          if (timing) runs.push({ text: timing, style: "timing" });
-          else if (keyword) runs.push({ text: keyword, style: "keyword" });
-          else runs.push({ text: `[${inner}]`, style: "name" });
-        }
+        runs.push(run);
         pos = end + 1;
         continue;
       }
@@ -388,12 +401,12 @@ function layoutParagraphs(
   text: string,
   maxWidth: number,
   size: number,
-  options: { style?: RunStyle; rich?: boolean; maxLines?: number } = {},
+  options: { style?: RunStyle; rich?: boolean; keywords?: readonly string[]; maxLines?: number } = {},
 ): { lines: Word[][]; truncated: boolean } {
   const style = options.style ?? "text";
   const lines = text
     .split(/\n+/)
-    .flatMap((paragraph) => breakLines(tokenize(paragraph, style, options.rich === true), maxWidth, size));
+    .flatMap((paragraph) => breakLines(tokenize(paragraph, style, options.rich === true, options.keywords), maxWidth, size));
   const maxLines = options.maxLines ?? Number.POSITIVE_INFINITY;
   if (lines.length <= maxLines) return { lines, truncated: false };
   const kept = lines.slice(0, Math.max(0, maxLines));
@@ -1827,7 +1840,7 @@ function rulesBox(defs: Defs, card: NarutoCard, chrome: Chrome): string {
   let chosen: { size: number; lines: Word[][]; flavorSize: number; flavorLines: Word[][] } | undefined;
   let effectOnly: { size: number; lines: Word[][] } | undefined;
   for (let size = 25; size >= 13; size -= 0.5) {
-    const { lines } = layoutParagraphs(effect, innerW, size, { rich: true });
+    const { lines } = layoutParagraphs(effect, innerW, size, { rich: true, keywords: card.keywords });
     const effectH = lines.length * size * LINE;
     if (effectH > innerH) continue;
     effectOnly ??= { size, lines };
@@ -1846,7 +1859,11 @@ function rulesBox(defs: Defs, card: NarutoCard, chrome: Chrome): string {
   if (!chosen && !effectOnly) {
     // Even the minimum size overflows: ellipsize.
     const size = 13;
-    const { lines } = layoutParagraphs(effect, innerW, size, { rich: true, maxLines: Math.floor(innerH / (size * LINE)) });
+    const { lines } = layoutParagraphs(effect, innerW, size, {
+      rich: true,
+      keywords: card.keywords,
+      maxLines: Math.floor(innerH / (size * LINE)),
+    });
     effectOnly = { size, lines };
   }
   const main = chosen ?? effectOnly;

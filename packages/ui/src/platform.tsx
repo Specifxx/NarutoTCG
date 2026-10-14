@@ -33,7 +33,7 @@ export function SiteHeader({ current, children }: { current: PlatformAppKey; chi
               d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3.2a6.8 6.8 0 0 1 6.6 5.1h-3.3a3.6 3.6 0 0 0-6.6 0H5.4A6.8 6.8 0 0 1 12 5.2Zm0 13.6a6.8 6.8 0 0 1-6.6-5.1h3.3a3.6 3.6 0 0 0 6.6 0h3.3a6.8 6.8 0 0 1-6.6 5.1Z"
             />
           </svg>
-          <span className="hidden sm:inline">Naruto TCG</span>
+          <span className="sr-only sm:not-sr-only">Naruto TCG</span>
         </a>
         <nav aria-label="Platform" className="-mx-2 min-w-0 flex-1 overflow-x-auto [mask-image:linear-gradient(to_right,black_80%,transparent)] [scrollbar-width:none] md:[mask-image:none]">
           <ul className="flex items-center gap-1 px-2">
@@ -46,8 +46,8 @@ export function SiteHeader({ current, children }: { current: PlatformAppKey; chi
                     aria-current={active ? "page" : undefined}
                     className={
                       active
-                        ? "block whitespace-nowrap rounded-md bg-shadow-800 px-3 py-1.5 text-sm font-semibold text-chakra-400"
-                        : "block whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-ash-400 transition hover:bg-shadow-800 hover:text-ash-200"
+                        ? "block whitespace-nowrap rounded-md bg-shadow-800 px-3 py-1.5 text-sm font-semibold text-chakra-400 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-chakra-400"
+                        : "block whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-ash-400 transition hover:bg-shadow-800 hover:text-ash-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-chakra-400"
                     }
                   >
                     {app.label}

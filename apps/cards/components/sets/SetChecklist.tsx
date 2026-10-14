@@ -93,6 +93,9 @@ export function SetChecklist({
   );
   const visible = useMemo<ReadonlySet<string>>(() => new Set(visibleKeys), [visibleKeys]);
   const visibleOwned = useMemo(() => countOwned(visibleKeys, owned), [visibleKeys, owned]);
+  const allVisibleOwned = visibleKeys.length > 0 && visibleOwned === visibleKeys.length;
+  // Exposed as aria-disabled rather than disabled, so the button keeps focus after marking everything.
+  const markDisabled = visibleKeys.length === 0 || allVisibleOwned;
 
   // Faceted counts: each control counts what it would show under the other filters.
   const statusCounts = useMemo(() => {
@@ -125,9 +128,12 @@ export function SetChecklist({
     setStatus("all");
     setRarities([]);
     setQuery("");
+    // Both reset buttons disappear once the filters are clear; keep focus nearby.
+    searchRef.current?.focus();
   };
 
   const markVisible = () => {
+    if (markDisabled) return;
     const toMark = visibleKeys.filter((key) => !owned.has(key));
     setMany(toMark, true);
     setNotice(`Marked ${toMark.length} ${toMark.length === 1 ? "printing" : "printings"} as owned.`);
@@ -151,7 +157,9 @@ export function SetChecklist({
     else if (restoreFocus.current) {
       restoreFocus.current = false;
       // After clearing, "Clear visible" is usually disabled; fall back to an enabled control.
-      const target = [clearRef.current, markRef.current].find((button) => button && !button.disabled);
+      const target = [clearRef.current, markRef.current].find(
+        (button) => button && !button.disabled && button.getAttribute("aria-disabled") !== "true",
+      );
       (target ?? searchRef.current)?.focus();
     }
   }, [confirmingClear]);
@@ -164,7 +172,6 @@ export function SetChecklist({
 
   const contextValue = useMemo<ChecklistContextValue>(() => ({ owned, visible, toggle }), [owned, visible, toggle]);
   const total = index.length;
-  const allVisibleOwned = visibleKeys.length > 0 && visibleOwned === visibleKeys.length;
 
   return (
     <ChecklistContext.Provider value={contextValue}>
@@ -298,8 +305,8 @@ export function SetChecklist({
               ref={markRef}
               type="button"
               onClick={markVisible}
-              disabled={visibleKeys.length === 0 || allVisibleOwned}
-              className={`rounded-lg bg-emerald-500/15 px-3 py-1.5 text-sm font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-400/40 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40 ${FOCUS_RING}`}
+              aria-disabled={markDisabled}
+              className={`rounded-lg bg-emerald-500/15 px-3 py-1.5 text-sm font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-400/40 transition hover:bg-emerald-500/25 aria-disabled:cursor-not-allowed aria-disabled:opacity-40 ${FOCUS_RING}`}
             >
               Mark all visible owned
             </button>
@@ -431,7 +438,7 @@ export function ChecklistRow({
             checked={isOwned}
             onChange={() => toggle(entryKey)}
             aria-label={`Owned: ${label}`}
-            className={`${styles.checkbox} peer h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-md border-2 border-shadow-500 bg-shadow-950 transition checked:border-emerald-400 checked:bg-emerald-500 hover:border-emerald-400 ${FOCUS_RING}`}
+            className={`${styles.checkbox} peer h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-md border-2 border-ash-400 bg-shadow-950 transition checked:border-emerald-400 checked:bg-emerald-500 hover:border-emerald-400 ${FOCUS_RING}`}
           />
           <CheckIcon className="pointer-events-none absolute inset-0 m-auto h-3.5 w-3.5 text-shadow-950 opacity-0 transition-opacity peer-checked:opacity-100" />
         </span>

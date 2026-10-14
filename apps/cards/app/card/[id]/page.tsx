@@ -6,7 +6,8 @@ import type { CSSProperties } from "react";
 import { ElementBadge, RarityBadge, TypeBadge } from "@/components/badges";
 import { CardFacts, CardRules, CardStats } from "@/components/detail/CardData";
 import { Breadcrumbs, CardPager } from "@/components/detail/DetailNav";
-import { effectSummary, parseEffectText, referencedKeywords } from "@/components/detail/effect-text";
+import { effectKeywords } from "@/components/detail/effect-keywords";
+import { effectSummary, parseEffectText } from "@/components/detail/effect-text";
 import { FoilCard, type HeroPrinting } from "@/components/detail/FoilCard";
 import { OtherVersions } from "@/components/detail/OtherVersions";
 import type { PrintingRow } from "@/components/detail/PrintingsChecklist";
@@ -120,7 +121,7 @@ export default async function CardDetailPage({ params }: { params: Params }) {
   const element = ELEMENT_META[card.element];
 
   const paragraphs = parseEffectText(card.effect, { keywords: card.keywords });
-  const grantedKeywords = referencedKeywords(paragraphs);
+  const keywords = effectKeywords(paragraphs);
   const neighbors = getCardNeighbors(card);
   const related = getRelatedDecks(card.id, MAX_DECKS);
   const versions = getOtherVersions(card);
@@ -196,7 +197,7 @@ export default async function CardDetailPage({ params }: { params: Params }) {
                 card={card}
                 debutSet={debutSet}
                 debutUpcoming={debutUpcoming}
-                grantedKeywords={grantedKeywords}
+                effectKeywords={keywords}
               />
             </section>
 

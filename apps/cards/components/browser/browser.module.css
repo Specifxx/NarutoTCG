@@ -25,6 +25,31 @@
   mask-image: linear-gradient(180deg, black, transparent 85%);
 }
 
+/* ---------- Results waiting for the URL state ---------- */
+
+/*
+ * The static HTML holds the unfiltered default results. While a full page
+ * load of a filtered URL (or a stored list view) waits for the app to apply
+ * it, PendingResults flags <html>: the results, their count and "Show more"
+ * stay hidden instead of flashing the wrong cards.
+ */
+:global(html[data-cards-pending]) .pending {
+  visibility: hidden;
+}
+
+/*
+ * Hidden content still gets laid out, and laid-out lazy images load. Taking
+ * the results out of layout keeps their art from downloading; the reserved
+ * height stops the footer from jumping up meanwhile.
+ */
+:global(html[data-cards-pending]) .pendingResults {
+  min-height: 100vh;
+}
+
+:global(html[data-cards-pending]) .pendingResults > * {
+  display: none;
+}
+
 /* ---------- Grid cells ---------- */
 
 /*

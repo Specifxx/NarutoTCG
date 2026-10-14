@@ -5,12 +5,14 @@ import Link from "next/link";
 import { memo, useId } from "react";
 import { CardImage } from "@/components/CardImage";
 import { ElementBadge, RarityBadge, TypeBadge } from "@/components/badges";
-import { cardHref, cardRarities, cardSetIds, formatCost, formatPower } from "@/lib/meta";
+import { TYPE_META, cardHref, cardRarities, cardSetIds, formatCost, formatPower } from "@/lib/meta";
 import type { SearchHit } from "@/lib/search";
 import { Highlight } from "./Highlight";
 import styles from "./browser.module.css";
 
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-ash-400";
+/** ID, Type and Sets get their own columns only on wide screens; below that the name cell carries ID and type. */
+const WIDE = "hidden xl:table-cell";
 
 /**
  * Accessible results table. Each row's name links to the card; the link's
@@ -37,7 +39,7 @@ export function CardTable({
       tabIndex={0}
       className="overflow-x-auto rounded-xl border border-shadow-700 bg-shadow-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
     >
-      <table className="w-full min-w-[54rem] border-collapse text-sm">
+      <table className="w-full min-w-[36rem] border-collapse text-sm xl:min-w-[54rem]">
         <caption id={captionId} className="sr-only">
           Card search results: {total.toLocaleString("en-US")} {total === 1 ? "card" : "cards"}
           {hits.length < total ? `, showing the first ${hits.length}` : ""}
@@ -50,10 +52,10 @@ export function CardTable({
             <th scope="col" className={TH}>
               Card
             </th>
-            <th scope="col" className={TH}>
+            <th scope="col" className={`${TH} ${WIDE}`}>
               ID
             </th>
-            <th scope="col" className={TH}>
+            <th scope="col" className={`${TH} ${WIDE}`}>
               Type
             </th>
             <th scope="col" className={TH}>
@@ -68,7 +70,7 @@ export function CardTable({
             <th scope="col" className={TH}>
               Rarity
             </th>
-            <th scope="col" className={TH}>
+            <th scope="col" className={`${TH} ${WIDE}`}>
               Sets
             </th>
           </tr>
@@ -124,9 +126,15 @@ const CardRow = memo(function CardRow({
             <Highlight text={card.title} tokens={tokens} />
           </span>
         )}
+        <span className="mt-0.5 block truncate font-mono text-[11px] text-ash-400 xl:hidden">
+          {card.id}
+          <span aria-hidden="true"> · </span>
+          <span className="sr-only">, </span>
+          {TYPE_META[card.type].label}
+        </span>
       </th>
-      <td className="whitespace-nowrap px-3 py-2 align-middle font-mono text-xs text-ash-200">{card.id}</td>
-      <td className="px-3 py-2 align-middle">
+      <td className={`${WIDE} whitespace-nowrap px-3 py-2 align-middle font-mono text-xs text-ash-200`}>{card.id}</td>
+      <td className={`${WIDE} px-3 py-2 align-middle`}>
         <TypeBadge type={card.type} className="text-[10px]!" />
       </td>
       <td className="px-3 py-2 align-middle">
@@ -145,7 +153,7 @@ const CardRow = memo(function CardRow({
           ))}
         </div>
       </td>
-      <td className="whitespace-nowrap px-3 py-2 align-middle font-mono text-xs text-ash-400">
+      <td className={`${WIDE} whitespace-nowrap px-3 py-2 align-middle font-mono text-xs text-ash-400`}>
         {cardSetIds(card).join(" · ")}
       </td>
     </tr>
