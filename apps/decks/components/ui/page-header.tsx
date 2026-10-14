@@ -16,7 +16,7 @@ export function PageHeader({
       <div className="min-w-0">
         {eyebrow && <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-chakra-400">{eyebrow}</div>}
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{title}</h1>
-        {description && <p className="mt-2 max-w-3xl text-sm text-ash-400 sm:text-base">{description}</p>}
+        {description && <div className="mt-2 max-w-3xl text-sm text-ash-400 sm:text-base">{description}</div>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </header>
@@ -43,7 +43,7 @@ export function Section({
           <h2 id={id ? `${id}-title` : undefined} className="text-xl font-bold text-white">
             {title}
           </h2>
-          {description && <p className="mt-1 text-sm text-ash-400">{description}</p>}
+          {description && <div className="mt-1 text-sm text-ash-400">{description}</div>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>

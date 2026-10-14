@@ -48,12 +48,14 @@ export function ArchetypeBadge({
   archetypeId,
   href,
   short = false,
+  size = "md",
   className,
 }: {
   archetypeId: string;
   /** Link target; pass `true` to link to the deck directory filtered by this archetype. */
   href?: string | true;
   short?: boolean;
+  size?: "sm" | "md";
   className?: string;
 }) {
   const archetype = getArchetype(archetypeId);
@@ -64,11 +66,18 @@ export function ArchetypeBadge({
       <span className="truncate">{label}</span>
     </>
   );
-  const classes = cx("inline-flex min-w-0 items-center gap-2 text-sm font-medium text-ash-100", className);
+  const classes = cx(
+    "inline-flex min-w-0 items-center gap-2 font-medium text-ash-100",
+    size === "sm" ? "text-xs" : "text-sm",
+    className,
+  );
   if (!href) return <span className={classes}>{content}</span>;
   const target = href === true ? `/decks?archetype=${encodeURIComponent(archetypeId)}` : href;
   return (
-    <Link href={target} className={cx(classes, "hover:text-chakra-400")}>
+    <Link
+      href={target}
+      className={cx(classes, "rounded-sm hover:text-chakra-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400")}
+    >
       {content}
     </Link>
   );

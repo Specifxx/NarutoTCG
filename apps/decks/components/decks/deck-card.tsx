@@ -22,7 +22,7 @@ export function DeckCard({ deck, tier, votes }: { deck: DeckSummary; tier?: Tier
   return (
     <article className="group relative flex h-full flex-col gap-3 rounded-lg border border-shadow-700 bg-shadow-900 p-4 transition hover:border-shadow-500">
       <div className="flex items-center justify-between gap-2">
-        <ArchetypeBadge archetypeId={deck.archetypeId} short className="text-xs" />
+        <ArchetypeBadge archetypeId={deck.archetypeId} short size="sm" />
         {tier && <TierBadge tier={tier} size="sm" />}
       </div>
       <div className="min-w-0">

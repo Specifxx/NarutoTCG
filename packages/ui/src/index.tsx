@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
+import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import { APP_LINKS, appUrl, type AppKey } from "./apps";
 
 export { APP_LINKS, appUrl, type AppKey, type AppLink } from "./apps";
@@ -9,7 +9,7 @@ export function Button({
   variant = "primary",
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" }) {
+}: ComponentProps<"button"> & { variant?: "primary" | "ghost" }) {
   return (
     <button
       className={cx(
@@ -57,7 +57,8 @@ export function PageShell({ title, tagline, children }: { title: string; tagline
   );
 }
 
-function LeafMark({ className }: { className?: string }) {
+/** The platform mark: a leaf with a chakra swirl. Decorative; hidden from assistive tech. */
+export function LeafMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true" className={className}>
       <path
