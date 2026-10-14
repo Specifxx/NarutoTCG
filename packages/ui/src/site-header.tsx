@@ -62,6 +62,19 @@ export function resolveSiteUrls(env: Readonly<Record<string, string | undefined>
   return urls;
 }
 
+/**
+ * Apps to show in the header. In development every app is listed (local ports).
+ * In production only apps whose URL env var is set are listed, plus the current
+ * one, so a single-app deployment doesn't link to apps that aren't live.
+ */
+export function visibleSiteApps(
+  current: SiteAppId,
+  env: Readonly<Record<string, string | undefined>> = {},
+): SiteAppId[] {
+  if (env.NODE_ENV !== "production") return SITE_APPS.map((a) => a.id);
+  return SITE_APPS.filter((a) => a.id === current || Boolean(env[a.envKey]?.trim())).map((a) => a.id);
+}
+
 const cx = (...c: Array<string | false | undefined>) => c.filter(Boolean).join(" ");
 
 function AppIcon({ id }: { id: SiteAppId }) {
@@ -148,6 +161,8 @@ export interface SiteHeaderProps {
   current: SiteAppId;
   /** Absolute URLs for each app. Defaults to the local dev ports. */
   urls?: Partial<SiteUrls>;
+  /** Apps to list (see visibleSiteApps). Defaults to all. The menu hides when only the current app is left. */
+  apps?: readonly SiteAppId[];
   /** Optional app-specific secondary navigation rendered under the main bar. */
   children?: ReactNode;
 }
@@ -157,8 +172,11 @@ export interface SiteHeaderProps {
  * zones, so cross-app links are plain anchors (full navigations), not client links.
  * Uses no hooks, so it renders from server components.
  */
-export function SiteHeader({ current, urls, children }: SiteHeaderProps) {
+export function SiteHeader({ current, urls, apps, children }: SiteHeaderProps) {
   const resolved: SiteUrls = { ...resolveSiteUrls(), ...urls };
+  const shown = SITE_APPS.filter((app) => !apps || apps.includes(app.id));
+  const showNav = shown.length > 1;
+  const home = shown.some((app) => app.id === "simulator") ? resolved.simulator : resolved[current];
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-shadow-950/75 backdrop-blur-xl supports-[backdrop-filter]:bg-shadow-950/60">
       <a
@@ -169,7 +187,7 @@ export function SiteHeader({ current, urls, children }: SiteHeaderProps) {
       </a>
       <div className="relative z-20 mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6">
         <a
-          href={resolved.simulator}
+          href={home}
           className="group flex items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
         >
           <span className="transition-transform duration-500 group-hover:rotate-[360deg]">
@@ -180,80 +198,85 @@ export function SiteHeader({ current, urls, children }: SiteHeaderProps) {
           </span>
         </a>
 
-        <nav aria-label="Naruto TCG apps" className="ml-auto hidden md:block">
-          <ul className="flex items-center gap-1">
-            {SITE_APPS.map((app) => {
-              const active = app.id === current;
-              return (
-                <li key={app.id}>
-                  <a
-                    href={resolved[app.id]}
-                    aria-current={active ? "page" : undefined}
-                    title={app.blurb}
-                    className={cx(
-                      "relative flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
-                      active ? "text-white" : "text-ash-400 hover:bg-white/5 hover:text-ash-200",
-                    )}
-                  >
-                    <span className={active ? "text-chakra-400" : undefined}>
-                      <AppIcon id={app.id} />
-                    </span>
-                    {app.label}
-                    {active && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute inset-x-3 -bottom-[9px] h-0.5 rounded-full bg-gradient-to-r from-chakra-500 via-chakra-400 to-blood-500 shadow-[0_0_12px_2px_rgba(255,122,26,0.55)]"
-                      />
-                    )}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        <details className="group relative ml-auto md:hidden">
-          <summary
-            aria-label="Open app navigation"
-            className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-white/10 text-ash-200 transition hover:border-chakra-400 hover:text-chakra-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 [&::-webkit-details-marker]:hidden"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path className="origin-center transition group-open:translate-y-[5px] group-open:rotate-45" d="M4 7h16" />
-              <path className="transition group-open:opacity-0" d="M4 12h16" />
-              <path className="origin-center transition group-open:-translate-y-[5px] group-open:-rotate-45" d="M4 17h16" />
-            </svg>
-          </summary>
-          <nav
-            aria-label="Naruto TCG apps"
-            className="absolute right-0 top-full z-30 mt-2 w-64 rounded-xl border border-white/10 bg-shadow-900/95 p-2 shadow-2xl shadow-black/60 backdrop-blur-xl"
-          >
-            <ul className="flex flex-col gap-1">
-              {SITE_APPS.map((app) => {
+        {showNav && (
+          <nav aria-label="Naruto TCG apps" className="ml-auto hidden md:block">
+            <ul className="flex items-center gap-1">
+              {shown.map((app) => {
                 const active = app.id === current;
                 return (
                   <li key={app.id}>
                     <a
                       href={resolved[app.id]}
                       aria-current={active ? "page" : undefined}
+                      title={app.blurb}
                       className={cx(
-                        "flex items-center gap-3 rounded-lg px-3 py-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
-                        active ? "bg-chakra-500/10 text-white" : "text-ash-300 hover:bg-white/5 hover:text-white",
+                        "relative flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
+                        active ? "text-white" : "text-ash-400 hover:bg-white/5 hover:text-ash-200",
                       )}
                     >
-                      <span className={active ? "text-chakra-400" : "text-ash-400"}>
+                      <span className={active ? "text-chakra-400" : undefined}>
                         <AppIcon id={app.id} />
                       </span>
-                      <span className="flex flex-col">
-                        <span className="text-sm font-semibold">{app.label}</span>
-                        <span className="text-xs text-ash-400">{app.blurb}</span>
-                      </span>
+                      {app.label}
+                      {active && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-x-3 -bottom-[9px] h-0.5 rounded-full bg-gradient-to-r from-chakra-500 via-chakra-400 to-blood-500 shadow-[0_0_12px_2px_rgba(255,122,26,0.55)]"
+                        />
+                      )}
                     </a>
                   </li>
                 );
               })}
             </ul>
           </nav>
-        </details>
+
+        )}
+
+        {showNav && (
+          <details className="group relative ml-auto md:hidden">
+            <summary
+              aria-label="Open app navigation"
+              className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-white/10 text-ash-200 transition hover:border-chakra-400 hover:text-chakra-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 [&::-webkit-details-marker]:hidden"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path className="origin-center transition group-open:translate-y-[5px] group-open:rotate-45" d="M4 7h16" />
+                <path className="transition group-open:opacity-0" d="M4 12h16" />
+                <path className="origin-center transition group-open:-translate-y-[5px] group-open:-rotate-45" d="M4 17h16" />
+              </svg>
+            </summary>
+            <nav
+              aria-label="Naruto TCG apps"
+              className="absolute right-0 top-full z-30 mt-2 w-64 rounded-xl border border-white/10 bg-shadow-900/95 p-2 shadow-2xl shadow-black/60 backdrop-blur-xl"
+            >
+              <ul className="flex flex-col gap-1">
+                {shown.map((app) => {
+                  const active = app.id === current;
+                  return (
+                    <li key={app.id}>
+                      <a
+                        href={resolved[app.id]}
+                        aria-current={active ? "page" : undefined}
+                        className={cx(
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
+                          active ? "bg-chakra-500/10 text-white" : "text-ash-300 hover:bg-white/5 hover:text-white",
+                        )}
+                      >
+                        <span className={active ? "text-chakra-400" : "text-ash-400"}>
+                          <AppIcon id={app.id} />
+                        </span>
+                        <span className="flex flex-col">
+                          <span className="text-sm font-semibold">{app.label}</span>
+                          <span className="text-xs text-ash-400">{app.blurb}</span>
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </details>
+        )}
       </div>
       {children && <div className="border-t border-white/5">{children}</div>}
     </header>

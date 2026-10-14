@@ -37,7 +37,8 @@ Links default to the local dev ports; override them at build time for deployment
 | `NEXT_PUBLIC_LEARN_URL` | `http://localhost:3003/learn` |
 | `NEXT_PUBLIC_EVENTS_URL` | `http://localhost:3004` |
 
-To deploy on Vercel (one project per app), see [docs/deploy-with-claude-in-chrome.md](docs/deploy-with-claude-in-chrome.md).
+In production the header only lists apps whose URL variable is set, so a single-app deploy shows no dead links.
+To deploy the Learn site on Vercel, see [docs/deploy-with-claude-in-chrome.md](docs/deploy-with-claude-in-chrome.md).
 
 ## Learn portal (`apps/learn`)
 

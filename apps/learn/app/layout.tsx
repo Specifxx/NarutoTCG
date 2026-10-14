@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { ReleaseRoadmap, SiteHeader, resolveSiteUrls } from "@naruto-tcg/ui";
+import { ReleaseRoadmap, SiteHeader, resolveSiteUrls, visibleSiteApps } from "@naruto-tcg/ui";
 import { AmbientBackdrop } from "@/components/fx/ambient-backdrop";
 import { LearnSubnav } from "@/components/layout/learn-subnav";
 import { Providers } from "@/components/providers";
@@ -24,6 +24,8 @@ export const metadata: Metadata = {
     url: SITE_URL,
   },
   twitter: { card: "summary_large_image" },
+  // Google Search Console "HTML tag" verification: set the tag's content value in Vercel.
+  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
   title: {
     default: "Naruto TCG · Learn",
     template: "%s · Naruto TCG Learn",
@@ -42,7 +44,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="flex min-h-dvh flex-col">
         <Providers>
           <AmbientBackdrop />
-          <SiteHeader current="learn" urls={resolveSiteUrls(process.env)}>
+          <SiteHeader
+            current="learn"
+            urls={{ ...resolveSiteUrls(process.env), learn: SITE_URL }}
+            apps={visibleSiteApps("learn", process.env)}
+          >
             <LearnSubnav />
           </SiteHeader>
           <main id="main-content" tabIndex={-1} className="relative flex-1 outline-none">

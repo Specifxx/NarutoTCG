@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 
-export { SITE_APPS, SiteHeader, resolveSiteUrls } from "./site-header";
+export { SITE_APPS, SiteHeader, resolveSiteUrls, visibleSiteApps } from "./site-header";
 export type { SiteApp, SiteAppId, SiteHeaderProps, SiteUrls } from "./site-header";
 
 const cx = (...c: Array<string | false | undefined>) => c.filter(Boolean).join(" ");
