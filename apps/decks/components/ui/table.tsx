@@ -1,7 +1,11 @@
 import { cx } from "@naruto-tcg/ui";
 import type { HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
 
-/** Data table primitives. The wrapper scrolls horizontally so the page itself never does. */
+/**
+ * Data table primitives. The wrapper scrolls horizontally so the page itself never does; it is
+ * `relative` so absolutely positioned descendants (e.g. sr-only text in cells) stay inside it
+ * instead of widening the page.
+ */
 export function DataTable({
   className,
   children,
@@ -13,7 +17,7 @@ export function DataTable({
 }) {
   return (
     <div
-      className="w-full overflow-x-auto rounded-lg border border-shadow-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+      className="w-full relative overflow-x-auto rounded-lg border border-shadow-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
       {...(label ? { role: "region", "aria-label": label, tabIndex: 0 } : {})}
     >
       <table className={cx("w-full min-w-max border-collapse text-sm", className)} {...props}>

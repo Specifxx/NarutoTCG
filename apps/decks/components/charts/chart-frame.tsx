@@ -55,7 +55,7 @@ export function ChartFrame({
         </div>
       </div>
       {legend && legend.length > 1 && view === "chart" && <ChartLegend items={legend} />}
-      <div className="min-w-0 overflow-hidden">{view === "chart" ? children : <div className="max-h-96 overflow-auto">{table}</div>}</div>
+      <div className="relative min-w-0 overflow-hidden">{view === "chart" ? children : <div className="relative max-h-96 overflow-auto">{table}</div>}</div>
     </figure>
   );
 }

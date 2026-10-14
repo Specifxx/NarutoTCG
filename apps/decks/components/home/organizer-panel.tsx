@@ -57,7 +57,7 @@ export function OrganizerPanel() {
           <TerminalIcon className="h-4 w-4 text-ash-400" />
           Publishing for everyone? Use the CLI
         </h3>
-        <pre className="mt-2 overflow-x-auto rounded-md border border-shadow-700 bg-shadow-950 px-3 py-2.5 font-mono text-xs text-ash-100">
+        <pre className="mt-2 relative overflow-x-auto rounded-md border border-shadow-700 bg-shadow-950 px-3 py-2.5 font-mono text-xs text-ash-100">
           <code>{INGEST_COMMAND}</code>
         </pre>
         <p className="mt-2 text-xs text-ash-400">

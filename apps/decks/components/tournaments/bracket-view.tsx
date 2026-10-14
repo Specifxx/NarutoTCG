@@ -70,7 +70,7 @@ export function BracketView({ rounds, players }: { rounds: BracketRound[]; playe
       role="region"
       aria-label="Top cut bracket"
       tabIndex={0}
-      className={cx("overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-950 p-4", FOCUS_RING)}
+      className={cx("relative overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-950 p-4", FOCUS_RING)}
     >
       <ol className="flex min-w-max gap-6">
         {rounds.map((round) => (

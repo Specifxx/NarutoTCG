@@ -85,7 +85,7 @@ function FeaturedGroup({
       {/* A swipeable strip on small screens (it scrolls inside itself), a 3-up grid from md. */}
       <ul
         aria-labelledby={id}
-        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:scroll-px-0 sm:px-0 md:grid md:grid-cols-3 md:overflow-visible md:pb-0"
+        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 relative overflow-x-auto px-4 pb-2 sm:mx-0 sm:scroll-px-0 sm:px-0 md:grid md:grid-cols-3 md:overflow-visible md:pb-0"
       >
         {decks.map((deck) => (
           <li key={deck.id} className="w-[17.5rem] max-w-[85%] shrink-0 snap-start md:w-auto md:max-w-none">
@@ -277,7 +277,7 @@ function DirectoryView({
           </EmptyState>
         ) : (
           <>
-            <ul ref={listRef} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul ref={listRef} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {results.slice(0, visible).map((deck) => (
                 <li key={deck.id} className="min-w-0">
                   <VotedDeckCard deck={deck} tier={tierOf(deck.archetypeId)} />

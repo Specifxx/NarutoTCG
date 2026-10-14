@@ -102,7 +102,7 @@ export function EventShareChart({ rows }: { rows: MetaShareRow[] }) {
       }
     >
       {/* Clips the 640px pre-measure render so it never widens the page on narrow screens. */}
-      <div className="overflow-hidden">
+      <div className="relative overflow-hidden">
         <ResponsiveContainer width="100%" height={HEIGHT} initialDimension={{ width: 640, height: HEIGHT }}>
           <BarChart data={rows} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barCategoryGap="20%">
             <CartesianGrid vertical={false} stroke={CHART.grid} strokeWidth={1} />

@@ -23,7 +23,7 @@ export function DecksNav() {
   const active = activeHref(usePathname() ?? "/");
   return (
     <div className="border-t border-shadow-800">
-      <nav aria-label="Decks" className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 sm:px-6">
+      <nav aria-label="Decks" className="mx-auto flex max-w-7xl gap-1 relative overflow-x-auto px-4 sm:px-6">
         {LINKS.map((link) => (
           <Link
             key={link.href}

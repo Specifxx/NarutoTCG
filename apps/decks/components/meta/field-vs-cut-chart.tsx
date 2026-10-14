@@ -92,7 +92,7 @@ export function FieldVsCutChart({ rows, hasTopCut }: { rows: FieldVsTopCutRow[];
       }
     >
       {/* Clips the 640px pre-measure render so it never widens the page on narrow screens. */}
-      <div className="overflow-hidden">
+      <div className="relative overflow-hidden">
         <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 640, height }}>
           <BarChart
             data={data}

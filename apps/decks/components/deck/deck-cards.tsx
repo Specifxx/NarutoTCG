@@ -28,7 +28,7 @@ function LeaderShowcase({ decklist, archetypeId, targets }: { decklist: Decklist
   const archetype = getArchetype(archetypeId);
   const [title, epithet] = leader ? splitCardName(leader.name) : [decklist.leaderId, null];
   return (
-    <div className="grid gap-5 rounded-lg border border-shadow-700 bg-shadow-900 p-4 @lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-5 rounded-lg border border-shadow-700 bg-shadow-900 p-4 @lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
       <div className="mx-auto w-full max-w-60">
         {leader ? <CardFrame card={leader} quantity={1} size="lg" /> : <CardIdTile cardId={decklist.leaderId} quantity={1} />}
       </div>
@@ -41,7 +41,7 @@ function LeaderShowcase({ decklist, archetypeId, targets }: { decklist: Decklist
           </h3>
           {leader && (
             <p className="mt-1 text-xs text-ash-400">
-              {[leader.village, ...(leader.traits ?? [])].filter(Boolean).join(" · ")} · {RARITY_MARK[leader.rarity].label} · {leader.id}
+              {[...new Set([leader.village, ...(leader.traits ?? [])].filter(Boolean))].join(" · ")} · {RARITY_MARK[leader.rarity].label} · {leader.id}
             </p>
           )}
         </div>

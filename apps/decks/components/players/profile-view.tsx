@@ -91,7 +91,7 @@ export function ProfileView({
       )}
 
       {results.length > 0 && (
-        <div className="grid gap-10 xl:grid-cols-[20rem_minmax(0,1fr)] xl:gap-8">
+        <div className="grid grid-cols-1 gap-10 xl:grid-cols-[20rem_minmax(0,1fr)] xl:gap-8">
           <Section id="archetypes" title="Archetypes played" description="Tracked events per archetype.">
             <ArchetypeBars rows={rows} />
           </Section>
@@ -107,7 +107,7 @@ export function ProfileView({
         description={decks.length > 0 ? `${deckKinds.join(" and ")}, newest first.` : undefined}
       >
         {decks.length > 0 ? (
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {decks.map((deck) => (
               <li key={deck.id} className="min-w-0">
                 <VotedDeckCard deck={deck} tier={tierOf(deck.archetypeId)} />

@@ -88,7 +88,7 @@ export function PairingsTabs({
 
   return (
     <div className="flex flex-col gap-3">
-      <div role="tablist" aria-label="Rounds" className="flex gap-1 overflow-x-auto border-b border-shadow-700 pb-px">
+      <div role="tablist" aria-label="Rounds" className="flex gap-1 relative overflow-x-auto border-b border-shadow-700 pb-px">
         {rounds.map((round, index) => {
           const active = round.round === current.round;
           const firstCut = round.stage === "top-cut" && rounds[index - 1]?.stage === "swiss";

@@ -109,7 +109,7 @@ export function EventStep({ state, dispatch }: { state: WizardState; dispatch: D
         Fields marked <span className="text-chakra-400">*</span> are required.
       </p>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <FormField id={eventFieldId("name")} label="Event name" required error={errors.name} className="sm:col-span-2">
           {(props) => (
             <input {...props} type="text" autoComplete="off" value={form.name} onChange={(e) => edit({ name: e.target.value })} className={FIELD} />
@@ -193,7 +193,7 @@ export function EventStep({ state, dispatch }: { state: WizardState; dispatch: D
             Online event
           </label>
           {!form.online && (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField id="import-event-city" label="City">
                 {(props) => (
                   <input
@@ -242,7 +242,7 @@ export function EventStep({ state, dispatch }: { state: WizardState; dispatch: D
           )}
         </FormField>
 
-        <div className="grid gap-5 sm:col-span-2 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:col-span-2 sm:grid-cols-3">
           <FormField
             id={eventFieldId("swissRounds")}
             label="Swiss rounds"

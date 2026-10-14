@@ -235,7 +235,7 @@ function CliSnippet({ fileName }: { fileName: string }) {
         importer from the repository root:
       </p>
       <div className="flex min-w-0 items-stretch overflow-hidden rounded-md border border-shadow-600 bg-shadow-950">
-        <pre className="min-w-0 flex-1 overflow-x-auto px-3 py-2.5 text-xs text-ash-100">
+        <pre className="min-w-0 flex-1 relative overflow-x-auto px-3 py-2.5 text-xs text-ash-100">
           <code>{command}</code>
         </pre>
         <button
@@ -412,7 +412,7 @@ export function PreviewStep({ state, dispatch }: { state: WizardState; dispatch:
       )}
 
       <StandingsPreview tournament={tournament} players={players} />
-      <div className="grid min-w-0 gap-8 xl:grid-cols-2">
+      <div className="grid grid-cols-1 min-w-0 gap-8 xl:grid-cols-2">
         <ArchetypeBreakdown rows={archetypeBreakdown(tournament)} topCutSize={tournament.topCutSize} />
         <TopCutList tournament={tournament} players={players} />
       </div>

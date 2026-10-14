@@ -159,7 +159,7 @@ export function MatchupMatrix({ meta, minGames }: { meta: MetaAggregate; minGame
             role="region"
             aria-label={`Matchup matrix, top ${ids.length} archetypes (scrolls sideways)`}
             tabIndex={0}
-            className="w-full overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-900 outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+            className="w-full relative overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-900 outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
           >
             <table className="border-separate border-spacing-0.5 p-1 text-xs">
               <caption className="sr-only">

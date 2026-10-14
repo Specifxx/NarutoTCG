@@ -147,7 +147,7 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
           />
         </section>
 
-        <nav aria-label="On this page" className="flex gap-2 overflow-x-auto pb-1">
+        <nav aria-label="On this page" className="flex gap-2 relative overflow-x-auto pb-1">
           {sections.map((s) => (
             <a
               key={s.id}
@@ -203,7 +203,7 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
         description={decks.length > 0 ? `${pluralize(decks.length, "list")}, best finish first.` : undefined}
       >
         {decks.length > 0 ? (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {decks.map((deck) => (
               <li key={deck.id}>
                 <DeckCard deck={deck} />

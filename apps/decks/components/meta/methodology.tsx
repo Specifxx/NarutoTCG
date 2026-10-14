@@ -34,7 +34,7 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
 
 function Formula({ children }: { children: ReactNode }) {
   return (
-    <code className="block overflow-x-auto rounded-md bg-shadow-800 px-3 py-2 font-mono text-xs whitespace-nowrap text-ash-100">
+    <code className="block relative overflow-x-auto rounded-md bg-shadow-800 px-3 py-2 font-mono text-xs whitespace-nowrap text-ash-100">
       {children}
     </code>
   );

@@ -63,7 +63,7 @@ export function DeckView({ deck, context }: { deck: DeckDetail; context: DeckCon
         }
       />
 
-      <nav aria-label="On this page" className="-mt-4 flex gap-2 overflow-x-auto pb-1">
+      <nav aria-label="On this page" className="-mt-4 flex gap-2 relative overflow-x-auto pb-1">
         {jumpLinks.map((link) => (
           <a key={link.href} href={link.href} className={JUMP_LINK}>
             {link.label}
