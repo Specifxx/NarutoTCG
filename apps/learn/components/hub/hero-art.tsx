@@ -4,7 +4,6 @@ import {
   AnimatePresence,
   motion,
   useInView,
-  useReducedMotion,
   useSpring,
   useTransform,
   type MotionValue,
@@ -17,6 +16,7 @@ import { Emblem } from "@/components/ui/emblem";
 import { ACCENT_STYLES } from "@/lib/accents";
 import { cn } from "@/lib/cn";
 import type { CardDef } from "@/lib/game/types";
+import { useCalmMotion } from "./primitives";
 import type { HubLesson } from "./types";
 
 const BASE_CHAKRA = 5;
@@ -238,7 +238,7 @@ export function HeroArt({
   px: MotionValue<number>;
   py: MotionValue<number>;
 }) {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useCalmMotion();
   const root = useRef<HTMLDivElement>(null);
   const inView = useInView(root, { margin: "-10% 0px" });
   const sx = useSpring(px, { stiffness: 55, damping: 16, mass: 0.6 });

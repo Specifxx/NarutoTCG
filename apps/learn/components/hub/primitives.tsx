@@ -1,8 +1,30 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/**
+ * Hydration-safe reduced-motion flag: false on the server and during
+ * hydration, then the live user preference. Use it for anything that changes
+ * the rendered markup (framer's useReducedMotion reads the media query on the
+ * very first client render, which can disagree with the server HTML).
+ */
+export function useCalmMotion(): boolean {
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false,
+  );
+}
 
 /** Eyebrow → heavy title → muted description, revealed once on scroll. */
 export function SectionHeading({

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
+import { useCalmMotion } from "./primitives";
 
 const LINE_ONE = "Train in the Dojo.";
 const LINE_TWO = "Lead like a Kage.";
@@ -28,7 +29,7 @@ const BRUSH_EASE = [0.65, 0, 0.35, 1] as const;
  * painted on with a chakra brush sweep. Screen readers get the plain sentence.
  */
 export function HeroHeadline({ id }: { id?: string }) {
-  const reduce = useReducedMotion();
+  const reduce = useCalmMotion();
   const words = LINE_ONE.split(" ");
   return (
     <h1 id={id} className="mt-5 text-[2.65rem] font-black leading-[0.98] tracking-tight text-white min-[400px]:text-5xl sm:text-6xl lg:text-[4.1rem] xl:text-[4.6rem]">

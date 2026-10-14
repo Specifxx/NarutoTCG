@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Emblem } from "@/components/ui/emblem";
@@ -10,7 +10,7 @@ import { ACCENT_STYLES } from "@/lib/accents";
 import { cn } from "@/lib/cn";
 import type { EmblemName } from "@/lib/game/types";
 import { RANKS, type RankDef } from "@/lib/progress";
-import { ProgressBar, Skeleton } from "./primitives";
+import { ProgressBar, Skeleton, useCalmMotion } from "./primitives";
 import type { HubProgress } from "./use-hub-progress";
 
 export const RANK_VISUALS: Record<RankDef["id"], { emblem: EmblemName; short: string; accent: Accent }> = {
@@ -24,7 +24,7 @@ export const RANK_VISUALS: Record<RankDef["id"], { emblem: EmblemName; short: st
 const HEX = "[clip-path:polygon(50%_0,93%_25%,93%_75%,50%_100%,7%_75%,7%_25%)]";
 
 function RankMedallion({ rank, hydrated }: { rank: RankDef; hydrated: boolean }) {
-  const reduce = useReducedMotion();
+  const reduce = useCalmMotion();
   const visual = RANK_VISUALS[rank.id];
   const accent = ACCENT_STYLES[visual.accent];
   return (

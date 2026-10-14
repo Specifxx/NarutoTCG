@@ -1,12 +1,13 @@
 "use client";
 
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, type Variants } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, type Variants } from "framer-motion";
 import type { PointerEvent } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Emblem } from "@/components/ui/emblem";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { HeroArt } from "./hero-art";
 import { HeroHeadline } from "./hero-headline";
+import { useCalmMotion } from "./primitives";
 import type { HubData } from "./types";
 import { lessonHref, type HubProgress } from "./use-hub-progress";
 
@@ -48,7 +49,7 @@ function FeatureChip({ icon, children }: { icon: IconName; children: string }) {
 
 /** Dojo hero: animated headline, adaptive call to action and the chakra seal. */
 export function Hero({ data, progress }: { data: HubData; progress: HubProgress }) {
-  const reduce = useReducedMotion();
+  const reduce = useCalmMotion();
   const px = useMotionValue(0);
   const py = useMotionValue(0);
   const cta = pickCta(data, progress);

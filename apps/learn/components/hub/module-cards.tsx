@@ -4,7 +4,6 @@ import {
   motion,
   useMotionTemplate,
   useMotionValue,
-  useReducedMotion,
   useSpring,
 } from "framer-motion";
 import Link from "next/link";
@@ -15,7 +14,7 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { CATEGORY_STYLES } from "@/components/ui/keyword-chip";
 import { ACCENT_STYLES, type FxPalette } from "@/lib/accents";
 import { cn } from "@/lib/cn";
-import { ProgressBar, SectionHeading, Skeleton } from "./primitives";
+import { ProgressBar, SectionHeading, Skeleton, useCalmMotion } from "./primitives";
 import type { HubData, HubKeywordChip, HubPuzzle } from "./types";
 import type { HubProgress, LessonProgress } from "./use-hub-progress";
 
@@ -84,7 +83,7 @@ function ModuleCard({
   progressText,
   cta,
 }: ModuleCardProps) {
-  const reduce = useReducedMotion();
+  const reduce = useCalmMotion();
   const theme = MODULE_THEME[accent];
   const accentStyle = ACCENT_STYLES[accent];
   const [burst, setBurst] = useState(0);
@@ -253,7 +252,7 @@ const FAN = [
 const NUMERALS = ["I", "II", "III", "IV", "V"] as const;
 
 function PuzzlesArt({ puzzles, cleared }: { puzzles: readonly HubPuzzle[]; cleared: readonly boolean[] }) {
-  const reduce = useReducedMotion();
+  const reduce = useCalmMotion();
   return (
     <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center">
       <motion.span
@@ -296,7 +295,7 @@ function PuzzlesArt({ puzzles, cleared }: { puzzles: readonly HubPuzzle[]; clear
 }
 
 function KeywordsArt({ chips }: { chips: readonly HubKeywordChip[] }) {
-  const reduce = useReducedMotion();
+  const reduce = useCalmMotion();
   return (
     <div aria-hidden="true" className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-5">
       <div className="flex w-full max-w-[250px] items-center gap-2 rounded-xl border border-mist-400/30 bg-shadow-950/70 px-3 py-2 text-[12px] text-ash-400 shadow-[0_0_24px_-8px_rgba(139,92,246,0.7)] backdrop-blur">
