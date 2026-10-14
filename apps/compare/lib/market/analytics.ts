@@ -13,16 +13,24 @@
  * - Change over N days compares the aggregate at asOf with the latest
  *   non-null aggregate on or before asOf - N. Null if either is missing or
  *   the base is not positive.
- * - Lowest price = min of vendor `usd.low`; ties go to VENDOR_ORDER.
+ * - A vendor quote is current while it was captured on or after asOf - CARRY_FORWARD_MAX_DAYS
+ *   (UTC midnight). Lowest price, vendor and listing counts, and the card page's quotes and
+ *   listings use current quotes only, matching what the market aggregate still includes.
+ * - Lowest price = min of current vendor `usd.low`; ties go to VENDOR_ORDER.
+ * - Movers rank only cards whose asOf is within MOVER_MAX_LAG_DAYS of the catalog's latest
+ *   asOf; gainers / losers also need |change| >= MOVER_MIN_PCT.
  * - Text ordering compares lower-cased strings by code unit
  *   (Postgres: `lower(x) collate "C"`), then the card id.
  */
 import {
+  CARRY_FORWARD_MAX_DAYS,
   CHANGE_WINDOW_DAYS,
   CHANGE_WINDOWS,
   DEFAULT_PAGE_SIZE,
   HISTORY_POINTS,
   MAX_PAGE_SIZE,
+  MOVER_MAX_LAG_DAYS,
+  MOVER_MIN_PCT,
   MOVER_MIN_PRICE,
   SPARKLINE_DAYS,
 } from "./constants";
@@ -182,6 +190,18 @@ export function densifyHistory(history: PricePoint[], end: IsoDay, days: number 
 
 // ---------------------------------------------------------------- summaries
 
+/** Earliest capture time (ISO) a quote may have and still count as current for a card priced on `asOf`. */
+export function quoteFreshSince(asOf: IsoDay): string {
+  return `${addDays(asOf, -CARRY_FORWARD_MAX_DAYS)}T00:00:00.000Z`;
+}
+
+/** Quotes still current for a card priced on `asOf`; all of them when it was never priced. */
+export function currentQuotes<T extends { updatedAt: string }>(quotes: T[], asOf: IsoDay | null): T[] {
+  if (asOf === null) return quotes;
+  const since = Date.parse(quoteFreshSince(asOf));
+  return quotes.filter((q) => Date.parse(q.updatedAt) >= since);
+}
+
 export function lowestQuote(quotes: VendorQuote[]): { price: number; vendor: VendorId } | null {
   let best: { price: number; vendor: VendorId } | null = null;
   for (const quote of quotes) {
@@ -199,8 +219,9 @@ export function lowestQuote(quotes: VendorQuote[]): { price: number; vendor: Ven
 }
 
 /** Build a directory row from a card's full history (oldest first) and current vendor quotes. */
-export function buildSummary(card: MarketCard, history: PricePoint[], quotes: VendorQuote[]): CardMarketSummary {
+export function buildSummary(card: MarketCard, history: PricePoint[], allQuotes: VendorQuote[]): CardMarketSummary {
   const asOf = latestMarketDay(history);
+  const quotes = currentQuotes(allQuotes, asOf);
   const lowest = lowestQuote(quotes);
   const changes = Object.fromEntries(
     CHANGE_WINDOWS.map((w) => [w, asOf ? computeChange(history, asOf, w) : null]),
@@ -329,7 +350,10 @@ export function queryInMemory(summaries: CardMarketSummary[], query: MarketQuery
 export function rankMovers(summaries: CardMarketSummary[], window: ChangeWindow, limit: number): MarketMovers {
   const take = Number.isNaN(limit) ? 0 : Math.max(0, Math.trunc(limit));
   const pct = (s: CardMarketSummary) => s.changes[window]?.pct ?? 0;
-  const eligible = summaries.filter(
+  const latest = summaries.reduce<IsoDay | null>((max, s) => (s.asOf && (!max || s.asOf > max) ? s.asOf : max), null);
+  const cutoff = latest ? addDays(latest, -MOVER_MAX_LAG_DAYS) : null;
+  const current = summaries.filter((s) => cutoff !== null && s.asOf !== null && s.asOf >= cutoff);
+  const eligible = current.filter(
     (s) => s.marketPrice != null && s.marketPrice >= MOVER_MIN_PRICE && s.changes[window] != null,
   );
   const byPrice = (a: CardMarketSummary, b: CardMarketSummary) =>
@@ -337,14 +361,14 @@ export function rankMovers(summaries: CardMarketSummary[], window: ChangeWindow,
   return {
     window,
     gainers: eligible
-      .filter((s) => pct(s) > 0)
+      .filter((s) => pct(s) >= MOVER_MIN_PCT)
       .sort((a, b) => pct(b) - pct(a) || byPrice(a, b))
       .slice(0, take),
     losers: eligible
-      .filter((s) => pct(s) < 0)
+      .filter((s) => pct(s) <= -MOVER_MIN_PCT)
       .sort((a, b) => pct(a) - pct(b) || byPrice(a, b))
       .slice(0, take),
-    mostValuable: summaries
+    mostValuable: current
       .filter((s) => s.marketPrice != null)
       .sort(byPrice)
       .slice(0, take),

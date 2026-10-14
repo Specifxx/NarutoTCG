@@ -133,7 +133,15 @@ describe("POST /api/prices/cron", () => {
     expect(response.status).toBe(200);
   });
 
-  it.each(["text/plain", "application/x-www-form-urlencoded", ""])("rejects content type %j with 415", async (type) => {
+  it.each([
+    "text/plain",
+    "application/x-www-form-urlencoded",
+    "",
+    // CORS-simple types that merely mention JSON: a hostile page could send them without a preflight.
+    "text/plain;charset=application/json",
+    "text/plain; application/json",
+    "application/jsonp",
+  ])("rejects content type %j with 415", async (type) => {
     const response = await POST(post(VALID_BODY, { "content-type": type }));
     await expectJson(response, 415, { ok: false, error: "Content-Type must be application/json" });
   });

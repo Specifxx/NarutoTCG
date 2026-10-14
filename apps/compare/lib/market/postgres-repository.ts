@@ -11,6 +11,7 @@ import {
   addDays,
   aggregateMarket,
   compareText,
+  currentQuotes,
   densifyHistory,
   emptyPoint,
   isIsoDay,
@@ -21,10 +22,18 @@ import {
   sortListings,
   sortQuotes,
 } from "./analytics";
-import { CARRY_FORWARD_MAX_DAYS, CHANGE_WINDOWS, HISTORY_POINTS, MOVER_MIN_PRICE } from "./constants";
+import {
+  CARRY_FORWARD_MAX_DAYS,
+  CHANGE_WINDOWS,
+  HISTORY_POINTS,
+  MOVER_MAX_LAG_DAYS,
+  MOVER_MIN_PCT,
+  MOVER_MIN_PRICE,
+} from "./constants";
 import type { Fragment, Sql, TransactionSql } from "./db";
 import { DEFAULT_SORT, FINISH_LABEL, FINISH_ORDER, RARITY_LABEL, RARITY_ORDER } from "./labels";
 import {
+  DEMO_DATA_KEY,
   forEachChunk,
   HISTORY_COLUMNS,
   LISTING_COLUMNS,
@@ -349,11 +358,12 @@ export class PostgresMarketRepository implements MarketRepository {
   }
 
   async getStats(): Promise<MarketStats> {
-    const [row] = await this.sql<{ cards: number; last_updated_at: string | null }[]>`
+    const [row] = await this.sql<{ cards: number; last_updated_at: string | null; demo_data: boolean }[]>`
       select
         (select count(*)::int from market_cards) as cards,
-        (select ${this.isoTimestamp(this.sql`max(updated_at)`)} from vendor_quotes) as last_updated_at`;
-    return { cards: row?.cards ?? 0, lastUpdatedAt: row?.last_updated_at ?? null, demoData: false };
+        (select ${this.isoTimestamp(this.sql`max(updated_at)`)} from vendor_quotes) as last_updated_at,
+        exists (select 1 from market_meta where key = ${DEMO_DATA_KEY} and value = 'true') as demo_data`;
+    return { cards: row?.cards ?? 0, lastUpdatedAt: row?.last_updated_at ?? null, demoData: row?.demo_data ?? false };
   }
 
   async listCardIds(): Promise<string[]> {
@@ -412,14 +422,18 @@ export class PostgresMarketRepository implements MarketRepository {
 
   async getMovers(window: ChangeWindow, limit: number): Promise<MarketMovers> {
     const { sql } = this;
+    const [latest] = await sql<{ day: IsoDay | null }[]>`
+      select to_char(max(day), 'YYYY-MM-DD') as day from market_price_daily where market_usd is not null`;
+    if (!latest?.day) return { window, gainers: [], losers: [], mostValuable: [] };
     const pct = sql`s.${sql(CHANGE_COLUMN[window])}`;
     const byPrice = sql`s.market_price desc nulls last, ${this.byName()}`;
     const take = sqlLimit(limit);
-    const eligible = sql`s.market_price >= ${MOVER_MIN_PRICE} and ${pct} is not null`;
+    const current = sql`s.as_of >= ${addDays(latest.day, -MOVER_MAX_LAG_DAYS)}::date`;
+    const eligible = sql`${current} and s.market_price >= ${MOVER_MIN_PRICE} and ${pct} is not null`;
     const [gainers, losers, mostValuable] = await Promise.all([
-      this.summaries(sql`${eligible} and ${pct} > 0`, sql`${pct} desc, ${byPrice}`, take),
-      this.summaries(sql`${eligible} and ${pct} < 0`, sql`${pct} asc, ${byPrice}`, take),
-      this.summaries(sql`s.market_price is not null`, byPrice, take),
+      this.summaries(sql`${eligible} and ${pct} >= ${MOVER_MIN_PCT}`, sql`${pct} desc, ${byPrice}`, take),
+      this.summaries(sql`${eligible} and ${pct} <= ${-MOVER_MIN_PCT}`, sql`${pct} asc, ${byPrice}`, take),
+      this.summaries(sql`${current} and s.market_price is not null`, byPrice, take),
     ]);
     return { window, gainers, losers, mostValuable };
   }
@@ -429,7 +443,7 @@ export class PostgresMarketRepository implements MarketRepository {
     const [summary] = await this.summaries(sql`c.id = ${id}`, this.byName(), 1);
     if (!summary) return null;
     const { card, asOf } = summary;
-    const [quotes, listings, history, variants] = await Promise.all([
+    const [allQuotes, allListings, history, variants] = await Promise.all([
       this.quotesFor(card),
       this.listingsFor(card.id),
       asOf ? this.historyFor(card.id, asOf) : Promise.resolve([]),
@@ -438,6 +452,10 @@ export class PostgresMarketRepository implements MarketRepository {
         sql`s.market_price desc nulls last, ${this.byName()}`,
       ),
     ]);
+    // Same freshness rule as the summary: stale vendors drop out of the comparison and listings.
+    const quotes = currentQuotes(allQuotes, asOf);
+    const quoted = new Set(quotes.map((q) => q.vendor));
+    const listings = allListings.filter((listing) => quoted.has(listing.vendor));
     return { summary, quotes, listings, history, variants };
   }
 
@@ -584,26 +602,33 @@ export class PostgresMarketRepository implements MarketRepository {
    * quote only if it is at least as new as the stored one, so a backfill never replaces
    * fresher data; its listings (when given) replace that vendor's listings at the same
    * moment. Every snapshot is filed in price_history under its day, where the latest
-   * capture of that day wins, and each changed (card, day) market price is recomputed with
-   * aggregateMarket in TypeScript.
+   * capture of that day wins. The other vendors' current prices are then carried into each
+   * written day (see carryForward) and its market price is recomputed with aggregateMarket
+   * in TypeScript, so a single-vendor push never stands in for the cross-vendor median.
    */
-  async ingest(snapshots: NormalizedVendorSnapshot[]): Promise<IngestWriteResult> {
-    if (snapshots.length === 0) {
+  async ingest(input: NormalizedVendorSnapshot[]): Promise<IngestWriteResult> {
+    if (input.length === 0) {
       return { persisted: true, vendorQuotes: 0, listings: 0, historyPoints: 0, marketPoints: 0 };
     }
     return this.sql.begin(async (tx) => {
       await lockMarketWrites(tx);
 
-      const pairs = [...new Map(snapshots.map((s) => [pairKey(s.cardId, s.vendor), s])).values()];
-      const stored = await tx<{ card_id: string; vendor: VendorId; updated_at: string }[]>`
-        select card_id, vendor, ${this.isoTimestamp(tx`updated_at`)} as updated_at
+      const pairs = [...new Map(input.map((s) => [pairKey(s.cardId, s.vendor), s])).values()];
+      const stored = await tx<{ card_id: string; vendor: VendorId; updated_at: string; listings_count: number }[]>`
+        select card_id, vendor, ${this.isoTimestamp(tx`updated_at`)} as updated_at, listings_count
         from vendor_quotes
         where (card_id, vendor) in (
           select * from unnest(${pairs.map((s) => s.cardId)}::text[], ${pairs.map((s) => s.vendor)}::text[])
         )`;
+      const storedCount = new Map(stored.map((row) => [pairKey(row.card_id, row.vendor), row.listings_count]));
+      // An unknown listing count keeps the stored one (0 for a vendor's first quote).
+      const snapshots: KnownSnapshot[] = input.map((s) => ({
+        ...s,
+        listingsCount: s.listingsCount ?? storedCount.get(pairKey(s.cardId, s.vendor)) ?? 0,
+      }));
       const currentAt = new Map(stored.map((row) => [pairKey(row.card_id, row.vendor), Date.parse(row.updated_at)]));
-      const quoteWinners = new Map<string, NormalizedVendorSnapshot>();
-      const listingWinners = new Map<string, NormalizedVendorSnapshot>();
+      const quoteWinners = new Map<string, KnownSnapshot>();
+      const listingWinners = new Map<string, KnownSnapshot>();
       for (const snapshot of snapshots) {
         const key = pairKey(snapshot.cardId, snapshot.vendor);
         const capturedAt = Date.parse(snapshot.capturedAt);
@@ -643,7 +668,7 @@ export class PostgresMarketRepository implements MarketRepository {
       }
 
       // Per (card, vendor, day) the latest capture wins; an equal one overwrites, so re-ingesting is idempotent.
-      const latestPerDay = new Map<string, NormalizedVendorSnapshot>();
+      const latestPerDay = new Map<string, KnownSnapshot>();
       for (const snapshot of snapshots) {
         const key = `${pairKey(snapshot.cardId, snapshot.vendor)}\u0000${snapshot.day}`;
         const kept = latestPerDay.get(key);
@@ -666,6 +691,9 @@ export class PostgresMarketRepository implements MarketRepository {
       });
 
       const days = [...new Map(written.map((row) => [dayKey(row.card_id, row.day), row])).values()];
+      const cardsByDay = new Map<IsoDay, string[]>();
+      for (const row of days) cardsByDay.set(row.day, [...(cardsByDay.get(row.day) ?? []), row.card_id]);
+      for (const [day, cardIds] of cardsByDay) await carryForward(tx, day, cardIds);
       const prices =
         days.length === 0
           ? []
@@ -688,55 +716,86 @@ export class PostgresMarketRepository implements MarketRepository {
   }
 
   /**
-   * Daily close for `day`: every current vendor quote captured by the end of that day, no more
-   * than CARRY_FORWARD_MAX_DAYS before it, and missing from the day's history is carried
-   * forward into it, then the day's market price
-   * is recomputed for each card with history that day. Running it again carries nothing.
+   * Daily close for `day` (today, or a past day to repair it): carries every vendor's current
+   * price into the day (see carryForward), then recomputes the day's market price for each
+   * card with history that day. Running it again carries nothing.
    */
   async rollup(day: IsoDay): Promise<RollupResult> {
     if (!isIsoDay(day)) throw new Error(`rollup day must be YYYY-MM-DD, got "${day}"`);
-    const endOfDay = `${addDays(day, 1)}T00:00:00.000Z`;
-    const staleBefore = `${addDays(day, -CARRY_FORWARD_MAX_DAYS)}T00:00:00.000Z`;
     return this.sql.begin(async (tx) => {
       await lockMarketWrites(tx);
-      const carried = await tx`
-        insert into price_history (
-          card_id, vendor, day, currency, low, mid, high, market, low_usd, mid_usd, high_usd, market_usd,
-          listings_count, captured_at
-        )
-        select q.card_id, q.vendor, ${day}::date, q.currency,
-               q.low, q.mid, q.high, q.market, q.low_usd, q.mid_usd, q.high_usd, q.market_usd,
-               q.listings_count, q.updated_at
-        from vendor_quotes q
-        where q.updated_at < ${endOfDay}::timestamptz and q.updated_at >= ${staleBefore}::timestamptz
-        on conflict (card_id, vendor, day) do nothing
-        returning card_id`;
+      const carriedForward = await carryForward(tx, day, null);
       const prices = await tx<DayPriceRow[]>`
         select card_id, to_char(day, 'YYYY-MM-DD') as day, market_usd
         from price_history
         where day = ${day}::date`;
       const marketPoints = await writeMarketDaily(tx, prices);
-      return { persisted: true, day, carriedForward: carried.length, marketPoints };
+      return { persisted: true, day, carriedForward, marketPoints };
     });
   }
 }
 
 // ---------------------------------------------------------------- write helpers
 
-function snapshotQuoteRow(snapshot: NormalizedVendorSnapshot): QuoteRow {
+/** A snapshot whose unknown listing count has been settled against the stored quote. */
+type KnownSnapshot = NormalizedVendorSnapshot & { listingsCount: number };
+
+/**
+ * Gives `day` a price_history row for every (card, vendor) that lacks one, copying that
+ * vendor's latest capture from the CARRY_FORWARD_MAX_DAYS before the day ends: its current
+ * quote, or an earlier history row when the quote was captured after `day` (a backfill or a
+ * repaired past day). Copies keep the source's captured_at, so a vendor drops out once its
+ * newest real capture is older than the window, and any later real capture of the day wins.
+ * `cardIds` null means every card. Returns the rows inserted.
+ */
+async function carryForward(tx: TransactionSql, day: IsoDay, cardIds: string[] | null): Promise<number> {
+  const freshDay = addDays(day, -CARRY_FORWARD_MAX_DAYS);
+  const freshSince = `${freshDay}T00:00:00.000Z`;
+  const endOfDay = `${addDays(day, 1)}T00:00:00.000Z`;
+  const forCards = () => (cardIds === null ? tx`true` : tx`card_id = any(${cardIds}::text[])`);
+  const rows = await tx`
+    insert into price_history (
+      card_id, vendor, day, currency, low, mid, high, market, low_usd, mid_usd, high_usd, market_usd,
+      listings_count, captured_at
+    )
+    select distinct on (src.card_id, src.vendor)
+           src.card_id, src.vendor, ${day}::date, src.currency, src.low, src.mid, src.high, src.market,
+           src.low_usd, src.mid_usd, src.high_usd, src.market_usd, src.listings_count, src.captured_at
+    from (
+      select card_id, vendor, currency, low, mid, high, market, low_usd, mid_usd, high_usd, market_usd,
+             listings_count, updated_at as captured_at
+      from vendor_quotes
+      where ${forCards()} and updated_at >= ${freshSince}::timestamptz and updated_at < ${endOfDay}::timestamptz
+      union all
+      select card_id, vendor, currency, low, mid, high, market, low_usd, mid_usd, high_usd, market_usd,
+             listings_count, captured_at
+      from price_history
+      where ${forCards()} and day >= ${freshDay}::date and day < ${day}::date
+        and captured_at >= ${freshSince}::timestamptz and captured_at < ${endOfDay}::timestamptz
+    ) src
+    where not exists (
+      select 1 from price_history h where h.card_id = src.card_id and h.vendor = src.vendor and h.day = ${day}::date
+    )
+    order by src.card_id, src.vendor, src.captured_at desc
+    on conflict (card_id, vendor, day) do nothing
+    returning card_id`;
+  return rows.length;
+}
+
+function snapshotQuoteRow(snapshot: KnownSnapshot): QuoteRow {
   return {
     card_id: snapshot.cardId,
     vendor: snapshot.vendor,
     currency: snapshot.currency,
     ...priceColumns(snapshot.native, snapshot.usd),
-    listings_count: snapshot.listingsCount ?? 0,
+    listings_count: snapshot.listingsCount,
     url: snapshot.url,
     updated_at: snapshot.capturedAt,
   };
 }
 
 /** Stable ids `<cardId>:<vendor>:<n>` in the snapshot's order, as in the seed catalog. */
-function snapshotListingRows(snapshot: NormalizedVendorSnapshot): ListingRow[] {
+function snapshotListingRows(snapshot: KnownSnapshot): ListingRow[] {
   return (snapshot.listings ?? []).map((listing, index) => ({
     id: `${snapshot.cardId}:${snapshot.vendor}:${index + 1}`,
     card_id: snapshot.cardId,
@@ -755,14 +814,14 @@ function snapshotListingRows(snapshot: NormalizedVendorSnapshot): ListingRow[] {
   }));
 }
 
-function snapshotHistoryRow(snapshot: NormalizedVendorSnapshot): HistoryRow {
+function snapshotHistoryRow(snapshot: KnownSnapshot): HistoryRow {
   return {
     card_id: snapshot.cardId,
     vendor: snapshot.vendor,
     day: snapshot.day,
     currency: snapshot.currency,
     ...priceColumns(snapshot.native, snapshot.usd),
-    listings_count: snapshot.listingsCount ?? 0,
+    listings_count: snapshot.listingsCount,
     captured_at: snapshot.capturedAt,
   };
 }

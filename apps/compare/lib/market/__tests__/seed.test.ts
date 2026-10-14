@@ -147,16 +147,19 @@ describe("generateSeedDataset", () => {
   });
 
   it("stores the median of the vendor market prices as the daily aggregate", () => {
-    expect(dataset.vendorHistory.filter((row) => row.usd.market === null)).toEqual([]);
-    const vendorMarkets = new Map<string, number[]>();
+    // Only eBay has gap days, filed as captures without a market price.
+    expect(new Set(dataset.vendorHistory.filter((row) => row.usd.market === null).map((row) => row.vendor))).toEqual(
+      new Set(["ebay"]),
+    );
+    const vendorMarkets = new Map<string, Array<number | null>>();
     for (const row of dataset.vendorHistory) {
       const k = key(row.cardId, row.day);
-      vendorMarkets.set(k, [...(vendorMarkets.get(k) ?? []), row.usd.market ?? 0]);
+      vendorMarkets.set(k, [...(vendorMarkets.get(k) ?? []), row.usd.market]);
     }
     expect(dataset.marketDaily.length).toBe(vendorMarkets.size);
     const mismatched = dataset.marketDaily.filter((row) => {
       const values = vendorMarkets.get(key(row.cardId, row.day)) ?? [];
-      return row.marketUsd !== aggregateMarket(values) || row.vendorCount !== values.length;
+      return row.marketUsd !== aggregateMarket(values) || row.vendorCount !== values.filter((v) => v !== null).length;
     });
     expect(mismatched).toEqual([]);
     expect(new Set(dataset.marketDaily.map((row) => row.vendorCount))).toEqual(new Set([1, 2, 3]));
@@ -169,7 +172,7 @@ describe("generateSeedDataset", () => {
       return (
         row.currency !== VENDORS[row.vendor].currency ||
         row.usd.market !== usd.market ||
-        row.native.market === null ||
+        (row.native.market === null && row.vendor !== "ebay") ||
         row.native.low !== null ||
         row.native.mid !== null ||
         row.native.high !== null ||
@@ -198,11 +201,13 @@ describe("generateSeedDataset", () => {
     }
   });
 
-  it("leaves eBay without a market price on roughly one day in ten", () => {
+  it("leaves eBay without a market price on roughly one day in ten, filed as an explicit gap", () => {
     const ebayCards = new Set(dataset.quotes.filter((q) => q.vendor === "ebay").map((q) => q.cardId));
     const cardDays = dataset.marketDaily.filter((r) => ebayCards.has(r.cardId)).length;
-    const ebayDays = dataset.vendorHistory.filter((r) => r.vendor === "ebay").length;
-    const gapShare = 1 - ebayDays / cardDays;
+    const ebayRows = dataset.vendorHistory.filter((r) => r.vendor === "ebay");
+    // Every day an eBay card is priced has an eBay row, so the rollup never carries an older price into a gap.
+    expect(ebayRows.length).toBe(cardDays);
+    const gapShare = ebayRows.filter((r) => r.usd.market === null).length / cardDays;
     expect(gapShare).toBeGreaterThan(0.07);
     expect(gapShare).toBeLessThan(0.13);
   });
@@ -230,20 +235,16 @@ describe("generateSeedDataset", () => {
       const todayRow = dataset.vendorHistory.find(
         (r) => r.cardId === quote.cardId && r.vendor === quote.vendor && r.day === TODAY,
       );
-      if (quote.native.market === null) {
-        expect(quote.vendor).toBe("ebay");
-        expect(todayRow).toBeUndefined();
-      } else {
-        expect(todayRow).toEqual({
-          cardId: quote.cardId,
-          vendor: quote.vendor,
-          day: TODAY,
-          currency: quote.currency,
-          native: quote.native,
-          usd: quote.usd,
-          listingsCount: quote.listingsCount,
-        });
-      }
+      if (quote.native.market === null) expect(quote.vendor).toBe("ebay");
+      expect(todayRow).toEqual({
+        cardId: quote.cardId,
+        vendor: quote.vendor,
+        day: TODAY,
+        currency: quote.currency,
+        native: quote.native,
+        usd: quote.usd,
+        listingsCount: quote.listingsCount,
+      });
     }
   });
 

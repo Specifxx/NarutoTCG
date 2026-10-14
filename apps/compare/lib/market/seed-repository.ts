@@ -2,6 +2,7 @@ import {
   buildFacets,
   buildSummary,
   compareText,
+  currentQuotes,
   densifyHistory,
   emptyPoint,
   pickVariants,
@@ -178,10 +179,12 @@ export class SeedMarketRepository implements MarketRepository {
     const entry = entries.get(id);
     if (!entry) return null;
     const { card, summary } = entry;
+    const quotes = currentQuotes(entry.quotes, summary.asOf);
+    const quoted = new Set(quotes.map((q) => q.vendor));
     return {
       summary,
-      quotes: sortQuotes(entry.quotes),
-      listings: sortListings(entry.listings),
+      quotes: sortQuotes(quotes),
+      listings: sortListings(entry.listings.filter((l) => quoted.has(l.vendor))),
       history: summary.asOf ? densifyHistory(entry.history, summary.asOf, HISTORY_POINTS) : [],
       variants: pickVariants(card, summaries),
     };

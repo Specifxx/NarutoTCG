@@ -310,20 +310,20 @@ function generateCard(card: MarketCard, labels: IsoDay[], context: Context): voi
       const market = gap ? null : reference;
       const marketUsd = market === null ? null : toUsd(market, currency, fx);
 
+      // A gap is a capture without a market price, filed as such (as ingestion would), so the
+      // daily rollup never carries an older price into it.
       if (d === lastDay) {
         const quote = generateQuote(card, vendor, seed, reference, market, context);
-        if (market !== null) {
-          out.vendorHistory.push({
-            cardId: card.id,
-            vendor,
-            day,
-            currency,
-            native: { ...quote.native },
-            usd: { ...quote.usd },
-            listingsCount: quote.listingsCount,
-          });
-        }
-      } else if (market !== null) {
+        out.vendorHistory.push({
+          cardId: card.id,
+          vendor,
+          day,
+          currency,
+          native: { ...quote.native },
+          usd: { ...quote.usd },
+          listingsCount: quote.listingsCount,
+        });
+      } else {
         out.vendorHistory.push({
           cardId: card.id,
           vendor,

@@ -55,8 +55,10 @@ export async function POST(request: Request): Promise<Response> {
   const auth = authorizeCron(request);
   if (!auth.ok) return unauthorized(auth);
 
-  const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().includes("application/json")) {
+  // Compare the media type itself: "text/plain;charset=application/json" is still a CORS-simple
+  // text/plain request that a hostile page could send without a preflight.
+  const mediaType = (request.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
+  if (mediaType !== "application/json") {
     return fail(415, "Content-Type must be application/json");
   }
   const tooLarge = `Body exceeds ${MAX_INGEST_BODY_BYTES} bytes`;

@@ -10,13 +10,32 @@ const DEFAULT_POOL_MAX = 5;
 
 const store = globalThis as typeof globalThis & { __narutoCompareSql?: Sql };
 
+const LOCAL_HOSTS = new Set(["", "localhost", "127.0.0.1", "[::1]"]);
+
+/**
+ * postgres.js connects in plaintext unless told otherwise, and Supabase's dashboard URLs
+ * carry no sslmode. Require TLS for any non-local host; an explicit sslmode / ssl in the
+ * URL (e.g. sslmode=disable for a trusted private network) still wins.
+ */
+export function defaultSsl(url: string): "require" | undefined {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return undefined;
+  }
+  if (parsed.searchParams.has("sslmode") || parsed.searchParams.has("ssl")) return undefined;
+  return LOCAL_HOSTS.has(parsed.hostname) ? undefined : "require";
+}
+
 /**
  * A postgres.js client. Prepared statements are off because Supabase's pooler
  * (Supavisor in transaction mode, port 6543) cannot keep named statements across
- * transactions. TLS follows `sslmode` in the URL; nothing here forces it.
+ * transactions.
  */
 export function createSql(url: string, options: SqlOptions = {}): Sql {
-  return postgres(url, { prepare: false, ...options });
+  const ssl = defaultSsl(url);
+  return postgres(url, { prepare: false, ...(ssl && { ssl }), ...options });
 }
 
 function poolMax(value: string | undefined): number {

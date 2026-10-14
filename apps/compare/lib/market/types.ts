@@ -1,13 +1,14 @@
 import type {
   CardCondition,
   CardFinish,
+  CardType,
   CurrencyCode,
   NarutoCard,
   Rarity,
   VendorId,
 } from "@naruto-tcg/types";
 
-export type { CardCondition, CardFinish, CurrencyCode, Rarity, VendorId };
+export type { CardCondition, CardFinish, CardType, CurrencyCode, Rarity, VendorId };
 
 /** ISO calendar day in UTC, `YYYY-MM-DD`. */
 export type IsoDay = string;

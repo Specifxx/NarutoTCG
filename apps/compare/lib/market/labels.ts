@@ -1,4 +1,6 @@
-import type { CardCondition, CardFinish, Rarity, SortKey } from "./types";
+import type { CardCondition, CardFinish, CardType, Rarity, SortKey } from "./types";
+
+export const CARD_TYPES = ["character", "jutsu", "mission", "item", "event"] as const satisfies readonly CardType[];
 
 export const RARITY_ORDER: Rarity[] = [
   "common",

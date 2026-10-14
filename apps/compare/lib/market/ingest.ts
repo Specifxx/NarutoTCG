@@ -25,7 +25,7 @@ import type {
   PriceStats,
   RollupResult,
 } from "./types";
-import { VENDORS } from "./vendors";
+import { isVendorUrl, VENDORS } from "./vendors";
 
 type Env = Record<string, string | undefined>;
 
@@ -68,6 +68,8 @@ const MINUTE_MS = 60_000;
 const DAY_MS = 86_400_000;
 /** Ambiguity messages list at most this many candidate ids. */
 const MAX_LISTED_CANDIDATES = 5;
+/** Card lookups in flight at once, so a large batch cannot monopolize the database pool pages share. */
+const RESOLVE_CONCURRENCY = 4;
 
 const REF_FIELDS = ["id", "name", "setCode", "number", "finish", "rarity"] as const;
 
@@ -105,11 +107,18 @@ export function normalizeItem(item: IngestItem, context: NormalizeContext): Norm
 
   const currency = item.currency ?? VENDORS[item.vendor].currency;
   const { fx } = context;
+  const domains = VENDORS[item.vendor].hosts.join(", ");
+  if (item.url && !isVendorUrl(item.vendor, item.url)) {
+    return invalid(`url must be an https link on ${domains}`);
+  }
 
   let listings: SnapshotDraft["listings"];
   if (item.listings) {
     listings = [];
     for (const [i, listing] of item.listings.entries()) {
+      if (listing.url && !isVendorUrl(item.vendor, listing.url)) {
+        return invalid(`listings.${i}.url must be an https link on ${domains}`);
+      }
       const price = roundMoney(listing.price);
       const priceUsd = toUsd(price, currency, fx);
       if (priceUsd <= 0) return invalid(`listings.${i}.price: must be at least one cent`);
@@ -154,7 +163,8 @@ export function normalizeItem(item: IngestItem, context: NormalizeContext): Norm
       usd: statsToUsd(native, currency, fx),
       url: item.url ?? null,
       ...(listings && { listings }),
-      listingsCount: Math.max(listings?.length ?? 0, item.listingsCount ?? 0),
+      // Unknown (null) only when neither listings nor a count were captured: the stored count stays.
+      listingsCount: listings ? Math.max(listings.length, item.listingsCount ?? 0) : (item.listingsCount ?? null),
     },
   };
 }
@@ -174,18 +184,20 @@ function describeResolutionFailure(ref: CardRef, resolution: Exclude<CardResolut
   return `ambiguous card: matches ${listed}${more}; add finish or rarity`;
 }
 
-/** Card lookup that asks the repository once per distinct ref within a batch. */
-function memoizedResolver(repo: MarketRepository): (ref: CardRef) => Promise<CardResolution> {
-  const memo = new Map<string, Promise<CardResolution>>();
-  return (ref) => {
-    const key = JSON.stringify(REF_FIELDS.map((field) => ref[field] ?? null));
-    let resolution = memo.get(key);
-    if (!resolution) {
-      resolution = repo.resolveCard(ref);
-      memo.set(key, resolution);
+/** Resolves every ref, asking the repository once per distinct ref with at most RESOLVE_CONCURRENCY in flight. */
+async function resolveAll(repo: MarketRepository, refs: CardRef[]): Promise<CardResolution[]> {
+  const keyOf = (ref: CardRef) => JSON.stringify(REF_FIELDS.map((field) => ref[field] ?? null));
+  const distinct = [...new Map(refs.map((ref) => [keyOf(ref), ref])).entries()];
+  const resolved = new Map<string, CardResolution>();
+  let next = 0;
+  const worker = async () => {
+    while (next < distinct.length) {
+      const [key, ref] = distinct[next++]!;
+      resolved.set(key, await repo.resolveCard(ref));
     }
-    return resolution;
   };
+  await Promise.all(Array.from({ length: Math.min(RESOLVE_CONCURRENCY, distinct.length) }, worker));
+  return refs.map((ref) => resolved.get(keyOf(ref))!);
 }
 
 const byIndex = (a: { index: number }, b: { index: number }) => a.index - b.index;
@@ -215,22 +227,28 @@ export async function processIngest(body: unknown, deps: IngestDeps): Promise<In
     else rejected.push({ index, reason: normalized.reason });
   });
 
-  const resolve = memoizedResolver(deps.repo);
-  const resolved = await Promise.all(
-    drafts.map(async (draft) => ({ ...draft, resolution: await resolve(draft.ref) })),
-  );
+  const resolutions = await resolveAll(deps.repo, drafts.map((draft) => draft.ref));
   const matched: { index: number; snapshot: NormalizedVendorSnapshot }[] = [];
-  for (const { index, ref, snapshot, resolution } of resolved) {
+  for (const [i, { index, ref, snapshot }] of drafts.entries()) {
+    const resolution = resolutions[i]!;
     if (resolution.status === "matched") matched.push({ index, snapshot: { cardId: resolution.cardId, ...snapshot } });
     else rejected.push({ index, reason: describeResolutionFailure(ref, resolution) });
   }
 
-  // One snapshot per (card, vendor, day): the last item in the batch wins.
+  // One snapshot per (card, vendor, day): the latest capture wins, ties go to the later item.
+  // capturedAt is a normalized toISOString, so string order is time order.
   const dedupeKey = ({ cardId, vendor, day }: NormalizedVendorSnapshot) => `${cardId}\u0000${vendor}\u0000${day}`;
-  const winners = new Map(matched.map((entry) => [dedupeKey(entry.snapshot), entry.index]));
+  matched.sort(byIndex);
+  const winners = new Map<string, { index: number; capturedAt: string }>();
+  for (const { index, snapshot } of matched) {
+    const best = winners.get(dedupeKey(snapshot));
+    if (!best || snapshot.capturedAt >= best.capturedAt) {
+      winners.set(dedupeKey(snapshot), { index, capturedAt: snapshot.capturedAt });
+    }
+  }
   const kept: typeof matched = [];
   for (const entry of matched) {
-    const winner = winners.get(dedupeKey(entry.snapshot));
+    const winner = winners.get(dedupeKey(entry.snapshot))?.index;
     if (winner === entry.index) kept.push(entry);
     else rejected.push({ index: entry.index, reason: `superseded by item ${winner}` });
   }

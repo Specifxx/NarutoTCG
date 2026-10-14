@@ -71,7 +71,10 @@ const positiveMoney = z.preprocess(
   coerceMoney,
   z.number().finite().min(MIN_PRICE, "must be at least one cent").max(MAX_PRICE),
 );
-const httpUrl = z.url({ protocol: /^https?$/ }).max(2048);
+/** PostgreSQL text cannot hold U+0000; reject it here so one bad row never fails the batch's write. */
+const NO_NUL = [(value: string) => !value.includes("\u0000"), "must not contain NUL characters"] as const;
+const text = (max: number) => z.string().trim().min(1).max(max).refine(...NO_NUL);
+const httpUrl = z.url({ protocol: /^https?$/ }).max(2048).refine(...NO_NUL);
 
 export const VendorSchema = z.preprocess(slug, z.enum(VENDOR_ORDER as [VendorId, ...VendorId[]]));
 export const CurrencySchema = z.preprocess(
@@ -84,10 +87,10 @@ export const ConditionSchema = z.preprocess(coerceCondition, z.enum(CONDITION_OR
 
 export const CardRefSchema = z
   .object({
-    id: z.string().trim().min(1).max(64).optional(),
-    name: z.string().trim().min(1).max(200).optional(),
-    setCode: z.string().trim().min(1).max(32).optional(),
-    number: z.preprocess(coerceText, z.string().trim().min(1).max(32)).optional(),
+    id: text(64).optional(),
+    name: text(200).optional(),
+    setCode: text(32).optional(),
+    number: z.preprocess(coerceText, text(32)).optional(),
     finish: FinishSchema.optional(),
     /** Narrows ambiguous matches only, e.g. a foil vs a parallel sharing one collector number. */
     rarity: RaritySchema.optional(),
@@ -104,7 +107,7 @@ export const PriceValuesSchema = z.object({
 });
 
 export const ListingSchema = z.object({
-  seller: z.string().trim().min(1).max(120).catch("Unknown seller"),
+  seller: text(120).catch("Unknown seller"),
   condition: ConditionSchema.default("NM"),
   quantity: z.preprocess(coerceInteger, z.number().int().min(1).max(100_000)).default(1),
   price: positiveMoney,

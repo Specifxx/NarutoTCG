@@ -10,14 +10,20 @@ export function readList(value: string | string[] | undefined): string[] {
   const raw = Array.isArray(value) ? value : value ? [value] : [];
   const out: string[] = [];
   for (const part of raw.flatMap((v) => v.split(","))) {
-    const trimmed = part.trim();
+    const trimmed = stripNul(part).trim();
     if (trimmed && !out.includes(trimmed)) out.push(trimmed);
   }
   return out;
 }
 
 function readOne(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
+  const one = Array.isArray(value) ? value[0] : value;
+  return one === undefined ? undefined : stripNul(one);
+}
+
+/** PostgreSQL text cannot hold U+0000; a URL carrying one must not turn into a server error. */
+function stripNul(value: string): string {
+  return value.replace(/\u0000/g, "");
 }
 
 /** Parse URL params into a validated query. Unknown enum values are dropped, never thrown. */

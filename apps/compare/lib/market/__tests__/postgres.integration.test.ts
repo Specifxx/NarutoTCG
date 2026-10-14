@@ -14,7 +14,7 @@ import { createSql, type Sql } from "../db";
 import type { FxRates } from "../fx";
 import { processIngest } from "../ingest";
 import { SORT_OPTIONS } from "../labels";
-import { cardRow, loadDataset, MarketDataPresentError } from "../pg-dataset";
+import { cardRow, loadCatalog, loadDataset, MarketDataPresentError } from "../pg-dataset";
 import { PostgresMarketRepository } from "../postgres-repository";
 import { resolveCardRef } from "../resolve";
 import { generateSeedDataset } from "../seed/dataset";
@@ -38,6 +38,7 @@ const TODAY = "2026-10-14";
 const FX: FxRates = { USD: 1, EUR: 1.16 };
 const MARKET_TABLES = [
   "market_cards",
+  "market_meta",
   "market_price_daily",
   "market_sets",
   "price_history",
@@ -164,6 +165,7 @@ describe.skipIf(!TEST_DATABASE_URL)("PostgresMarketRepository on PostgreSQL", { 
     it("loads the seed dataset into every table", async () => {
       expect(await tableCounts()).toEqual({
         market_cards: dataset.cards.length,
+        market_meta: 1,
         market_price_daily: dataset.marketDaily.length,
         market_sets: dataset.sets.length,
         price_history: dataset.vendorHistory.length,
@@ -202,7 +204,12 @@ describe.skipIf(!TEST_DATABASE_URL)("PostgresMarketRepository on PostgreSQL", { 
         await conn.unsafe(migration);
         const policies = await conn<{ tablename: string; cmd: string; roles: string[] }[]>`
           select tablename, cmd, roles::text[] as roles from pg_policies where schemaname = ${probe} order by tablename`;
-        expect(policies.map((p) => p.tablename)).toEqual(MARKET_TABLES);
+        // market_meta stays private to the owner connection: RLS on, no policy, no grant.
+        expect(policies.map((p) => p.tablename)).toEqual(MARKET_TABLES.filter((t) => t !== "market_meta"));
+        const [metaGrants] = await conn<{ n: number }[]>`
+          select count(*)::int as n from information_schema.role_table_grants
+          where table_schema = ${probe} and table_name = 'market_meta' and grantee in ('anon', 'authenticated')`;
+        expect(metaGrants?.n).toBe(0);
         for (const policy of policies) {
           expect(policy.cmd).toBe("SELECT");
           expect([...policy.roles].sort()).toEqual(["anon", "authenticated"]);
@@ -499,13 +506,9 @@ describe.skipIf(!TEST_DATABASE_URL)("PostgresMarketRepository on PostgreSQL", { 
         .map((row) => ({ card_id: row.cardId, market_usd: row.marketUsd, vendor_count: row.vendorCount }));
       expect(daily.map((row) => ({ ...row, market_usd: row.market_usd === null ? null : Number(row.market_usd) }))).toEqual(expected);
 
-      // Today: quotes without a history row (eBay days without a market price) are carried first.
-      const [gaps] = await sql<{ n: number }[]>`
-        select count(*)::int as n from vendor_quotes q
-        where not exists (select 1 from price_history h where h.card_id = q.card_id and h.vendor = q.vendor and h.day = ${TODAY})`;
+      // Today: every carried vendor already filed a row (eBay gaps are explicit null-market rows), so nothing is carried.
       const first = await pg.rollup(TODAY);
-      expect(first.carriedForward).toBe(gaps?.n);
-      expect(first.carriedForward).toBeGreaterThan(0);
+      expect(first.carriedForward).toBe(0);
 
       await sql`delete from price_history where card_id = 'ntg02-001' and vendor = 'cardmarket' and day = ${TODAY}`;
       const [pricedToday] = await sql<{ n: number }[]>`
@@ -525,16 +528,25 @@ describe.skipIf(!TEST_DATABASE_URL)("PostgresMarketRepository on PostgreSQL", { 
 
       expect((await pg.rollup(TODAY)).carriedForward).toBe(0);
 
-      // A quote not refreshed within CARRY_FORWARD_MAX_DAYS is stale: the day gets a gap, not a flat line.
-      const fresh = `${addDays(TODAY, -CARRY_FORWARD_MAX_DAYS)}T00:00:00.000Z`;
+      // A vendor whose newest capture is older than CARRY_FORWARD_MAX_DAYS is stale: the day gets a gap, not a
+      // flat line, and the vendor drops out of the lowest price and the card page.
       const stale = `${addDays(TODAY, -CARRY_FORWARD_MAX_DAYS - 1)}T23:59:59.000Z`;
-      await sql`delete from price_history where card_id = 'ntg02-001' and vendor in ('cardmarket', 'tcgplayer') and day = ${TODAY}`;
-      await sql`update vendor_quotes set updated_at = ${stale}::timestamptz where card_id = 'ntg02-001' and vendor = 'cardmarket'`;
-      await sql`update vendor_quotes set updated_at = ${fresh}::timestamptz where card_id = 'ntg02-001' and vendor = 'tcgplayer'`;
+      await sql`
+        delete from price_history
+        where card_id = 'ntg02-001' and vendor = 'cardmarket' and day > ${addDays(TODAY, -CARRY_FORWARD_MAX_DAYS - 2)}`;
+      await sql`update vendor_quotes set updated_at = ${stale}::timestamptz, low_usd = 0.01 where card_id = 'ntg02-001' and vendor = 'cardmarket'`;
+      await sql`delete from price_history where card_id = 'ntg02-001' and vendor = 'tcgplayer' and day = ${TODAY}`;
       expect((await pg.rollup(TODAY)).carriedForward).toBe(1);
-      const [carried] = await sql<{ vendor: string }[]>`
-        select vendor from price_history where card_id = 'ntg02-001' and vendor in ('cardmarket', 'tcgplayer') and day = ${TODAY}`;
-      expect(carried?.vendor).toBe("tcgplayer");
+      const vendors = await sql<{ vendor: string }[]>`
+        select vendor from price_history where card_id = 'ntg02-001' and day = ${TODAY} order by vendor`;
+      expect(vendors.map((row) => row.vendor)).toEqual(["ebay", "tcgplayer"]);
+      const card = await detail("ntg02-001");
+      expect(card.quotes.map((q) => q.vendor)).toEqual(["tcgplayer", "ebay"]);
+      expect(card.listings.every((l) => l.vendor !== "cardmarket")).toBe(true);
+      expect(card.summary.vendorCount).toBe(2);
+      // The stale quote's $0.01 low would otherwise win the lowest price.
+      expect(card.summary.lowestPrice).not.toBe(0.01);
+      expect(card.summary.lowestVendor).not.toBe("cardmarket");
     });
 
     it("refuses to load over existing data unless replacing, and replacing restores parity", async () => {
@@ -549,6 +561,127 @@ describe.skipIf(!TEST_DATABASE_URL)("PostgresMarketRepository on PostgreSQL", { 
       });
       expect(await pg.getCardDetail(CARD)).toEqual(await seed.getCardDetail(CARD));
       expect(await pg.queryCards({})).toEqual(await seed.queryCards({}));
+    });
+  });
+
+  describe("review hardening", () => {
+    beforeAll(async () => {
+      await loadDataset(sql, dataset, { replace: true });
+    });
+
+    async function dayRows(cardId: string, day: string) {
+      return sql<{ vendor: VendorId; market_usd: string | null }[]>`
+        select vendor, market_usd from price_history where card_id = ${cardId} and day = ${day} order by vendor`;
+    }
+
+    it("files a single-vendor push with every vendor's current price, so the day's median covers all of them", async () => {
+      const tomorrow = addDays(TODAY, 1);
+      const before = await dayRows("ntg01-001-p", TODAY);
+      expect(before).toHaveLength(3);
+      const write = await pg.ingest([
+        {
+          cardId: "ntg01-001-p",
+          vendor: "cardmarket",
+          currency: "EUR",
+          day: tomorrow,
+          capturedAt: `${tomorrow}T01:00:00.000Z`,
+          native: { low: null, mid: null, high: null, market: 345.24 },
+          usd: { low: null, mid: null, high: null, market: 400.48 },
+          url: null,
+          listingsCount: null,
+        },
+      ]);
+      expect(write).toMatchObject({ historyPoints: 1, marketPoints: 1 });
+      const after = await dayRows("ntg01-001-p", tomorrow);
+      expect(after.map((row) => row.vendor)).toEqual(["cardmarket", "ebay", "tcgplayer"]);
+      const expected = aggregateMarket(after.map((row) => (row.market_usd === null ? null : Number(row.market_usd))));
+      const [daily] = await sql<{ market_usd: string }[]>`
+        select market_usd from market_price_daily where card_id = 'ntg01-001-p' and day = ${tomorrow}`;
+      expect(Number(daily?.market_usd)).toBe(expected);
+      expect(expected).not.toBe(400.48);
+    });
+
+    it("keeps the stored listing count when a snapshot captured neither listings nor a count", async () => {
+      const [stored] = await sql<{ listings_count: number }[]>`
+        select listings_count from vendor_quotes where card_id = 'ntg01-002' and vendor = 'tcgplayer'`;
+      expect(stored?.listings_count).toBeGreaterThan(0);
+      await pg.ingest([
+        {
+          cardId: "ntg01-002",
+          vendor: "tcgplayer",
+          currency: "USD",
+          day: TODAY,
+          capturedAt: `${TODAY}T11:30:00.000Z`,
+          native: { low: null, mid: null, high: null, market: 80 },
+          usd: { low: null, mid: null, high: null, market: 80 },
+          url: null,
+          listingsCount: null,
+        },
+      ]);
+      const [after] = await sql<{ listings_count: number; market_usd: string }[]>`
+        select listings_count, market_usd from vendor_quotes where card_id = 'ntg01-002' and vendor = 'tcgplayer'`;
+      expect(after).toEqual({ listings_count: stored?.listings_count, market_usd: "80.00" });
+    });
+
+    it("repairs a missed past day from history, not from quotes captured after it", async () => {
+      const day = addDays(TODAY, -3);
+      const previous = await dayRows("ntg03-001", addDays(day, -1));
+      await sql`delete from price_history where card_id = 'ntg03-001' and day = ${day} and vendor <> 'tcgplayer'`;
+      const result = await pg.rollup(day);
+      expect(result.carriedForward).toBe(2);
+      const repaired = await dayRows("ntg03-001", day);
+      expect(repaired.filter((row) => row.vendor !== "tcgplayer")).toEqual(previous.filter((row) => row.vendor !== "tcgplayer"));
+    });
+
+    it("ranks only cards priced on the catalog's latest market day", async () => {
+      const top = (await pg.getMovers("7d", 50)).mostValuable[0]!;
+      await sql`delete from market_price_daily where card_id = ${top.card.id} and day > ${addDays(TODAY, -3)}`;
+      const movers = await pg.getMovers("7d", 50);
+      for (const list of [movers.gainers, movers.losers, movers.mostValuable]) {
+        expect(list.some((s) => s.card.id === top.card.id)).toBe(false);
+      }
+      const page = await pg.queryCards({ q: top.card.id });
+      expect(page.items[0]?.asOf).toBe(addDays(TODAY, -3));
+    });
+
+    it("never ranks a change the UI would show as 0.0%", async () => {
+      const movers = await pg.getMovers("30d", 1000);
+      for (const s of movers.gainers) expect(s.changes["30d"]!.pct).toBeGreaterThanOrEqual(0.05);
+      for (const s of movers.losers) expect(s.changes["30d"]!.pct).toBeLessThanOrEqual(-0.05);
+    });
+
+    it("rejects lower-case set codes", async () => {
+      await expect(sql`insert into market_sets (code, name, released_on) values ('ntg09', 'Lower', '2026-01-01')`).rejects.toThrow(
+        /check constraint/,
+      );
+    });
+
+    it("labels the seeded dataset as demo data until a real catalog replaces it", async () => {
+      expect((await pg.getStats()).demoData).toBe(true);
+      // Upserting the catalog alone touches no prices and keeps the label.
+      expect(await loadCatalog(sql, { sets: dataset.sets, cards: dataset.cards }, { replace: false })).toEqual({
+        sets: dataset.sets.length,
+        cards: dataset.cards.length,
+      });
+      expect(await pg.getStats()).toMatchObject({ cards: dataset.cards.length, demoData: true });
+      expect((await pg.queryCards({})).items[0]?.marketPrice).not.toBeNull();
+
+      await loadCatalog(sql, { sets: dataset.sets, cards: dataset.cards }, { replace: true });
+      expect(await pg.getStats()).toEqual({ cards: dataset.cards.length, lastUpdatedAt: null, demoData: false });
+      expect(await pg.getMovers("7d", 5)).toEqual({ window: "7d", gainers: [], losers: [], mostValuable: [] });
+      const page = await pg.queryCards({ pageSize: 100 });
+      expect(page.total).toBe(dataset.cards.length);
+      expect(page.items.every((s) => s.marketPrice === null && s.asOf === null && s.vendorCount === 0)).toBe(true);
+      // Ingestion can now price the imported cards.
+      const outcome = await processIngest(
+        {
+          capturedAt: "2026-10-14T11:00:00Z",
+          items: [{ card: { setCode: "NTG01", number: "002", finish: "non-foil" }, vendor: "tcgplayer", prices: { market: 61.5 } }],
+        },
+        { repo: pg, env: {}, now: () => NOW },
+      );
+      expect(outcome.status).toBe(200);
+      expect((await pg.getCardDetail("ntg01-002"))?.summary.marketPrice).toBe(61.5);
     });
   });
 });

@@ -3,6 +3,7 @@
  * the bulk loader below and PostgresMarketRepository's ingestion.
  */
 import { toIsoDay } from "./analytics";
+import type { Catalog } from "./catalog-schema";
 import type { Sql, TransactionSql } from "./db";
 import type {
   CardSet,
@@ -17,6 +18,9 @@ import type {
   VendorListing,
   VendorQuote,
 } from "./types";
+
+/** market_meta key marking the simulated db:seed dataset. */
+export const DEMO_DATA_KEY = "demo_data";
 
 /** Rows per multi-row INSERT: 2000 rows x at most 14 columns stays under the 65,535-parameter limit. */
 export const INSERT_CHUNK_ROWS = 2000;
@@ -281,8 +285,18 @@ export class MarketDataPresentError extends Error {
   }
 }
 
+async function setDemoData(tx: TransactionSql, demo: boolean): Promise<void> {
+  if (demo) {
+    await tx`
+      insert into market_meta (key, value) values (${DEMO_DATA_KEY}, 'true')
+      on conflict (key) do update set value = excluded.value, updated_at = now()`;
+  } else {
+    await tx`delete from market_meta where key = ${DEMO_DATA_KEY}`;
+  }
+}
+
 /** The database stores each card's set name once, on market_sets, so the dataset must agree with it. */
-function assertConsistentSets(dataset: MarketDataset): void {
+function assertConsistentSets(dataset: Pick<MarketDataset, "sets" | "cards">): void {
   const names = new Map(dataset.sets.map((set) => [set.code, set.name]));
   for (const card of dataset.cards) {
     const name = names.get(card.setCode);
@@ -328,6 +342,7 @@ export async function loadDataset(
         select (select count(*) from market_cards)::int as cards, (select count(*) from market_sets)::int as sets`;
       if (present && (present.cards > 0 || present.sets > 0)) throw new MarketDataPresentError(present.cards, present.sets);
     }
+    await setDemoData(tx, true);
     const history = dataset.vendorHistory.map((row) => historyRow(row, capturedAt(row)));
     await forEachChunk(dataset.sets.map(setRow), (rows) => tx`insert into market_sets ${tx(rows, [...SET_COLUMNS])}`);
     await forEachChunk(dataset.cards.map(cardRow), (rows) => tx`insert into market_cards ${tx(rows, [...CARD_COLUMNS])}`);
@@ -349,5 +364,43 @@ export async function loadDataset(
       vendorHistory: dataset.vendorHistory.length,
       marketDaily: dataset.marketDaily.length,
     };
+  });
+}
+
+export interface CatalogCounts {
+  sets: number;
+  cards: number;
+}
+
+/**
+ * Upsert the sets and printings ingestion can price, in one transaction; prices are never
+ * touched. `replace` first empties every market table (prices included) and clears the
+ * demo-data flag: the way to switch a database from the simulated demo to a real catalog.
+ */
+export async function loadCatalog(sql: Sql, catalog: Catalog, options: { replace: boolean }): Promise<CatalogCounts> {
+  assertConsistentSets(catalog);
+  return sql.begin(async (tx) => {
+    await lockMarketWrites(tx);
+    if (options.replace) {
+      await tx`truncate ${tx([...MARKET_TABLES])}`;
+      await setDemoData(tx, false);
+    }
+    await forEachChunk(
+      catalog.sets.map(setRow),
+      (rows) => tx`
+        insert into market_sets ${tx(rows, [...SET_COLUMNS])}
+        on conflict (code) do update set name = excluded.name, released_on = excluded.released_on`,
+    );
+    await forEachChunk(
+      catalog.cards.map(cardRow),
+      (rows) => tx`
+        insert into market_cards ${tx(rows, [...CARD_COLUMNS])}
+        on conflict (id) do update set
+          name = excluded.name, character = excluded.character, set_code = excluded.set_code,
+          number = excluded.number, type = excluded.type, rarity = excluded.rarity, finish = excluded.finish,
+          village = excluded.village, cost = excluded.cost, power = excluded.power, text = excluded.text,
+          image_url = excluded.image_url`,
+    );
+    return { sets: catalog.sets.length, cards: catalog.cards.length };
   });
 }

@@ -7,8 +7,9 @@
 -- Enumerations are text + CHECK rather than PG enums so values can evolve with a constraint swap.
 -- The pricing rules mirror lib/market/analytics.ts; the Postgres integration test asserts parity.
 
+-- Set codes are upper-case: URLs, facets and card references all compare them that way.
 create table if not exists market_sets (
-  code        text primary key check (code <> ''),
+  code        text primary key check (code <> '' and code = upper(code)),
   name        text not null check (name <> ''),
   released_on date not null
 );
@@ -114,12 +115,25 @@ create index if not exists market_price_daily_priced_idx
   on market_price_daily (card_id, day desc) include (market_usd)
   where market_usd is not null;
 
+-- The catalog's latest market day, which decides which cards are current enough to rank as movers.
+create index if not exists market_price_daily_day_idx on market_price_daily (day) where market_usd is not null;
+
+-- Facts about the stored data itself. 'demo_data' = 'true' marks the simulated db:seed dataset,
+-- so the UI keeps labelling it as demo data in Postgres mode.
+create table if not exists market_meta (
+  key        text primary key,
+  value      text not null,
+  updated_at timestamptz not null default now()
+);
+
 -- One directory row per card, reproducing analytics.buildSummary:
 -- as_of = latest day with a market price; base_Nd = latest market price on or before
 -- as_of - N days; change_Nd_pct = (market - base) / base * 100 in float8, the same IEEE
 -- operations as JavaScript, so sorting and ties match the in-memory back end exactly;
 -- lowest = min positive vendor low, ties in vendor display order; sparkline = market prices
--- in (as_of - 30, as_of]. Window lengths mirror CHANGE_WINDOW_DAYS / SPARKLINE_DAYS in constants.ts.
+-- in (as_of - 30, as_of]. Lowest, vendor/listing counts and updated_at use current quotes only:
+-- captured on or after as_of - 7 days (UTC midnight), all quotes when the card was never priced.
+-- Window lengths mirror CHANGE_WINDOW_DAYS / SPARKLINE_DAYS / CARRY_FORWARD_MAX_DAYS in constants.ts.
 create or replace view card_market_summary
 with (security_invoker = true) as
 select
@@ -177,6 +191,7 @@ left join lateral (
   select q.vendor, q.low_usd
   from vendor_quotes q
   where q.card_id = c.id and q.low_usd > 0
+    and (latest.day is null or q.updated_at >= (latest.day - 7)::timestamp at time zone 'UTC')
   order by q.low_usd, array_position(array['tcgplayer', 'ebay', 'cardmarket']::text[], q.vendor)
   limit 1
 ) lowest on true
@@ -187,6 +202,7 @@ cross join lateral (
     max(q.updated_at) as updated_at
   from vendor_quotes q
   where q.card_id = c.id
+    and (latest.day is null or q.updated_at >= (latest.day - 7)::timestamp at time zone 'UTC')
 ) quotes
 left join lateral (
   select array_agg(d.market_usd order by d.day) as prices
@@ -204,6 +220,8 @@ alter table vendor_quotes enable row level security;
 alter table vendor_listings enable row level security;
 alter table price_history enable row level security;
 alter table market_price_daily enable row level security;
+-- No policy: only the owner connection reads or writes it.
+alter table market_meta enable row level security;
 
 do $$
 declare

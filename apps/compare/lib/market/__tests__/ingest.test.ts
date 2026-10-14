@@ -313,7 +313,7 @@ describe("processIngest: listings", () => {
       envelope([
         tcg({
           listings: [
-            { seller: "Ichiraku", price: 10, shipping: 5, url: "https://example.com/a" },
+            { seller: "Ichiraku", price: 10, shipping: 5, url: "https://www.tcgplayer.com/product/1?l=a" },
             { seller: "Konoha", condition: "lp", quantity: 3, price: 12, shipping: 0 },
             { price: 11 },
           ],
@@ -355,7 +355,7 @@ describe("processIngest: listings", () => {
         priceUsd: 10,
         shippingUsd: 5,
         totalUsd: 15,
-        url: "https://example.com/a",
+        url: "https://www.tcgplayer.com/product/1?l=a",
       },
     ]);
   });
@@ -364,7 +364,10 @@ describe("processIngest: listings", () => {
     [3, 40, 40],
     [3, 1, 3],
     [3, undefined, 3],
-    [undefined, undefined, 0],
+    [undefined, 12, 12],
+    [0, undefined, 0],
+    // Nothing captured about listings: unknown, so the repository keeps the stored count.
+    [undefined, undefined, null],
   ])("with %s listings and listingsCount %s counts %s", async (rows, listingsCount, expected) => {
     const listings = rows === undefined ? undefined : Array.from({ length: rows }, (_, i) => ({ price: 5 + i }));
     const result = await ingest(envelope([tcg({ listings, listingsCount })]));
@@ -587,6 +590,76 @@ describe("processIngest: write and response", () => {
   });
 });
 
+describe("processIngest: review hardening", () => {
+  it("keeps the latest capture of a day, whatever the batch order", async () => {
+    const result = await ingest(
+      envelope([
+        tcg({ capturedAt: "2026-10-14T11:00:00Z", prices: { market: 10 } }),
+        tcg({ capturedAt: "2026-10-14T07:00:00Z", prices: { market: 7 } }),
+        tcg({ capturedAt: "2026-10-14T11:00:00Z", prices: { market: 11 } }),
+      ]),
+    );
+    expect(result.response.accepted.map((a) => a.index)).toEqual([2]);
+    expect(result.response.rejected).toEqual([
+      { index: 0, reason: "superseded by item 2" },
+      { index: 1, reason: "superseded by item 2" },
+    ]);
+    expect(snapshotOf(result, 2).native.market).toBe(11);
+  });
+
+  it.each([
+    ["a look-alike host", "https://tcgplayer.com.evil.example/login"],
+    ["another vendor", "https://www.ebay.com/itm/1"],
+    ["plain http", "http://www.tcgplayer.com/product/1"],
+    ["embedded credentials", "https://user:pass@www.tcgplayer.com/product/1"],
+  ])("rejects a product url on %s", async (_, url) => {
+    const result = await ingest(envelope([tcg({ url })]));
+    expect(reasonFor(result.response, 0)).toBe("url must be an https link on tcgplayer.com");
+  });
+
+  it("rejects an off-domain listing url and accepts vendor subdomains and EU eBay sites", async () => {
+    const result = await ingest(
+      envelope([
+        tcg({ url: "https://shop.tcgplayer.com/p/1", listings: [{ price: 5, url: "http://127.0.0.1:8080/admin" }] }),
+        tcg({ vendor: "ebay", url: "https://www.ebay.de/itm/2", listings: [{ price: 5, url: "https://www.ebay.com/itm/3" }] }),
+      ]),
+    );
+    expect(reasonFor(result.response, 0)).toBe("listings.0.url must be an https link on tcgplayer.com");
+    expect(result.response.accepted.map((a) => a.index)).toEqual([1]);
+  });
+
+  it("rejects NUL characters per item instead of failing the batch", async () => {
+    const result = await ingest(
+      envelope([
+        tcg({ card: { id: "ntg01\u0000-001" } }),
+        tcg({ vendor: "ebay", listings: [{ seller: "Kiri\u0000Cards", price: 5 }] }),
+        tcg({ vendor: "cardmarket" }),
+      ]),
+    );
+    expect(reasonFor(result.response, 0)).toContain("must not contain NUL characters");
+    // A NUL seller name falls back to the placeholder rather than sinking the item.
+    expect(snapshotOf(result, 1).listings?.[0]?.seller).toBe("Unknown seller");
+    expect(result.response.accepted.map((a) => a.index)).toEqual([1, 2]);
+  });
+
+  it("never has more than four card lookups in flight", async () => {
+    const { repo } = fakeRepo();
+    let inFlight = 0;
+    let peak = 0;
+    const resolveCard = repo.resolveCard.bind(repo);
+    repo.resolveCard = async (ref) => {
+      peak = Math.max(peak, ++inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      inFlight--;
+      return resolveCard(ref);
+    };
+    const items = Array.from({ length: 40 }, (_, i) => tcg({ card: { name: `Card ${i}` } }));
+    const outcome = await processIngest(envelope(items), { repo, env: {}, now: () => NOW });
+    expect(asIngestResponse(outcome).rejected).toHaveLength(40);
+    expect(peak).toBe(4);
+  });
+});
+
 describe("normalizeItem", () => {
   it("normalizes a validated item without a card id", () => {
     const item = IngestItemSchema.parse({ card: { id: "x" }, vendor: "ebay", prices: { market: "12.50" }, url: null });
@@ -601,7 +674,7 @@ describe("normalizeItem", () => {
         native: { low: null, mid: null, high: null, market: 12.5 },
         usd: { low: null, mid: null, high: null, market: 12.5 },
         url: null,
-        listingsCount: 0,
+        listingsCount: null,
       },
     });
   });

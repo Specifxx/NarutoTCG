@@ -1,28 +1,41 @@
 /**
- * Loads the deterministic demo market (lib/market/seed) into the database.
- * Usage: DATABASE_URL=... pnpm db:seed [-- --replace]
+ * Loads the deterministic demo market (lib/market/seed) into the database and marks it as
+ * demo data, so the UI labels its simulated prices.
+ * Usage: DATABASE_URL=... pnpm db:seed [-- --replace] [-- --catalog-only]
  * Without --replace it refuses to write into a database that already holds market data.
+ * --catalog-only upserts just the demo sets and cards (no prices), like db:catalog.
  */
 import { createSql } from "../lib/market/db";
 import { getFxRates } from "../lib/market/fx";
-import { loadDataset, MarketDataPresentError } from "../lib/market/pg-dataset";
+import { loadCatalog, loadDataset, MarketDataPresentError } from "../lib/market/pg-dataset";
+import { SEED_CARDS, SEED_SETS } from "../lib/market/seed/catalog";
 import { generateSeedDataset } from "../lib/market/seed/dataset";
 
-const USAGE = "Usage: DATABASE_URL=... tsx scripts/seed-database.ts [--replace]";
+const USAGE = "Usage: DATABASE_URL=... tsx scripts/seed-database.ts [--replace] [--catalog-only]";
 
 async function main(): Promise<void> {
   // pnpm may forward its own "--" separator.
   const args = process.argv.slice(2).filter((arg) => arg !== "--");
-  const unknown = args.filter((arg) => arg !== "--replace");
+  const unknown = args.filter((arg) => arg !== "--replace" && arg !== "--catalog-only");
   if (unknown.length > 0) throw new Error(`Unknown argument ${unknown.join(" ")}\n${USAGE}`);
   const replace = args.includes("--replace");
+  const catalogOnly = args.includes("--catalog-only");
 
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error(`DATABASE_URL is not set\n${USAGE}`);
 
+  const sql = createSql(url, { max: 1, onnotice: () => {} });
+  if (catalogOnly) {
+    try {
+      const counts = await loadCatalog(sql, { sets: SEED_SETS, cards: SEED_CARDS }, { replace });
+      console.log(`Loaded the demo catalog: ${counts.sets} sets, ${counts.cards} cards (no prices).`);
+    } finally {
+      await sql.end();
+    }
+    return;
+  }
   const now = new Date();
   const dataset = generateSeedDataset({ now, fx: getFxRates() });
-  const sql = createSql(url, { max: 1, onnotice: () => {} });
   try {
     const started = Date.now();
     const counts = await loadDataset(sql, dataset, { replace });

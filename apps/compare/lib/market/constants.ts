@@ -17,6 +17,14 @@ export const CARRY_FORWARD_MAX_DAYS = 7;
 
 /** Cards below this USD market price are excluded from gainers / losers (penny noise). */
 export const MOVER_MIN_PRICE = 1;
+/** Smallest |change| ranked as a gainer or loser: the UI rounds anything smaller to "0.0%". */
+export const MOVER_MIN_PCT = 0.05;
+/**
+ * Movers only rank cards whose latest market day is within this many days of the catalog's
+ * latest market day, so a card nobody prices any more cannot headline on an old change.
+ * One day absorbs ingest-before-rollup timing.
+ */
+export const MOVER_MAX_LAG_DAYS = 1;
 export const MOVERS_LIMIT = 5;
 
 export const DEFAULT_PAGE_SIZE = 24;
