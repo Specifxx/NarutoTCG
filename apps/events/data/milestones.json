@@ -11,5 +11,101 @@
     "location": "Los Angeles, CA",
     "eventId": "bcgf-los-angeles-2026",
     "highlight": true
+  },
+  {
+    "id": "bcgf-london",
+    "title": "Bandai Card Games Fest — London",
+    "subtitle": "European tour opener at ExCeL London",
+    "kind": "convention",
+    "start": "2026-12-05T10:00",
+    "end": "2026-12-06T17:00",
+    "timeZone": "Europe/London",
+    "announced": "2026-06-15",
+    "location": "London, UK",
+    "eventId": "bcgf-london-2026"
+  },
+  {
+    "id": "bcgf-chicago",
+    "title": "Bandai Card Games Fest — Chicago",
+    "subtitle": "Free-entry Midwest stop with a live Set 02 reveal",
+    "kind": "convention",
+    "start": "2027-01-16T10:00",
+    "end": "2027-01-17T17:00",
+    "timeZone": "America/Chicago",
+    "announced": "2026-07-20",
+    "location": "Chicago, IL",
+    "eventId": "bcgf-chicago-2027"
+  },
+  {
+    "id": "bcgf-sydney",
+    "title": "Bandai Card Games Fest — Sydney",
+    "subtitle": "Oceania summer stop at Darling Harbour",
+    "kind": "convention",
+    "start": "2027-02-06T10:00",
+    "end": "2027-02-07T17:00",
+    "timeZone": "Australia/Sydney",
+    "announced": "2026-07-20",
+    "location": "Sydney, NSW",
+    "eventId": "bcgf-sydney-2027"
+  },
+  {
+    "id": "bcgf-paris",
+    "title": "Bandai Card Games Fest — Paris",
+    "subtitle": "Tour finale at Paris Expo Porte de Versailles",
+    "kind": "convention",
+    "start": "2027-03-13T10:00",
+    "end": "2027-03-14T18:00",
+    "timeZone": "Europe/Paris",
+    "announced": "2026-09-10",
+    "location": "Paris, France",
+    "eventId": "bcgf-paris-2027"
+  },
+  {
+    "id": "regional-season-kickoff",
+    "title": "Regional Championship Season Kickoff",
+    "subtitle": "The 2027 regional season opens at NEC Birmingham",
+    "kind": "championship",
+    "start": "2027-01-23T09:00",
+    "end": "2027-01-24T18:00",
+    "timeZone": "Europe/London",
+    "announced": "2026-08-12",
+    "location": "Birmingham, UK",
+    "eventId": "regional-birmingham-2027",
+    "href": "/events?type=regional"
+  },
+  {
+    "id": "set-02-prerelease",
+    "title": "Set 02 Pre-release Weekend",
+    "subtitle": "Sealed pre-release events at participating stores, starting in New Zealand",
+    "kind": "prerelease",
+    "start": "2027-02-13T10:00",
+    "end": "2027-02-14T20:00",
+    "timeZone": "Pacific/Auckland",
+    "announced": "2026-09-24",
+    "location": "Participating stores worldwide",
+    "href": "/stores"
+  },
+  {
+    "id": "set-02-global-release",
+    "title": "Set 02 · Will of Fire — Global Release",
+    "subtitle": "Booster packs and starter decks hit shelves worldwide",
+    "kind": "set-release",
+    "start": "2027-02-26T00:00",
+    "timeZone": "Asia/Tokyo",
+    "announced": "2026-08-28",
+    "location": "Worldwide",
+    "href": "https://example.com/set-02-will-of-fire",
+    "highlight": true
+  },
+  {
+    "id": "worlds-2027-location-reveal",
+    "title": "World Championship 2027 — Location Reveal",
+    "subtitle": "Revealed live on the main stage at Bandai Card Games Fest Paris",
+    "kind": "announcement",
+    "start": "2027-03-14T15:00",
+    "timeZone": "Europe/Paris",
+    "announced": "2026-10-02",
+    "location": "Paris Expo Porte de Versailles",
+    "href": "https://example.com/worlds-2027"
   }
 ]
