@@ -58,12 +58,44 @@ imported events without raw match data.
 One Leader outside the main deck, exactly 50 main-deck cards, at most 4 copies per card, 5-card
 opening hand with one free mulligan; the player going first skips the turn-1 draw.
 
+## Importing results (Tournament Organizers)
+
+The wizard at `/tournaments/import` and the `ingest` CLI accept the same inputs. Downloadable examples
+live in `public/templates/`:
+
+| Input | Template | Notes |
+| --- | --- | --- |
+| Canonical tournament JSON | `tournament-template.json` | The `Tournament` record itself |
+| Scraped JSON | `scraped-template.json` | Loose `event` / `standings` / `pairings` shape; see `lib/ingest/scraped.ts` |
+| Standings CSV | `standings-template.csv` | Placement, player, archetype, record, optional decklist cell |
+| Pairings CSV | `pairings-template.csv` | Round (or "Top 8", "Finals"), table, players, result or winner |
+| Decklists CSV | `decklists-template.csv` | One row per card: player, quantity, card name or id |
+| Event details | `event-meta-template.json` | Name, date, tier, location… (`--meta` for CSV imports) |
+
+Headers are matched through synonyms, card names are fuzzy-matched to the card pool, archetype names
+resolve through aliases ("Sage Naruto" → Uzumaki Sage Mode) or are classified from the decklist, and
+standings without pairings are accepted (matchup stats then skip the event). Every import is
+validated: duplicate or unknown players, double-booked rounds, bracket gaps, illegal decklists and
+records that disagree with the pairings are reported as errors or warnings. Imported events are
+saved in the visitor's browser only; `/meta?imports=1` folds them into the meta.
+
+To collect results from a public results page with Claude in Chrome, use the prompt in
+[`docs/chrome-extension-scraper-prompt.md`](docs/chrome-extension-scraper-prompt.md) and import the
+JSON it produces.
+
 ## Scripts
 
 ```bash
 pnpm --filter @naruto-tcg/decks dev        # http://localhost:3001
-pnpm --filter @naruto-tcg/decks test       # vitest
+pnpm --filter @naruto-tcg/decks test       # vitest (unit + integration)
 pnpm --filter @naruto-tcg/decks typecheck
-pnpm --filter @naruto-tcg/decks seed       # regenerate data/seed/tournaments/*.json
-pnpm --filter @naruto-tcg/decks ingest -- <file...>   # validate + normalize TO exports
+pnpm --filter @naruto-tcg/decks build
+pnpm --filter @naruto-tcg/decks seed       # regenerate data/seed/tournaments/*.json (deterministic)
+pnpm --filter @naruto-tcg/decks ingest -- results.json                 # validate + write data/imports/
+pnpm --filter @naruto-tcg/decks ingest -- --dry-run results.json       # validate only
+pnpm --filter @naruto-tcg/decks ingest -- --meta event.json *.csv      # CSV set + event details
 ```
+
+File paths resolve from the directory you run the command in. The links to the other platform apps in
+the shared header come from `NEXT_PUBLIC_SIMULATOR_URL`, `NEXT_PUBLIC_DECKS_URL`,
+`NEXT_PUBLIC_COMPARE_URL` and `NEXT_PUBLIC_LEARN_URL` (defaulting to the local dev ports).
