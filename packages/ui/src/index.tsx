@@ -1,4 +1,7 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
+import { APP_LINKS, appHref, type AppKey } from "./nav";
+
+export { APP_LINKS, appHref, type AppKey, type AppLink } from "./nav";
 
 const cx = (...c: Array<string | false | undefined>) => c.filter(Boolean).join(" ");
 
@@ -43,7 +46,7 @@ export function Badge({ className, ...props }: HTMLAttributes<HTMLSpanElement>) 
 
 export function PageShell({ title, tagline, children }: { title: string; tagline?: string; children?: ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 px-6 py-16">
+    <main id="main" className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-16">
       <header>
         <Badge>Naruto TCG</Badge>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-white">{title}</h1>
@@ -51,5 +54,69 @@ export function PageShell({ title, tagline, children }: { title: string; tagline
       </header>
       {children}
     </main>
+  );
+}
+
+function ShurikenMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden className={className}>
+      <path
+        fill="currentColor"
+        d="M16 1.5 19.2 12.8 30.5 16 19.2 19.2 16 30.5 12.8 19.2 1.5 16 12.8 12.8Z"
+      />
+      <circle cx="16" cy="16" r="3.2" fill="var(--color-shadow-950)" />
+    </svg>
+  );
+}
+
+/**
+ * Sticky cross-app header shared by Decks, Simulator, Compare and Learn.
+ * Pages must render `<main id="main">` for the skip link to land.
+ */
+export function SiteHeader({ current }: { current: AppKey }) {
+  return (
+    <header className="sticky top-0 z-40 border-b border-shadow-700 bg-shadow-950/90 backdrop-blur supports-[backdrop-filter]:bg-shadow-950/75">
+      <a
+        href="#main"
+        className="sr-only rounded-md bg-chakra-500 px-3 py-2 text-sm font-semibold text-shadow-950 focus:not-sr-only focus:absolute focus:left-4 focus:top-2.5 focus:z-50"
+      >
+        Skip to content
+      </a>
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
+        <a
+          href={appHref(current, current)}
+          className="flex shrink-0 items-center gap-2 rounded-md font-bold tracking-tight text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+        >
+          <ShurikenMark className="h-7 w-7 text-chakra-500" />
+          <span className="hidden sm:inline">
+            Naruto <span className="text-chakra-400">TCG</span>
+          </span>
+          <span className="sr-only sm:hidden">Naruto TCG</span>
+        </a>
+        <nav aria-label="Naruto TCG apps" className="ml-auto">
+          <ul className="flex items-center gap-0.5 sm:gap-1">
+            {APP_LINKS.map((app) => {
+              const active = app.key === current;
+              return (
+                <li key={app.key}>
+                  <a
+                    href={appHref(app.key, current)}
+                    aria-current={active ? "page" : undefined}
+                    className={cx(
+                      "relative flex h-10 items-center rounded-md px-2 text-[13px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 sm:px-3 sm:text-sm",
+                      active
+                        ? "text-white after:absolute after:inset-x-2 after:-bottom-[9px] after:h-0.5 after:rounded-full after:bg-chakra-500 sm:after:inset-x-3"
+                        : "text-ash-400 hover:bg-shadow-800 hover:text-ash-200",
+                    )}
+                  >
+                    {app.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </div>
+    </header>
   );
 }
