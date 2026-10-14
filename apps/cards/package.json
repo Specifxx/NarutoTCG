@@ -6,7 +6,7 @@
     "dev": "next dev --port 3004",
     "build": "next build",
     "start": "next start --port 3004",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "node -e \"require('fs').rmSync('.next/types',{recursive:true,force:true})\" && next typegen && tsc --noEmit",
     "test": "vitest run",
     "validate:data": "vitest run tests/data.test.ts"
   },

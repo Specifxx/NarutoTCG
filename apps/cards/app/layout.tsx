@@ -16,7 +16,8 @@ export const viewport: Viewport = { themeColor: "#07070b" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // The /cards page sets data-cards-pending on <html> before hydration (see PendingResults).
+    <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
         <a
           href="#main"
