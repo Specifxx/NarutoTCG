@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { ReleaseRoadmap } from "@naruto-tcg/ui";
 import "./globals.css";
+
+// Re-render hourly so roadmap statuses follow the calendar without a redeploy.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Naruto TCG · Price Compare",
@@ -10,7 +14,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ReleaseRoadmap current="compare" />
+      </body>
     </html>
   );
 }
