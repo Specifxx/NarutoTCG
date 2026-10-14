@@ -102,3 +102,8 @@ export function regionOptions(events: readonly TournamentSummary[]): RegionId[] 
   const hasOther = events.some((event) => classifyRegion(event.location) === "other");
   return REGION_ORDER.filter((region) => region !== "other" || hasOther);
 }
+
+/** A filter choice while its option is still offered, otherwise "all" (its last event may have been deleted). */
+export function offeredOr<T extends string>(value: T | "all", options: readonly T[]): T | "all" {
+  return value !== "all" && options.includes(value) ? value : "all";
+}

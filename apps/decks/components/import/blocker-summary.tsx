@@ -38,8 +38,8 @@ export function BlockerSummary({ blockers, attempts }: { blockers: Blocker[]; at
         Before you continue
       </p>
       <ul className="mt-2 flex list-disc flex-col gap-1 pl-10 text-sm text-ash-200">
-        {blockers.map((blocker) => (
-          <li key={blocker.message}>
+        {blockers.map((blocker, index) => (
+          <li key={`${index}-${blocker.message}`}>
             {blocker.target ? (
               <a href={`#${blocker.target}`} onClick={(event) => focusTarget(event, blocker.target!)} className={INLINE_LINK}>
                 {blocker.message}

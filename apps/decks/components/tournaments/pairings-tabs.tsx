@@ -26,6 +26,7 @@ function PlayerCell({ playerId, player, won }: { playerId: string; player: Tourn
       )}
       <Link
         href={playerHref(playerId)}
+        prefetch={false}
         className={cx("rounded-sm hover:text-chakra-400", FOCUS_RING, won ? "font-bold text-white" : "text-ash-300")}
       >
         {player?.name ?? playerId}

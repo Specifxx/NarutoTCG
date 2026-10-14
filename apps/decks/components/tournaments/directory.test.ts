@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
-import { eventTotals, filterEvents, formatOptions, mergeEventSummaries, normalizeQuery, regionOptions } from "./directory";
+import { eventTotals, filterEvents, formatOptions, mergeEventSummaries, normalizeQuery, offeredOr, regionOptions } from "./directory";
 import { classifyRegion } from "./region";
 import { summarize, type TournamentSummary } from "./summary";
 import { fixtureTournament } from "./test-fixtures";
@@ -23,6 +23,11 @@ describe("classifyRegion", () => {
     expect(classifyRegion({ country: "United States" })).toBe("north-america");
     expect(classifyRegion({ country: "New Zealand" })).toBe("oceania");
     expect(classifyRegion({ city: "Leeds", region: "England" })).toBe("europe");
+  });
+  it("never reads a state code in the region field as a country", () => {
+    expect(classifyRegion({ city: "Dover", region: "DE" })).toBe("other");
+    expect(classifyRegion({ city: "Billings", region: "MT" })).toBe("other");
+    expect(classifyRegion({ city: "Dover", region: "DE", country: "US" })).toBe("north-america");
   });
   it("puts unknown places in other", () => {
     expect(classifyRegion({ country: "JP" })).toBe("other");
@@ -115,6 +120,13 @@ describe("options", () => {
   it("offers other regions only when needed", () => {
     expect(regionOptions(SEED)).toEqual(["online", "north-america", "europe", "oceania"]);
     expect(regionOptions([event({ location: { country: "JP" } })])).toContain("other");
+  });
+
+  it("drops a filter choice that is no longer offered", () => {
+    expect(offeredOr("europe", regionOptions(SEED))).toBe("europe");
+    expect(offeredOr("other", regionOptions(SEED))).toBe("all");
+    expect(offeredOr("Old", ["New"])).toBe("all");
+    expect(offeredOr("all", ["New"])).toBe("all");
   });
 
   it("normalizes queries", () => {

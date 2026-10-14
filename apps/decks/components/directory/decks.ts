@@ -2,6 +2,7 @@ import type { Tournament } from "@naruto-tcg/types";
 import { getCard } from "@/lib/data/cards";
 import { buildTournamentDecks, normalizeSearchText, searchDecks, toSummary } from "@/lib/decks/catalog";
 import type { DeckSummary } from "@/lib/decks/types";
+import { sanitizeImportedEvents } from "./imported-events";
 
 /** Directory data helpers: imported decks, merging, the featured strip and card filter options. */
 
@@ -20,10 +21,11 @@ function tagImported(deck: DeckSummary): DeckSummary {
 
 /**
  * Directory rows for events imported in this browser, tagged "Imported" (first, so the card
- * shows it). An event that fails to build is skipped rather than breaking the directory.
+ * shows it). Events are sanitized first; one that still fails to build is skipped rather than
+ * breaking the directory.
  */
 export function importedDeckSummaries(tournaments: readonly Tournament[]): DeckSummary[] {
-  return tournaments.flatMap((tournament) => {
+  return sanitizeImportedEvents(tournaments).flatMap((tournament) => {
     try {
       return buildTournamentDecks([tournament]).map((deck) => tagImported(toSummary(deck)));
     } catch {

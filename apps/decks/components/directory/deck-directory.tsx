@@ -89,7 +89,7 @@ function FeaturedGroup({
       >
         {decks.map((deck) => (
           <li key={deck.id} className="w-[17.5rem] max-w-[85%] shrink-0 snap-start md:w-auto md:max-w-none">
-            <VotedDeckCard deck={deck} tier={tierOf(deck.archetypeId)} />
+            <VotedDeckCard deck={deck} tier={tierOf(deck.archetypeId)} headingLevel={4} />
           </li>
         ))}
       </ul>
@@ -176,6 +176,8 @@ function DirectoryView({
   // "Show more" pagination, reset whenever the filters or sort change.
   const resultsKey = serializeDeckParams(state);
   const [page, setPage] = useState({ key: resultsKey, count: PAGE_SIZE });
+  // Drop the old count on every change, so returning to an earlier query starts from one page again.
+  if (page.key !== resultsKey) setPage({ key: resultsKey, count: PAGE_SIZE });
   const visible = page.key === resultsKey ? page.count : PAGE_SIZE;
   const listRef = useRef<HTMLUListElement>(null);
   const focusFrom = useRef<number | null>(null);

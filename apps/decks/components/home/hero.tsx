@@ -1,7 +1,7 @@
-import { cx } from "@naruto-tcg/ui";
+import { cx, LeafMark } from "@naruto-tcg/ui";
 import Link from "next/link";
 import { formatDate, pluralize } from "@/lib/format";
-import { ArrowRightIcon, LeafMark } from "./icons";
+import { ArrowRightIcon } from "./icons";
 import { BUTTON_GHOST, BUTTON_PRIMARY, EYEBROW } from "./styles";
 
 /** Overview hero: pitch, calls to action and the date of the newest event in the meta. */
@@ -14,10 +14,7 @@ export function OverviewHero({ asOf, eventCount }: { asOf: string | null; eventC
         "bg-[radial-gradient(ellipse_at_top_right,rgba(255,122,26,0.14),transparent_55%)]",
       )}
     >
-      <LeafMark
-        strokeWidth={1.2}
-        className="pointer-events-none absolute -top-12 -right-16 h-72 w-72 text-chakra-500/15 sm:-top-16 sm:-right-10 sm:h-96 sm:w-96"
-      />
+      <LeafMark className="pointer-events-none absolute -top-12 -right-16 h-72 w-72 text-chakra-500/15 sm:-top-16 sm:-right-10 sm:h-96 sm:w-96 [&_path]:[stroke-width:1.2]" />
       <div className="relative max-w-2xl">
         <p className={EYEBROW}>Competitive meta</p>
         <h1 id="overview-title" className="mt-3 text-3xl font-black tracking-tight text-balance text-white sm:text-5xl">

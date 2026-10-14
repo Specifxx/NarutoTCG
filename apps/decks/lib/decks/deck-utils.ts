@@ -46,7 +46,7 @@ function compareIds(a: string, b: string): number {
 
 function compareCards(a: NarutoCard, b: NarutoCard): number {
   const cost = (card: NarutoCard) => card.cost ?? Number.MAX_SAFE_INTEGER;
-  return cost(a) - cost(b) || a.name.localeCompare(b.name) || compareIds(a.id, b.id);
+  return cost(a) - cost(b) || a.name.localeCompare(b.name, "en") || compareIds(a.id, b.id);
 }
 
 /** Display section for a card type; anything but Characters, Jutsus and Missions goes to "Other". */

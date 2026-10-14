@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getSeedSnapshot } from "@/lib/data/meta";
 import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
 import { getDeckSummaries } from "@/lib/decks/repository";
+import { recordGames } from "@/lib/meta/stats";
 import { formatDateRange, latestResults, overviewKpis } from "./events";
 import { deck, event, match, player, stat, winningDeck } from "./home-fixtures";
 
@@ -16,6 +17,19 @@ describe("overviewKpis", () => {
       matches: [match(1, "dee", "ann", "p1")],
     }),
   ];
+
+  it("counts matches like the meta engine: no byes, intentional draws or unregistered players", () => {
+    const withExtras = event("c", "2026-08-01", {
+      players: [player("ann", 1, "akatsuki-pain"), player("ben", 2, "sand-gaara")],
+      matches: [
+        match(1, "ann", "ben", "p1"),
+        { ...match(2, "ann", "ben", "draw"), intentionalDraw: true },
+        match(3, "ann", "ghost", "p1"),
+        match(3, "ben", null, "bye"),
+      ],
+    });
+    expect(overviewKpis([withExtras], [], []).matches).toBe(1);
+  });
 
   it("counts distinct players, entries and matches without byes", () => {
     const kpis = overviewKpis(tournaments, [], []);
@@ -46,6 +60,11 @@ describe("overviewKpis", () => {
     expect(kpis.players).toBeGreaterThan(0);
     expect(kpis.players).toBeLessThanOrEqual(kpis.entries);
     expect(kpis.rankedArchetypes).toBe(snapshot.stats.filter((s) => s.tier !== "unranked").length);
+    // Same total the meta page shows: non-mirror results (each match on two sides) plus mirrors.
+    const archetypes = Object.values(snapshot.meta.archetypes);
+    const sides = archetypes.reduce((sum, a) => sum + recordGames(a.matches), 0);
+    const mirrors = archetypes.reduce((sum, a) => sum + a.mirrorMatches, 0);
+    expect(kpis.matches).toBe(sides / 2 + mirrors);
   });
 });
 

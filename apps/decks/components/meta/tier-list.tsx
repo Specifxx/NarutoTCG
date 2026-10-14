@@ -22,12 +22,20 @@ function Metric({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
       <dt className="text-[11px] text-ash-500">{label}</dt>
-      <dd className="truncate font-medium text-ash-100 tabular-nums">{children}</dd>
+      <dd className="font-medium break-words text-ash-100 tabular-nums">{children}</dd>
     </div>
   );
 }
 
-function ArchetypeTile({ stat, trend }: { stat: ArchetypeStats; trend: ArchetypeTrend | undefined }) {
+function ArchetypeTile({
+  stat,
+  trend,
+  hasTopCut,
+}: {
+  stat: ArchetypeStats;
+  trend: ArchetypeTrend | undefined;
+  hasTopCut: boolean;
+}) {
   const archetype = getArchetype(stat.archetypeId);
   const leaderId = archetype?.leaderIds[0];
   const leader = leaderId ? getCard(leaderId) : undefined;
@@ -53,7 +61,7 @@ function ArchetypeTile({ stat, trend }: { stat: ArchetypeStats; trend: Archetype
         <Metric label="Adj. win rate">{formatPercent(stat.adjustedWinRate)}</Metric>
         <Metric label="Meta share">{formatPercent(stat.metaShare)}</Metric>
         <Metric label="Top-cut conversion">
-          {formatPercent(stat.conversionRate)} · {formatLift(stat.conversionLift)} field
+          {hasTopCut ? `${formatPercent(stat.conversionRate)} · ${formatLift(stat.conversionLift)} field` : "No top cut"}
         </Metric>
         <Metric label="Share trend">
           <TrendValue trend={trend} />
@@ -79,13 +87,23 @@ function unrankedNote(stat: ArchetypeStats): string {
 }
 
 /** MOBAFire-style tier list: S–C rows with archetype tiles in score order, then the unranked. */
-export function TierList({ tiers, trends }: { tiers: Record<TierId, ArchetypeStats[]>; trends: Record<string, ArchetypeTrend> }) {
+export function TierList({
+  tiers,
+  trends,
+  hasTopCut,
+}: {
+  tiers: Record<TierId, ArchetypeStats[]>;
+  trends: Record<string, ArchetypeTrend>;
+  /** False when none of the selected events had a top cut: conversion and lift are then meaningless. */
+  hasTopCut: boolean;
+}) {
   return (
     <div className="flex flex-col gap-3">
       {RANKED_TIERS.map((tier) => (
         <div
           key={tier}
-          className="grid gap-4 rounded-lg border border-shadow-700 bg-shadow-900 p-3 sm:p-4 lg:grid-cols-[14rem_minmax(0,1fr)]"
+          // minmax(0, 1fr) columns: a long Leader name must truncate inside its tile, never widen the page.
+          className="grid grid-cols-1 gap-4 rounded-lg border border-shadow-700 bg-shadow-900 p-3 sm:p-4 lg:grid-cols-[14rem_minmax(0,1fr)]"
         >
           <div className="flex items-start gap-3">
             <TierBadge tier={tier} size="lg" />
@@ -97,10 +115,10 @@ export function TierList({ tiers, trends }: { tiers: Record<TierId, ArchetypeSta
           {tiers[tier].length > 0 ? (
             <ol
               aria-label={`${TIER_META[tier].label} archetypes, best first`}
-              className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3"
+              className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3"
             >
               {tiers[tier].map((stat) => (
-                <ArchetypeTile key={stat.archetypeId} stat={stat} trend={trends[stat.archetypeId]} />
+                <ArchetypeTile key={stat.archetypeId} stat={stat} trend={trends[stat.archetypeId]} hasTopCut={hasTopCut} />
               ))}
             </ol>
           ) : (

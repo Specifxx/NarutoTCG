@@ -6,12 +6,13 @@ import { Section } from "@/components/ui/page-header";
 import { DataTable, THead, Td, Th, Tr } from "@/components/ui/table";
 import { getArchetype } from "@/lib/data/archetypes";
 import { getCard } from "@/lib/data/cards";
-import { cardCounts, groupDecklist } from "@/lib/decks/deck-utils";
+import { cardCounts } from "@/lib/decks/deck-utils";
 import { mainDeckSize } from "@/lib/decks/legality";
 import { pluralize } from "@/lib/format";
 import { CardFrame, splitCardName } from "./card-frame";
 import { CARD_TYPE_LABEL, RARITY_MARK } from "./card-style";
 import { CardIdTile, CardTile } from "./card-tile";
+import { groupDecklistForDisplay } from "./deck-layout";
 import type { MulliganTargets } from "./sample-hand";
 import { SEGMENTED, segmentClass } from "./styles";
 
@@ -76,7 +77,7 @@ function LeaderShowcase({ decklist, archetypeId, targets }: { decklist: Decklist
 }
 
 function VisualList({ decklist, archetypeId, targets }: { decklist: Decklist; archetypeId: string; targets: MulliganTargets }) {
-  const { sections, unknownCardIds } = useMemo(() => groupDecklist(decklist), [decklist]);
+  const { sections, unknownCardIds } = useMemo(() => groupDecklistForDisplay(decklist), [decklist]);
   const counts = useMemo(() => cardCounts(decklist), [decklist]);
   const unknownInDeck = unknownCardIds.filter((id) => counts.has(id));
   return (
@@ -115,12 +116,12 @@ function VisualList({ decklist, archetypeId, targets }: { decklist: Decklist; ar
 }
 
 function TableList({ decklist }: { decklist: Decklist }) {
-  const { leader, sections, unknownCardIds } = useMemo(() => groupDecklist(decklist), [decklist]);
+  const { leader, sections, unknownCardIds } = useMemo(() => groupDecklistForDisplay(decklist), [decklist]);
   const counts = useMemo(() => cardCounts(decklist), [decklist]);
   const unknownInDeck = unknownCardIds.filter((id) => counts.has(id));
   const groupRow = (label: string) => (
     <tr className="border-t border-shadow-700 bg-shadow-800/70">
-      <th scope="colgroup" colSpan={5} className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-ash-300">
+      <th scope="rowgroup" colSpan={5} className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-ash-300">
         {label}
       </th>
     </tr>

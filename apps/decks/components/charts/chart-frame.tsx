@@ -45,7 +45,7 @@ export function ChartFrame({
               aria-pressed={view === option}
               onClick={() => setView(option)}
               className={cx(
-                "rounded px-2 py-1 font-medium capitalize transition",
+                "rounded px-2 py-1 font-medium capitalize transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
                 view === option ? "bg-shadow-700 text-white" : "text-ash-400 hover:text-white",
               )}
             >

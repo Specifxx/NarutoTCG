@@ -11,15 +11,15 @@ import {
   checkFileBeforeRead,
   CSV_KIND_LABEL,
   formatBytes,
+  kindWarning,
   MAX_FILE_BYTES,
-  MIN_KIND_CONFIDENCE,
   readErrorMessage,
   rejectFile,
   type AnalyzedInput,
   type PasteKind,
 } from "./source-files";
 import { SeverityIcon, SeverityTag } from "./status";
-import { BUTTON_GHOST, BUTTON_GHOST_SM, BUTTON_PRIMARY, CODE_TEXTAREA, CONTROL, FIELD_SM, FOCUS_RING, HINT, ICON_BUTTON, LABEL } from "./styles";
+import { BUTTON_GHOST, BUTTON_GHOST_SM, BUTTON_PRIMARY, CODE_TEXTAREA, CONTROL, FIELD_SM, FOCUS_RING, HINT, ICON_BUTTON, INLINE_LINK, LABEL } from "./styles";
 import { DROPZONE_ID, type CsvSourceFile, type JsonSourceFile, type Notice, type SourceMode, type WizardAction, type WizardState } from "./wizard-state";
 
 const MODES: ReadonlyArray<{ value: SourceMode; title: string; description: string }> = [
@@ -75,9 +75,13 @@ async function readFile(file: File): Promise<AnalyzedInput> {
 
 const hasFiles = (event: DragEvent) => Array.from(event.dataTransfer.types).includes("Files");
 
+/** Gives focus back to "Choose files" when the focused control (a chip, the notices) goes away. */
+const focusDropzone = () => document.getElementById(DROPZONE_ID)?.focus();
+
 export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: Dispatch<WizardAction> }) {
   const ids = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const pasteRef = useRef<HTMLTextAreaElement>(null);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState<"files" | "sample" | null>(null);
   const [pasteText, setPasteText] = useState("");
@@ -124,10 +128,13 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
       files: [analyzeText(name, pasteText, { size: new Blob([pasteText]).size, origin: "paste", kind: pasteKind })],
     });
     setPasteText("");
+    // The button disables itself once the text is cleared; keep focus where the next paste goes.
+    pasteRef.current?.focus();
   };
 
   const isCsv = state.mode === "csv";
   const templates = TEMPLATES.filter((t) => t.mode === "both" || t.mode === state.mode);
+  const otherTemplates = TEMPLATES.filter((t) => !templates.includes(t));
 
   return (
     <div className="flex flex-col gap-6">
@@ -239,7 +246,15 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
       </div>
 
       <div aria-live="polite">
-        {state.notices.length > 0 && <NoticeList notices={state.notices} onDismiss={() => dispatch({ type: "dismissNotices" })} />}
+        {state.notices.length > 0 && (
+          <NoticeList
+            notices={state.notices}
+            onDismiss={() => {
+              dispatch({ type: "dismissNotices" });
+              focusDropzone();
+            }}
+          />
+        )}
       </div>
 
       {state.files.length > 0 && (
@@ -269,6 +284,7 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
               Pasted data
             </label>
             <textarea
+              ref={pasteRef}
               id={`${ids}-paste`}
               rows={6}
               spellCheck={false}
@@ -328,6 +344,18 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
             </li>
           ))}
         </ul>
+        <p className={cx(HINT, "mt-3")}>
+          For {isCsv ? "a JSON import" : "CSV files"}:{" "}
+          {otherTemplates.map((template, index) => (
+            <span key={template.file}>
+              {index > 0 && ", "}
+              <a href={`/templates/${template.file}`} download className={cx("font-mono", INLINE_LINK)}>
+                {template.file}
+              </a>
+            </span>
+          ))}
+          .
+        </p>
       </section>
     </div>
   );
@@ -377,7 +405,16 @@ function ChipShell({ name, origin, details, children, onRemove }: {
         <div className="text-xs text-ash-400">{details}</div>
       </div>
       {children}
-      <button type="button" aria-label={`Remove ${name}`} title="Remove" onClick={onRemove} className={ICON_BUTTON}>
+      <button
+        type="button"
+        aria-label={`Remove ${name}`}
+        title="Remove"
+        onClick={() => {
+          onRemove();
+          focusDropzone();
+        }}
+        className={ICON_BUTTON}
+      >
         <CloseIcon />
       </button>
     </li>
@@ -391,7 +428,7 @@ function CsvChip({ file, dispatch }: { file: CsvSourceFile; dispatch: Dispatch<W
       : file.kindFrom === "chosen"
         ? "kind set by you"
         : `detected from headers (${Math.round(file.confidence * 100)}% match)`;
-  const unsure = file.kindFrom === "headers" && file.confidence < MIN_KIND_CONFIDENCE;
+  const warning = kindWarning(file);
   return (
     <ChipShell
       name={file.name}
@@ -402,10 +439,9 @@ function CsvChip({ file, dispatch }: { file: CsvSourceFile; dispatch: Dispatch<W
           <p>
             {formatBytes(file.size)} · {pluralize(file.rowCount, "row")} · {pluralize(file.headers.length, "column")} · {kindNote}
           </p>
-          {unsure && (
+          {warning && (
             <p className="mt-1">
-              <SeverityTag severity="warning" label="Check the kind:" />{" "}
-              <span className="text-ash-300">the headers don&apos;t clearly match standings, pairings or decklists.</span>
+              <SeverityTag severity="warning" label="Check the kind:" /> <span className="text-ash-300">{warning}</span>
             </p>
           )}
         </>

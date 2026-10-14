@@ -23,7 +23,7 @@ export function DeckStats({ decklist }: { decklist: Decklist }) {
   return (
     <Section id="stats" title="Deck stats">
       <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-2">
           <StatTile
             label="Main deck"
             value={size}

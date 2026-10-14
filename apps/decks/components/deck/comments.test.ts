@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { DeckComment } from "@/lib/decks/types";
-import { buildCommentTree, capThreadDepth, countComments, mergeComments, type CommentNode } from "./comments";
+import {
+  COMMENT_MAX_LENGTH,
+  buildCommentTree,
+  capThreadDepth,
+  commentAuthorCredit,
+  commentAuthorHref,
+  commentDraftError,
+  countComments,
+  mergeComments,
+  type CommentNode,
+} from "./comments";
 
 let clock = 0;
 function comment(id: string, parentId: string | null, votes = 0, createdAt?: string): DeckComment {
@@ -100,5 +110,28 @@ describe("capThreadDepth", () => {
   it("leaves shallow threads untouched", () => {
     const shallow = buildCommentTree([comment("p", null), comment("q", "p")]);
     expect(capThreadDepth(shallow, 3)).toEqual(shallow);
+  });
+});
+
+describe("comment drafts and author links", () => {
+  it("rejects empty and over-long drafts", () => {
+    expect(commentDraftError("  \n ")).toBe("Write something before posting.");
+    expect(commentDraftError("Nice list!")).toBeNull();
+    expect(commentDraftError(`  ${"x".repeat(COMMENT_MAX_LENGTH)}  `)).toBeNull();
+    expect(commentDraftError("x".repeat(COMMENT_MAX_LENGTH + 1))).toMatch(/under 2000/);
+  });
+
+  it("links only handles that have a profile", () => {
+    const handles = new Set(["rinnegan-rhea"]);
+    expect(commentAuthorHref("rinnegan-rhea", handles)).toBe("/players/rinnegan-rhea");
+    expect(commentAuthorHref("kunai_kid", handles)).toBeNull();
+  });
+
+  it("credits seed comments only: a typed display name never earns a link or the author badge", () => {
+    const options = { deckAuthorHandle: "saga-lindgren", profileHandles: new Set(["saga-lindgren", "rinnegan-rhea"]) };
+    expect(commentAuthorCredit("saga-lindgren", { ...options, local: false })).toEqual({ href: "/players/saga-lindgren", deckAuthor: true });
+    expect(commentAuthorCredit("rinnegan-rhea", { ...options, local: false })).toEqual({ href: "/players/rinnegan-rhea", deckAuthor: false });
+    expect(commentAuthorCredit("kunai_kid", { ...options, local: false })).toEqual({ href: null, deckAuthor: false });
+    expect(commentAuthorCredit("saga-lindgren", { ...options, local: true })).toEqual({ href: null, deckAuthor: false });
   });
 });

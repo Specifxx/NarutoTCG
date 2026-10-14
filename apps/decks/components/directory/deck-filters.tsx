@@ -11,6 +11,7 @@ import type { CardOption } from "./decks";
 import {
   DECK_SOURCES,
   DECK_SOURCE_LABELS,
+  MAX_TEXT_LENGTH,
   activeFilterCount,
   normalizeArchetypeIds,
   normalizeTiers,
@@ -97,6 +98,7 @@ export function DeckFilters({
               disabled={disabled}
               onChange={(event) => onTextChange?.(event.target.value)}
               placeholder="Deck, player, event or card"
+              maxLength={MAX_TEXT_LENGTH}
               autoComplete="off"
               enterKeyHint="search"
               className={cx(FIELD, "w-full pl-8")}

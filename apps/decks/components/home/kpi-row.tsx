@@ -12,7 +12,7 @@ export function KpiRow({ kpis }: { kpis: OverviewKpis }) {
       detail: kpis.dateRange ? formatDateRange(kpis.dateRange.from, kpis.dateRange.to) : "No events yet",
     },
     { label: "Players", value: formatNumber(kpis.players), detail: pluralize(kpis.entries, "entry", "entries") },
-    { label: "Matches", value: formatNumber(kpis.matches), detail: "Swiss and top cut, byes excluded" },
+    { label: "Matches", value: formatNumber(kpis.matches), detail: "Byes and intentional draws excluded" },
     {
       label: "Published decklists",
       value: formatNumber(kpis.decklists),
@@ -31,8 +31,8 @@ export function KpiRow({ kpis }: { kpis: OverviewKpis }) {
       </h2>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {tiles.map((tile, index) => (
-          <li key={tile.label} className={cx("[&>*]:h-full", index === tiles.length - 1 && "col-span-2 sm:col-span-1")}>
-            <StatTile label={tile.label} value={tile.value} detail={tile.detail} />
+          <li key={tile.label} className={cx(index === tiles.length - 1 && "col-span-2 sm:col-span-1")}>
+            <StatTile label={tile.label} value={tile.value} detail={tile.detail} className="h-full" />
           </li>
         ))}
       </ul>

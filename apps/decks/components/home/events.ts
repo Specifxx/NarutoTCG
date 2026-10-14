@@ -12,7 +12,10 @@ export interface OverviewKpis {
   players: number;
   /** Player registrations, counting a player once per event. */
   entries: number;
-  /** Matches played, Swiss and top cut; byes are not matches. */
+  /**
+   * Matches played, Swiss and top cut, counted like the meta engine: byes, intentional draws
+   * and matches against unregistered players are left out.
+   */
   matches: number;
   decklists: number;
   eventDecklists: number;
@@ -23,9 +26,21 @@ export interface OverviewKpis {
 
 const compareStrings = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
+function countPlayedMatches(tournament: Tournament): number {
+  const registered = new Set(tournament.players.map((p) => p.id));
+  return tournament.matches.filter(
+    (m) =>
+      m.outcome !== "bye" &&
+      !m.intentionalDraw &&
+      m.player2Id !== null &&
+      registered.has(m.player1Id) &&
+      registered.has(m.player2Id),
+  ).length;
+}
+
 /**
  * Counts for the overview: events and their date span, distinct players and entries,
- * matches played (byes excluded), published decklists by source and ranked archetypes.
+ * matches played (as the meta page counts them), published decklists by source and ranked archetypes.
  */
 export function overviewKpis(
   tournaments: readonly Tournament[],
@@ -40,10 +55,7 @@ export function overviewKpis(
     dateRange: dates.length ? { from: dates[0]!, to: dates[dates.length - 1]! } : null,
     players: players.size,
     entries: tournaments.reduce((sum, t) => sum + t.players.length, 0),
-    matches: tournaments.reduce(
-      (sum, t) => sum + t.matches.filter((m) => m.outcome !== "bye" && m.player2Id !== null).length,
-      0,
-    ),
+    matches: tournaments.reduce((sum, t) => sum + countPlayedMatches(t), 0),
     decklists: decks.length,
     eventDecklists,
     communityDecklists: decks.length - eventDecklists,

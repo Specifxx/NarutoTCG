@@ -4,28 +4,6 @@ import type { TrendDirection } from "./tiers";
 /** Icons take their default size unless `className` is given, which then must set the size too. */
 type IconProps = { className?: string };
 
-/** The platform leaf-swirl mark (same paths as the site header). */
-export function LeafMark({ className, strokeWidth = 2.2 }: IconProps & { strokeWidth?: number }) {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={className}>
-      <path
-        d="M16 3c6.5 3.2 11 9 11 15.4C27 24.8 22.1 29 16 29S5 24.8 5 18.4C5 12 9.5 6.2 16 3Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={strokeWidth}
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16 23.5a5.5 5.5 0 1 1 5.5-5.5c0 2-1.6 3.4-3.4 3.4a3.1 3.1 0 0 1-3.1-3.1c0-1.1.9-1.9 1.9-1.9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={strokeWidth * 0.9}
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 export function ArrowRightIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true" className={cx("shrink-0", className ?? "h-4 w-4")}>

@@ -15,8 +15,9 @@ import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
 import { getDeckSummaries } from "@/lib/decks/repository";
 import type { TierId } from "@/lib/meta/types";
 
+// No title: the root segment's own page does not get the layout's title template, so the
+// layout's default title ("Naruto TCG · Decks & Meta") is the right one here.
 export const metadata: Metadata = {
-  title: "Overview",
   description:
     "Naruto TCG meta at a glance: S and A tier archetypes, the latest event results, featured decklists and tools for tournament organizers (fictional demo data).",
 };

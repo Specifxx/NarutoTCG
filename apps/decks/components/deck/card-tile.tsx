@@ -57,6 +57,7 @@ export function CardTile({
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Escape" && open) {
       // Keep Escape from also closing an enclosing drawer.
+      event.preventDefault();
       event.stopPropagation();
       close();
     }

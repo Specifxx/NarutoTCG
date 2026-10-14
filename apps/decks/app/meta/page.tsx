@@ -28,7 +28,7 @@ export default function MetaPage() {
         title="Meta"
         description={`Tier list, win rates and matchups from ${aggregates.length} fictional demo events. Filter by date, event tier and format, or fold in events you imported.`}
         actions={
-          <nav aria-label="On this page" className="flex flex-wrap gap-1.5">
+          <nav aria-label="On this page" className="flex flex-wrap gap-1.5 sm:max-w-72 lg:max-w-none">
             {JUMP_LINKS.map((link) => (
               <a
                 key={link.href}

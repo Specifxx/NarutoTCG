@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/badges";
 import { StatTile } from "@/components/ui/stat-tile";
 import { EVENT_TIER_LABEL, EVENT_TIER_ORDER, EVENT_TIER_SHORT, formatNumber, pluralize } from "@/lib/format";
 import { useImportedTournaments } from "@/lib/storage/imports";
-import { eventTotals, filterEvents, formatOptions, mergeEventSummaries, regionOptions } from "./directory";
+import { eventTotals, filterEvents, formatOptions, mergeEventSummaries, offeredOr, regionOptions } from "./directory";
 import { EventListHeader, EventRow } from "./event-row";
 import { REGION_LABELS, type RegionId } from "./region";
 import { BUTTON_GHOST_SM, FIELD, FOCUS_RING } from "./styles";
@@ -41,11 +41,16 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
   const [region, setRegion] = useState<RegionId | "all">("all");
   const [format, setFormat] = useState("all");
 
-  const filtered = useMemo(() => filterEvents(all, { text, tiers, region, format }), [all, text, tiers, region, format]);
-  const totals = eventTotals(filtered);
   const formats = useMemo(() => formatOptions(all), [all]);
   const regions = useMemo(() => regionOptions(all), [all]);
-  const filtering = text.trim() !== "" || tiers.length > 0 || region !== "all" || format !== "all";
+  const activeRegion = offeredOr(region, regions);
+  const activeFormat = offeredOr(format, formats);
+  const filtered = useMemo(
+    () => filterEvents(all, { text, tiers, region: activeRegion, format: activeFormat }),
+    [all, text, tiers, activeRegion, activeFormat],
+  );
+  const totals = eventTotals(filtered);
+  const filtering = text.trim() !== "" || tiers.length > 0 || activeRegion !== "all" || activeFormat !== "all";
   const importedCount = all.filter((e) => e.source === "import").length;
 
   const toggleTier = (tier: EventTier) =>
@@ -129,7 +134,7 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
               <label htmlFor={`${id}-region`} className="sr-only">
                 Region
               </label>
-              <select id={`${id}-region`} value={region} onChange={(e) => setRegion(e.target.value as RegionId | "all")} className={cx(FIELD, "w-full pr-8")}>
+              <select id={`${id}-region`} value={activeRegion} onChange={(e) => setRegion(e.target.value as RegionId | "all")} className={cx(FIELD, "w-full pr-8")}>
                 <option value="all">All regions</option>
                 {regions.map((r) => (
                   <option key={r} value={r}>
@@ -142,7 +147,7 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
               <label htmlFor={`${id}-format`} className="sr-only">
                 Format
               </label>
-              <select id={`${id}-format`} value={format} onChange={(e) => setFormat(e.target.value)} className={cx(FIELD, "w-full pr-8")}>
+              <select id={`${id}-format`} value={activeFormat} onChange={(e) => setFormat(e.target.value)} className={cx(FIELD, "w-full pr-8")}>
                 <option value="all">All formats</option>
                 {formats.map((f) => (
                   <option key={f} value={f}>
@@ -175,8 +180,11 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
           </EmptyState>
         ) : (
           <div className="lg:overflow-hidden lg:rounded-lg lg:border lg:border-shadow-700">
+            <h2 id={`${id}-list`} className="sr-only">
+              Events, newest first
+            </h2>
             <EventListHeader />
-            <ul aria-label="Events, newest first" className="flex flex-col gap-3 lg:gap-0">
+            <ul aria-labelledby={`${id}-list`} className="flex flex-col gap-3 lg:gap-0">
               {filtered.map((event) => (
                 <EventRow key={event.id} event={event} />
               ))}

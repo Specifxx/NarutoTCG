@@ -27,8 +27,8 @@ import { TournamentActions } from "./tournament-actions";
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs font-medium text-ash-500">{label}</dt>
-      <dd className="mt-1 text-sm text-ash-100">{children}</dd>
+      <dt className="text-xs font-medium text-ash-400">{label}</dt>
+      <dd className="mt-1 break-words text-sm text-ash-100">{children}</dd>
     </div>
   );
 }
@@ -78,7 +78,7 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
               <span className="text-ash-400">{EVENT_TIER_LABEL[t.tier]}</span>
             </span>
           }
-          title={t.name}
+          title={<span className="break-words">{t.name}</span>}
           description={t.notes ?? (t.source === "import" ? "Imported through the results wizard and stored only in this browser." : undefined)}
           actions={<TournamentActions tournament={t} />}
         />
@@ -97,7 +97,7 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
           <Fact label="Organizer">{t.organizer}</Fact>
           <Fact label="Format">{t.format}</Fact>
           <Fact label="Structure">{structureLabel(t.swissRounds, t.topCutSize)}</Fact>
-          <Fact label="Matches">Best of {t.bestOf}</Fact>
+          <Fact label="Match length">Best of {t.bestOf}</Fact>
           <Fact label="Source">
             {t.source === "import" ? (
               <span className="flex flex-col items-start gap-1">
@@ -166,7 +166,7 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
       {bracket.length > 0 && (
         <Section
           id="bracket"
-          title={`Top ${t.topCutSize} bracket`}
+          title={t.topCutSize > 1 ? `Top ${t.topCutSize} bracket` : "Top cut bracket"}
           description="Seeds are Swiss ranks; scores are games won. Match winners are in bold."
         >
           <BracketView rounds={bracket} players={players} />

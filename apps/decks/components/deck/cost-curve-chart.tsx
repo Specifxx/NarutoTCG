@@ -89,45 +89,42 @@ export function CostCurveChart({ curve }: { curve: CostCurvePoint[] }) {
         </DataTable>
       }
     >
-      {/* Clips the pre-measure render so it never widens the page on narrow screens. */}
-      <div className="overflow-hidden">
-        <ResponsiveContainer width="100%" height={HEIGHT} initialDimension={{ width: 640, height: HEIGHT }}>
-          <BarChart data={curve} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barCategoryGap="18%">
-            <CartesianGrid vertical={false} stroke={CHART.grid} strokeWidth={1} />
-            <XAxis
-              dataKey="cost"
-              height={X_AXIS_BAND}
-              interval={0}
-              tick={AXIS_TICK}
-              tickLine={false}
-              axisLine={{ stroke: CHART.axis }}
-            />
-            <YAxis
-              allowDecimals={false}
-              domain={[0, Math.max(4, Math.ceil(peak / 4) * 4)]}
-              tick={AXIS_TICK}
-              tickLine={false}
-              axisLine={false}
-              width={28}
-            />
-            <Tooltip content={(props) => <CurveTooltip {...props} series={series} />} cursor={HOVER_CURSOR} isAnimationActive={false} />
-            <BarStack radius={[CHART.radius, CHART.radius, 0, 0]}>
-              {series.map((s) => (
-                <Bar
-                  key={s.key}
-                  dataKey={s.key}
-                  name={s.label}
-                  fill={s.color}
-                  stroke={CHART.surface}
-                  strokeWidth={CHART.gap}
-                  maxBarSize={CHART.maxBarSize}
-                  isAnimationActive={false}
-                />
-              ))}
-            </BarStack>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <ResponsiveContainer width="100%" height={HEIGHT} initialDimension={{ width: 640, height: HEIGHT }}>
+        <BarChart data={curve} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barCategoryGap="18%">
+          <CartesianGrid vertical={false} stroke={CHART.grid} strokeWidth={1} />
+          <XAxis
+            dataKey="cost"
+            height={X_AXIS_BAND}
+            interval={0}
+            tick={AXIS_TICK}
+            tickLine={false}
+            axisLine={{ stroke: CHART.axis }}
+          />
+          <YAxis
+            allowDecimals={false}
+            domain={[0, Math.max(4, Math.ceil(peak / 4) * 4)]}
+            tick={AXIS_TICK}
+            tickLine={false}
+            axisLine={false}
+            width={28}
+          />
+          <Tooltip content={(props) => <CurveTooltip {...props} series={series} />} cursor={HOVER_CURSOR} isAnimationActive={false} />
+          <BarStack radius={[CHART.radius, CHART.radius, 0, 0]}>
+            {series.map((s) => (
+              <Bar
+                key={s.key}
+                dataKey={s.key}
+                name={s.label}
+                fill={s.color}
+                stroke={CHART.surface}
+                strokeWidth={CHART.gap}
+                maxBarSize={CHART.maxBarSize}
+                isAnimationActive={false}
+              />
+            ))}
+          </BarStack>
+        </BarChart>
+      </ResponsiveContainer>
     </ChartFrame>
   );
 }

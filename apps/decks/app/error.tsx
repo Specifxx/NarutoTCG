@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useTransition } from "react";
 import { AlertIcon } from "@/components/home/icons";
 import { StatusPage } from "@/components/home/status-page";
 import { BUTTON_GHOST, BUTTON_PRIMARY } from "@/components/home/styles";
@@ -9,6 +10,16 @@ import { PageContainer } from "@/components/ui/page-header";
 
 export default function ErrorBoundary({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const router = useRouter();
+  const [retrying, startRetry] = useTransition();
+
+  // reset() alone only re-renders on the client; refreshing first re-fetches the server
+  // payload, so errors thrown while rendering a Server Component can recover too.
+  const retry = () =>
+    startRetry(() => {
+      router.refresh();
+      reset();
+    });
 
   useEffect(() => {
     console.error(error);
@@ -29,8 +40,8 @@ export default function ErrorBoundary({ error, reset }: { error: Error & { diges
         titleRef={titleRef}
         actions={
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <button type="button" onClick={reset} className={BUTTON_PRIMARY}>
-              Try again
+            <button type="button" onClick={retry} aria-busy={retrying} className={BUTTON_PRIMARY}>
+              {retrying ? "Trying again…" : "Try again"}
             </button>
             <Link href="/" className={BUTTON_GHOST}>
               Back to the overview

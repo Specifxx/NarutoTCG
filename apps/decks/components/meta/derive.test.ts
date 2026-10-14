@@ -14,6 +14,7 @@ import {
   matchupCellTitle,
   mergeImportedAggregates,
   newestEventDate,
+  sanitizeImportedTournament,
   sliceDonut,
   sortFieldVsTopCut,
   trendDirection,
@@ -68,6 +69,72 @@ describe("imported aggregates", () => {
     } as unknown as Tournament;
     const result = aggregateImported([valid, broken]);
     expect(result.map((a) => a.tournamentId)).toEqual(["imp-1"]);
+  });
+});
+
+describe("sanitizeImportedTournament", () => {
+  const base = {
+    id: "local-1",
+    name: "Local Store Championship",
+    date: "2026-10-12",
+    tier: "store-championship",
+    format: "Standard (NT01–NT04)",
+    topCutSize: 4,
+    players: [
+      { id: "a", name: "A", archetypeId: "sand-gaara", placement: 1 },
+      { id: "b", name: "B", archetypeId: "akatsuki-pain", placement: 2 },
+    ],
+    matches: [{ round: 1, stage: "swiss", player1Id: "a", player2Id: "b", outcome: "p1" }],
+  };
+  const tournament = (overrides: Record<string, unknown> = {}) => ({ ...base, ...overrides }) as unknown as Tournament;
+
+  it("passes a well-formed import through unchanged", () => {
+    expect(sanitizeImportedTournament(tournament())).toEqual(base);
+  });
+
+  it("skips imports that cannot be placed in time or tier", () => {
+    expect(sanitizeImportedTournament(tournament({ date: "10/12/2026" }))).toBeNull();
+    expect(sanitizeImportedTournament(tournament({ date: "2026-13-45" }))).toBeNull();
+    expect(sanitizeImportedTournament(tournament({ date: undefined }))).toBeNull();
+    expect(sanitizeImportedTournament(tournament({ tier: undefined }))).toBeNull();
+    expect(sanitizeImportedTournament(tournament({ tier: "worlds" }))).toBeNull();
+    expect(sanitizeImportedTournament(tournament({ id: "" }))).toBeNull();
+  });
+
+  it("trims ISO timestamps to dates and defaults a missing cut and format", () => {
+    const clean = sanitizeImportedTournament(tournament({ date: "2026-10-12T18:00:00Z", topCutSize: undefined, format: undefined }))!;
+    expect(clean.date).toBe("2026-10-12");
+    expect(clean.topCutSize).toBe(0);
+    expect(clean.format).toBe("");
+  });
+
+  it("maps unknown archetypes to rogue and drops malformed players and matches", () => {
+    const clean = sanitizeImportedTournament(
+      tournament({
+        players: [...base.players, { id: "c", placement: 3 }, { id: "d", archetypeId: "kaguya", placement: 4 }, null, { name: "no id" }],
+        matches: [...base.matches, null, { player1Id: "a", player2Id: "c" }, { player1Id: "c", player2Id: "d", outcome: "draw" }],
+      }),
+    )!;
+    expect(clean.players.map((p) => [p.id, p.archetypeId])).toEqual([
+      ["a", "sand-gaara"],
+      ["b", "akatsuki-pain"],
+      ["c", "rogue"],
+      ["d", "rogue"],
+    ]);
+    expect(clean.matches.map((m) => m.outcome)).toEqual(["p1", "draw"]);
+  });
+
+  it("keeps NaN out of the merged meta and bad dates out of the date presets", () => {
+    const aggs = aggregateImported([
+      tournament({ format: undefined, topCutSize: undefined }),
+      tournament({ id: "local-2", tier: undefined }),
+      tournament({ id: "local-3", date: "Oct 30, 2026" }),
+    ]);
+    expect(aggs.map((a) => a.tournamentId)).toEqual(["local-1"]);
+    const meta = mergeAggregates(aggs);
+    expect(Object.values(meta.archetypes).every((c) => Number.isFinite(c.points))).toBe(true);
+    expect(newestEventDate(aggs)).toBe("2026-10-12");
+    expect(availableFormats(aggs)).toEqual([]);
   });
 });
 

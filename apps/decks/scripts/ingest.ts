@@ -41,10 +41,12 @@ function parseArgs(argv: string[]): Args {
   const args: Args = { files: [], out: DEFAULT_OUT, dryRun: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    // pnpm 10 forwards the "--" separator to the script; it carries no meaning here.
+    if (arg === "--") continue;
     const [flag, inline] = arg.startsWith("--") ? arg.split(/=(.*)/s, 2) : [arg, undefined];
     const value = () => inline ?? argv[++i] ?? fail(`${flag} needs a value.\n${USAGE}`);
     if (flag === "--meta") args.meta = value();
-    else if (flag === "--out") args.out = resolve(value());
+    else if (flag === "--out") args.out = resolve(BASE_DIR, value());
     else if (flag === "--dry-run") args.dryRun = true;
     else if (flag === "--help" || flag === "-h") {
       console.log(USAGE);
@@ -56,9 +58,12 @@ function parseArgs(argv: string[]): Args {
   return args;
 }
 
+/** pnpm runs scripts inside apps/decks; resolve paths from where the command was typed. */
+const BASE_DIR = process.env.INIT_CWD ?? process.cwd();
+
 function read(path: string): string {
   try {
-    return readFileSync(path, "utf8");
+    return readFileSync(resolve(BASE_DIR, path), "utf8");
   } catch (error) {
     return fail(`Cannot read ${path}: ${error instanceof Error ? error.message : String(error)}`);
   }

@@ -46,7 +46,7 @@ export const IMPORT_FORMATS: readonly ImportFormat[] = [
   },
 ];
 
-/** The CLI importer, run from the monorepo root. */
+/** The CLI importer, run from the monorepo root (pnpm runs it in apps/decks, so paths resolve there). */
 export const INGEST_COMMAND = "pnpm --filter @naruto-tcg/decks ingest -- results.json";
 
 export const templateHref = (file: string) => `/templates/${encodeURIComponent(file)}`;

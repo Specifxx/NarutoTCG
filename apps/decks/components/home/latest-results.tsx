@@ -67,8 +67,11 @@ function EventCard({ event }: { event: LatestResult }) {
               {event.topCut.map((player) => {
                 const title = `${placementLabel(player.placement, event.topCutSize)}: ${player.name}, ${archetypeName(player.archetypeId)}`;
                 return (
-                  <li key={player.placement} title={title} className="flex p-0.5">
-                    <ArchetypeDot archetypeId={player.archetypeId} className="h-3 w-3" />
+                  <li key={player.placement} className="flex">
+                    {/* The hover title sits on the hidden swatch so screen readers hear the text once. */}
+                    <span aria-hidden="true" title={title} className="flex p-0.5">
+                      <ArchetypeDot archetypeId={player.archetypeId} className="h-3 w-3" />
+                    </span>
                     <span className="sr-only">{title}</span>
                   </li>
                 );

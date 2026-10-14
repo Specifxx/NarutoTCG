@@ -9,7 +9,7 @@ import { COLUMN_FIELDS, describeFields, missingRequiredFields } from "@/lib/inge
 import { FileIcon } from "./icons";
 import { duplicateHeaders, firstValue, mappedPreview, requirementLabel, unusedHeaders } from "./mapping";
 import { CSV_KIND_LABEL } from "./source-files";
-import { SeverityIcon, SeverityTag } from "./status";
+import { FieldError, SeverityIcon, SeverityTag } from "./status";
 import { BUTTON_GHOST_SM, CONTROL, HINT } from "./styles";
 import { csvFiles, mappingSelectId, type CsvSourceFile, type WizardAction, type WizardState } from "./wizard-state";
 
@@ -106,7 +106,7 @@ function FileMapping({ file, dispatch }: { file: CsvSourceFile; dispatch: Dispat
                     id={selectId}
                     value={file.mapping[field.key] ?? ""}
                     aria-invalid={isMissing ? true : undefined}
-                    aria-describedby={`${selectId}-hint`}
+                    aria-describedby={isMissing ? `${selectId}-error ${selectId}-hint` : `${selectId}-hint`}
                     onChange={(event) =>
                       dispatch({ type: "setMapping", id: file.id, field: field.key, header: event.target.value || null })
                     }
@@ -119,6 +119,11 @@ function FileMapping({ file, dispatch }: { file: CsvSourceFile; dispatch: Dispat
                       </option>
                     ))}
                   </select>
+                  {isMissing && (
+                    <div className="mt-1">
+                      <FieldError id={`${selectId}-error`} message={requirement ?? "Required"} />
+                    </div>
+                  )}
                 </Td>
                 <Td className="text-ash-300">
                   {sample ? (

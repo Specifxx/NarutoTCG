@@ -284,11 +284,11 @@ function SavedPanel({ id, name, onReset }: { id: string; name: string; onReset: 
           for standings, bracket and pairings.
         </li>
         <li>
-          <Link href="/meta" className={INLINE_LINK}>
-            Open the meta
+          <Link href="/meta?imports=1" className={INLINE_LINK}>
+            Open the meta with your imports
           </Link>{" "}
-          and turn on <span className="font-semibold text-ash-100">Include my imported events</span> to fold it into the tier list
-          and charts.
+          to fold it into the tier list and charts. This link turns on{" "}
+          <span className="font-semibold text-ash-100">Include my imported events</span>; you can switch it off there.
         </li>
         <li>
           <Link href="/decks" className={INLINE_LINK}>

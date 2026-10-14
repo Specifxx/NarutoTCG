@@ -106,7 +106,7 @@ export function StandingsTable({
               </Td>
               <Td>
                 <span className="flex items-center gap-2">
-                  <Link href={playerHref(row.playerId)} className={cx("font-medium text-ash-100 rounded-sm hover:text-chakra-400", FOCUS_RING)}>
+                  <Link href={playerHref(row.playerId)} prefetch={false} className={cx("font-medium text-ash-100 rounded-sm hover:text-chakra-400", FOCUS_RING)}>
                     {row.name}
                   </Link>
                   {row.dropped && <DroppedTag />}
@@ -129,7 +129,7 @@ export function StandingsTable({
               </Td>
               <Td>
                 {row.deckId ? (
-                  <Link href={deckHref(row.deckId)} className={cx("font-medium text-chakra-400 rounded-sm hover:text-chakra-300", FOCUS_RING)}>
+                  <Link href={deckHref(row.deckId)} prefetch={false} className={cx("font-medium text-chakra-400 rounded-sm hover:text-chakra-300", FOCUS_RING)}>
                     View list<span className="sr-only"> by {row.name}</span>
                   </Link>
                 ) : (
@@ -143,7 +143,7 @@ export function StandingsTable({
 
       {matching.length === 0 && <p className="text-sm text-ash-400">No player matches “{query}”.</p>}
       {!hasResults && rows.length > 0 && (
-        <p className="text-xs text-ash-500">No match results were recorded for this event, so records and tiebreakers are not available.</p>
+        <p className="text-xs text-ash-400">No match results were recorded for this event, so records and tiebreakers are not available.</p>
       )}
       {collapsible && (
         <div>

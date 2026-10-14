@@ -410,6 +410,19 @@ describe("ingestJson", () => {
     expect(result.issues.every((i) => i.code === "schema" && i.field?.startsWith("players[0]."))).toBe(true);
   });
 
+  it("slugifies hand-written ids so they stay URL- and deck-id-safe", () => {
+    for (const [id, expected] of [
+      ["Riverbend SC #3 / Fall", "local-riverbend-sc-3-fall"],
+      ["local-Already Local", "local-already-local"],
+      ["Spring--Open", "local-spring-open"],
+      ["!!!", "local-event"],
+    ]) {
+      const t = ingestJson(JSON.stringify({ ...templateTournament(), id }), { now: NOW }).tournament!;
+      expect(t.id).toBe(expected);
+      expect(t.id).not.toContain("--");
+    }
+  });
+
   it("accepts a BOM", () => {
     expect(ingestJson(String.fromCharCode(0xfeff) + readTemplate("tournament-template.json"), { now: NOW }).issues).toEqual([]);
   });

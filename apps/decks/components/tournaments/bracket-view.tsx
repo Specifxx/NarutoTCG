@@ -9,7 +9,7 @@ import { FOCUS_RING, playerHref } from "./styles";
 function SlotRow({ slot, player, divided }: { slot: BracketSlot; player: TournamentPlayer | undefined; divided: boolean }) {
   return (
     <div className={cx("flex items-center gap-2 px-2.5 py-1.5", divided && "border-t border-shadow-700", slot.won ? "text-white" : "text-ash-400")}>
-      <span className="w-5 shrink-0 text-right text-[11px] tabular-nums text-ash-500">
+      <span className="w-5 shrink-0 text-right text-[11px] tabular-nums text-ash-400">
         {slot.seed !== null && (
           <>
             <span className="sr-only">Seed </span>
@@ -18,7 +18,7 @@ function SlotRow({ slot, player, divided }: { slot: BracketSlot; player: Tournam
         )}
       </span>
       {slot.playerId === null ? (
-        <span className="flex-1 text-xs italic text-ash-500">Bye</span>
+        <span className="flex-1 text-xs italic text-ash-400">Bye</span>
       ) : (
         <>
           {player && (
@@ -28,6 +28,7 @@ function SlotRow({ slot, player, divided }: { slot: BracketSlot; player: Tournam
           )}
           <Link
             href={playerHref(slot.playerId)}
+            prefetch={false}
             className={cx("min-w-0 flex-1 truncate rounded-sm hover:text-chakra-400", FOCUS_RING, slot.won && "font-bold")}
           >
             {player?.name ?? slot.playerId}
@@ -35,7 +36,7 @@ function SlotRow({ slot, player, divided }: { slot: BracketSlot; player: Tournam
           {slot.won && <span className="sr-only">(winner)</span>}
         </>
       )}
-      <span className={cx("w-4 shrink-0 text-right tabular-nums", slot.won ? "font-bold" : "text-ash-500")}>
+      <span className={cx("w-4 shrink-0 text-right tabular-nums", slot.won && "font-bold")}>
         {slot.games ?? ""}
         {slot.games !== null && <span className="sr-only">{slot.games === 1 ? " game" : " games"}</span>}
       </span>
@@ -76,7 +77,7 @@ export function BracketView({ rounds, players }: { rounds: BracketRound[]; playe
           <li key={round.round} className="flex w-56 flex-col sm:w-60">
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ash-400">
               {round.label}
-              <span className="ml-1.5 font-normal normal-case tracking-normal text-ash-500">· Round {round.round}</span>
+              <span className="ml-1.5 font-normal normal-case tracking-normal text-ash-400">· Round {round.round}</span>
             </h3>
             <ol className="flex flex-1 flex-col justify-around gap-3">
               {round.matches.map((match) => (

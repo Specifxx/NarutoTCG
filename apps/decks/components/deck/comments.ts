@@ -104,3 +104,38 @@ export function capThreadDepth(nodes: readonly CommentNode[], maxDepth: number =
 export function countComments(nodes: readonly CommentNode[]): number {
   return nodes.reduce((sum, node) => sum + 1 + countComments(node.children), 0);
 }
+
+/** Longest comment the local store keeps. */
+export const COMMENT_MAX_LENGTH = 2000;
+
+/** Name shown for comments posted without a display name. */
+export const ANONYMOUS_NAME = "Anonymous Shinobi";
+
+/** Why a draft cannot be posted yet, or null when it can. */
+export function commentDraftError(body: string): string | null {
+  const length = body.trim().length;
+  if (length === 0) return "Write something before posting.";
+  if (length > COMMENT_MAX_LENGTH) return `Keep it under ${COMMENT_MAX_LENGTH} characters (${length} now).`;
+  return null;
+}
+
+/**
+ * Profile link for a comment author: only the deck's own author and known profile handles get
+ * one, since most commenter handles have no player page.
+ */
+export function commentAuthorHref(author: string, profileHandles: ReadonlySet<string>): string | null {
+  return profileHandles.has(author) ? `/players/${encodeURIComponent(author)}` : null;
+}
+
+/**
+ * How a comment's author is credited. Seed comments get a profile link (when the handle has one)
+ * and the "Deck author" badge; comments posted from this browser get neither, since their name is
+ * whatever was typed into the display-name field.
+ */
+export function commentAuthorCredit(
+  author: string,
+  { local, deckAuthorHandle, profileHandles }: { local: boolean; deckAuthorHandle: string; profileHandles: ReadonlySet<string> },
+): { href: string | null; deckAuthor: boolean } {
+  if (local) return { href: null, deckAuthor: false };
+  return { href: commentAuthorHref(author, profileHandles), deckAuthor: author === deckAuthorHandle };
+}

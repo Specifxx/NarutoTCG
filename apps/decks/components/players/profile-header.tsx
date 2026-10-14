@@ -18,13 +18,24 @@ function PenIcon({ className }: { className?: string }) {
   );
 }
 
+/** Where a profile comes from: the seed database, or only events imported in this browser. */
+export type ProfileOrigin = "seed" | "imported";
+
 /** Profile header: initials avatar, name, country flag and code, author badge, join date and bio. */
-export function ProfileHeader({ profile, actions }: { profile: PlayerProfile; actions?: ReactNode }) {
+export function ProfileHeader({
+  profile,
+  actions,
+  origin = "seed",
+}: {
+  profile: PlayerProfile;
+  actions?: ReactNode;
+  origin?: ProfileOrigin;
+}) {
   const flag = flagEmoji(profile.country);
   const country = profile.country ? countryName(profile.country) : null;
   return (
     <PageHeader
-      eyebrow={profile.isAuthor ? "Deck author" : "Player profile"}
+      eyebrow={profile.isAuthor ? "Deck author" : origin === "imported" ? "Imported player" : "Player profile"}
       title={
         <span className="flex min-w-0 items-center gap-3">
           <span
@@ -62,7 +73,11 @@ export function ProfileHeader({ profile, actions }: { profile: PlayerProfile; ac
             <span className="font-mono text-xs text-ash-500">@{profile.handle}</span>
           </span>
           {profile.bio && <span className="mt-3 block text-ash-300">{profile.bio}</span>}
-          <span className="mt-2 block text-xs text-ash-500">Fictional demo profile: every player, event and result on this site is made up.</span>
+          <span className="mt-2 block text-xs text-ash-500">
+            {origin === "imported"
+              ? "Built from events imported in this browser only; nobody else sees this profile."
+              : "Fictional demo profile: every player, event and result on this site is made up."}
+          </span>
         </>
       }
       actions={actions}

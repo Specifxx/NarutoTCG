@@ -2,6 +2,7 @@ import { getArchetype } from "@/lib/data/archetypes";
 import { assembleTournament, assignArchetype, canonicalOrder, failed, summarize } from "./assemble";
 import { autoMapColumns, cell, COLUMN_FIELDS, describeFields, missingRequiredFields } from "./columns";
 import { parseCsv } from "./csv";
+import { slugify } from "./slug";
 import { detectJsonFormat, TournamentSchema, zodIssues } from "./schema";
 import { convertScraped } from "./scraped";
 import { sortIssues, type ColumnMapping, type CsvKind, type EventMetaInput, type IngestIssue, type IngestResult, type RawEvent } from "./types";
@@ -167,7 +168,8 @@ function ingestCanonical(value: unknown, options: IngestJsonOptions): IngestResu
     swissRounds: meta.swissRounds ?? data.swissRounds,
     topCutSize: meta.topCutSize ?? data.topCutSize,
     bestOf: meta.bestOf ?? data.bestOf,
-    id: data.id.startsWith("local-") ? data.id : `local-${data.id}`,
+    // Slugified so hand-written ids with spaces, "/" or "#" still make safe URLs and deck ids.
+    id: `local-${slugify(data.id.replace(/^local-/, ""), "event")}`,
     players,
     source: "import",
     importedAt: options.now ?? new Date().toISOString(),
@@ -179,7 +181,7 @@ function ingestCanonical(value: unknown, options: IngestJsonOptions): IngestResu
 /**
  * Imports JSON: a canonical tournament record (players and matches) or a scraped export (an
  * event with standings and pairings, see `ScrapedTournamentSchema`). Canonical records keep
- * their ids (prefixed `local-`) and have non-canonical archetype ids resolved like deck labels.
+ * their ids (slugified, prefixed `local-`) and have non-canonical archetype ids resolved like deck labels.
  */
 export function ingestJson(text: string, options: IngestJsonOptions = {}): IngestResult {
   let value: unknown;

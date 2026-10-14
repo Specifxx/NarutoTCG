@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { hasErrors } from "@/lib/ingest/types";
 import { analyzeText } from "./source-files";
 import {
+  asLocalImport,
   createWizardState,
   csvFiles,
   eventFieldId,
@@ -256,5 +257,59 @@ describe("validation and navigation", () => {
     const result = ingestFromState(broken, NOW);
     expect(result.tournament).toBeNull();
     expect(result.issues[0]!.code).toBe("unexpected");
+  });
+});
+
+describe("review fixes", () => {
+  const canonical = (patch: Record<string, unknown> = {}) =>
+    analyzeText("t.json", JSON.stringify({ ...JSON.parse(template("tournament-template.json")), ...patch }));
+  const eventMeta = (meta: Record<string, unknown>) => analyzeText("details.json", JSON.stringify(meta));
+
+  it("always saves ids with the local- prefix and source import", () => {
+    const state = run([{ type: "addFiles", files: [canonical({ id: "riverbend-sc", source: "seed" })] }]);
+    expect(ingestFromState(state, NOW).tournament).toMatchObject({ id: "local-riverbend-sc", source: "import" });
+    for (const name of ["tournament-template.json", "scraped-template.json"]) {
+      expect(ingestFromState(run([{ type: "addFiles", files: [file(name)] }]), NOW).tournament?.id).toMatch(/^local-/);
+    }
+    expect(ingestFromState(csvSample(), NOW).tournament?.id).toMatch(/^local-/);
+    const local = ingestFromState(csvSample(), NOW).tournament!;
+    expect(asLocalImport(local)).toBe(local);
+  });
+
+  it("saves the format the form shows for a record without one", () => {
+    const state = run([{ type: "addFiles", files: [canonical({ format: "" })] }]);
+    expect(state.form.format).toMatch(/^Standard/);
+    expect(ingestFromState(state, NOW).tournament?.format).toBe(state.form.format);
+  });
+
+  it("keeps event details added before the tournament JSON", () => {
+    const state = run([
+      { type: "setMode", mode: "json" },
+      { type: "addFiles", files: [eventMeta({ name: "Override Cup", date: "2026-09-13" })] },
+      { type: "addFiles", files: [file("scraped-template.json")] },
+    ]);
+    expect(state.form).toMatchObject({ name: "Override Cup", date: "2026-09-13", city: "Riverbend", organizer: "Paper Lantern Games" });
+    expect(state.prefilledFrom).toBe("scraped-template.json and details.json");
+    expect(state.notices.map((n) => n.message)).toEqual(["Event details from details.json still override scraped-template.json's own."]);
+    expect(ingestFromState(state, NOW).tournament).toMatchObject({ name: "Override Cup", date: "2026-09-13" });
+  });
+
+  it("does not clear the JSON's location or organizer with a partial details file", () => {
+    const state = run([{ type: "addFiles", files: [file("tournament-template.json"), eventMeta({ name: "Renamed", date: "2026-09-12", tier: "online-open" })] }]);
+    expect(state.form).toMatchObject({ name: "Renamed", tier: "online-open", city: "Riverbend", organizer: "Paper Lantern Games" });
+    expect(ingestFromState(state, NOW).tournament).toMatchObject({
+      name: "Renamed",
+      tier: "online-open",
+      organizer: "Paper Lantern Games",
+      location: { city: "Riverbend" },
+    });
+  });
+
+  it("starts the event details over when the sample replaces the files", () => {
+    const edited = wizardReducer(csvSample(), { type: "editEvent", patch: { format: "Custom", notes: "Mine" } });
+    const replaced = wizardReducer(edited, { type: "addFiles", files: [file("scraped-template.json")], replace: true, note: "Sample." });
+    expect(replaced.form.format).toBe("Standard (NT01–NT04)");
+    expect(replaced.eventMeta).toBeNull();
+    expect(replaced.prefilledFrom).toBe("scraped-template.json");
   });
 });

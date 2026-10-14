@@ -16,6 +16,8 @@ interface Column {
   hint: string;
   numeric?: boolean;
   render: (row: ArchetypeStats) => ReactNode;
+  /** Conversion-based columns read "—" when no selected event had a top cut. */
+  needsTopCut?: boolean;
 }
 
 const COLUMNS: Column[] = [
@@ -62,6 +64,7 @@ const COLUMNS: Column[] = [
     hint: "Top cuts ÷ entries",
     numeric: true,
     render: (r) => formatPercent(r.conversionRate),
+    needsTopCut: true,
   },
   {
     key: "lift",
@@ -69,6 +72,7 @@ const COLUMNS: Column[] = [
     hint: "Smoothed conversion ÷ the field-wide conversion (1.0× = average)",
     numeric: true,
     render: (r) => formatLift(r.conversionLift),
+    needsTopCut: true,
   },
   { key: "eventWins", label: "Wins", hint: "Events won", numeric: true, render: (r) => formatNumber(r.eventWins) },
   {
@@ -101,7 +105,7 @@ function SortIcon({ direction }: { direction: "asc" | "desc" | null }) {
 }
 
 /** Sortable per-archetype stats; header buttons toggle the sort and expose it through aria-sort. */
-export function ArchetypeStatsTable({ stats }: { stats: ArchetypeStats[] }) {
+export function ArchetypeStatsTable({ stats, hasTopCut }: { stats: ArchetypeStats[]; hasTopCut: boolean }) {
   const [sort, setSort] = useState<StatsSort>(DEFAULT_STATS_SORT);
   const rows = useMemo(() => sortStats(stats, sort), [stats, sort]);
   const active = COLUMNS.find((c) => c.key === sort.key)!;
@@ -153,7 +157,7 @@ export function ArchetypeStatsTable({ stats }: { stats: ArchetypeStats[] }) {
                   numeric={column.numeric}
                   className={cx(column.key === "score" && "font-semibold text-white")}
                 >
-                  {column.render(row)}
+                  {column.needsTopCut && !hasTopCut ? "—" : column.render(row)}
                 </Td>
               ),
             )}

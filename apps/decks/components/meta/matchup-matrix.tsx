@@ -154,7 +154,13 @@ export function MatchupMatrix({ meta, minGames }: { meta: MetaAggregate; minGame
         <EmptyState title="Not enough archetypes for a matchup grid">Widen the filters to include more events.</EmptyState>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="w-full overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-900">
+          {/* Focusable so keyboard users can scroll the grid sideways; it holds no other focus target. */}
+          <div
+            role="region"
+            aria-label={`Matchup matrix, top ${ids.length} archetypes (scrolls sideways)`}
+            tabIndex={0}
+            className="w-full overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-900 outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+          >
             <table className="border-separate border-spacing-0.5 p-1 text-xs">
               <caption className="sr-only">
                 Matchup win rates for the top {ids.length} archetypes: rows are the deck, columns the opponent

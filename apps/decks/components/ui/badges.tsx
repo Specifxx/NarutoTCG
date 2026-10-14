@@ -28,7 +28,14 @@ export function TierBadge({ tier, size = "md" }: { tier: TierId; size?: "sm" | "
         TIER_CLASS[tier],
       )}
     >
-      {tier === "unranked" ? "—" : tier}
+      {tier === "unranked" ? (
+        <>
+          <span aria-hidden="true">—</span>
+          <span className="sr-only">Unranked</span>
+        </>
+      ) : (
+        tier
+      )}
     </span>
   );
 }

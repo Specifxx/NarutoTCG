@@ -1,7 +1,7 @@
 "use client";
 
 import { cx } from "@naruto-tcg/ui";
-import { useId, useState, type Dispatch } from "react";
+import { useId, useRef, useState, type Dispatch } from "react";
 import { EmptyState } from "@/components/ui/badges";
 import { getCard } from "@/lib/data/cards";
 import { formatPercent, pluralize } from "@/lib/format";
@@ -23,6 +23,8 @@ import { BUTTON_GHOST, BUTTON_GHOST_SM, BUTTON_PRIMARY } from "./styles";
 
 const nameOf = (cardId: string) => getCard(cardId)?.name ?? cardId;
 
+const HAND_GRID = "grid grid-cols-3 gap-2 @md:grid-cols-4 @xl:grid-cols-5";
+
 /** Draw / mulligan / draw-next controls, the current hand and a running keepable tally. */
 export function SampleHandPanel({
   state,
@@ -35,6 +37,8 @@ export function SampleHandPanel({
   expectedKeepable: number;
 }) {
   const tallyId = useId();
+  const handId = useId();
+  const drawButtonRef = useRef<HTMLButtonElement>(null);
   const [announcement, setAnnouncement] = useState("");
   const dealt = state.opening.length > 0;
   const keepable = hasTarget(state.opening, state.targets);
@@ -45,7 +49,13 @@ export function SampleHandPanel({
   const describeHand = (hand: string[]) =>
     `${hand.map(nameOf).join(", ")}. ${state.targets.length === 0 ? "" : hasTarget(hand, state.targets) ? "Keepable." : "No mulligan target."}`;
 
+  // A focused button that disables itself drops focus to <body>; hand it to the draw button first.
+  const keepFocus = (willDisable: boolean) => {
+    if (willDisable) drawButtonRef.current?.focus();
+  };
+
   const deal = (type: "draw" | "mulligan") => {
+    if (type === "mulligan") keepFocus(mulligansLeft <= 1);
     dispatch({ type, seed: randomSeed() });
     // The status line falls back to describing the new opening hand.
     setAnnouncement("");
@@ -53,8 +63,14 @@ export function SampleHandPanel({
 
   const drawNext = () => {
     const card = state.library[0];
+    keepFocus(state.library.length <= 1);
     dispatch({ type: "next" });
     if (card) setAnnouncement(`Turn ${nextTurn} draw: ${nameOf(card)}.`);
+  };
+
+  const resetTally = () => {
+    keepFocus(true);
+    dispatch({ type: "resetTally" });
   };
 
   const tallyRate = state.tally.hands > 0 ? state.tally.keepable / state.tally.hands : null;
@@ -62,7 +78,7 @@ export function SampleHandPanel({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" className={BUTTON_PRIMARY} onClick={() => deal("draw")}>
+        <button ref={drawButtonRef} type="button" className={BUTTON_PRIMARY} onClick={() => deal("draw")}>
           {dealt ? "Draw new opening hand" : "Draw opening hand"}
         </button>
         <button type="button" className={BUTTON_GHOST} onClick={() => deal("mulligan")} disabled={!canMulligan(state)}>
@@ -86,7 +102,6 @@ export function SampleHandPanel({
             <span className="text-ash-400">
               {pluralize(seen, "card")} seen · {pluralize(state.library.length, "card")} left in the deck
             </span>
-            {state.mulligansUsed > 0 && <span className="text-ash-400">After {pluralize(state.mulligansUsed, "mulligan")}</span>}
             {state.targets.length > 0 && (
               <span
                 className={cx(
@@ -106,18 +121,30 @@ export function SampleHandPanel({
           {state.onThePlay && RULES.firstPlayerSkipsDraw && state.turn >= 2 && (
             <p className="text-xs text-ash-500">On the play: no draw on turn 1.</p>
           )}
-          <ul className="grid grid-cols-3 gap-2 @md:grid-cols-4 @xl:grid-cols-5" aria-label="Cards in hand">
+          <h3 id={`${handId}-opening`} className="text-xs font-semibold uppercase tracking-wide text-ash-400">
+            Opening hand{state.mulligansUsed > 0 && " (after mulligan)"}
+          </h3>
+          <ul aria-labelledby={`${handId}-opening`} className={HAND_GRID}>
             {state.opening.map((cardId, index) => (
               <li key={`${state.tally.hands}-o${index}`}>
-                <CardIdTile cardId={cardId} size="sm" note={index === 0 ? "Opening hand" : undefined} />
-              </li>
-            ))}
-            {state.draws.map((draw, index) => (
-              <li key={`${state.tally.hands}-d${index}`}>
-                <CardIdTile cardId={draw.cardId} size="sm" note={`Turn ${draw.turn} draw`} />
+                <CardIdTile cardId={cardId} size="sm" />
               </li>
             ))}
           </ul>
+          {state.draws.length > 0 && (
+            <>
+              <h3 id={`${handId}-draws`} className="text-xs font-semibold uppercase tracking-wide text-ash-400">
+                Draws
+              </h3>
+              <ol aria-labelledby={`${handId}-draws`} className={HAND_GRID}>
+                {state.draws.map((draw, index) => (
+                  <li key={`${state.tally.hands}-d${index}`}>
+                    <CardIdTile cardId={draw.cardId} size="sm" note={`Turn ${draw.turn}`} />
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
         </div>
       ) : (
         <EmptyState title="No hand drawn yet">
@@ -133,7 +160,7 @@ export function SampleHandPanel({
           <button
             type="button"
             className={BUTTON_GHOST_SM}
-            onClick={() => dispatch({ type: "resetTally" })}
+            onClick={resetTally}
             disabled={state.tally.hands === 0}
           >
             Reset tally

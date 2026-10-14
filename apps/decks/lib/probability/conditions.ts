@@ -109,7 +109,7 @@ export function probabilityTable(
       pOpening: probAtLeastOne(deckSize, copies, opening),
       pByTurn: seen.map((draws) => probAtLeastOne(deckSize, copies, draws)),
     }))
-    .sort((a, b) => b.pOpening - a.pOpening || name(a.cardId).localeCompare(name(b.cardId)) || a.cardId.localeCompare(b.cardId));
+    .sort((a, b) => b.pOpening - a.pOpening || name(a.cardId).localeCompare(name(b.cardId), "en") || a.cardId.localeCompare(b.cardId));
 }
 
 /** P(at least one mulligan target in the opening hand), before and after the free mulligan. */

@@ -24,7 +24,8 @@ const points = (value: number) => formatNumber(Math.round(value * 10) / 10);
 
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-shadow-700 bg-shadow-900 p-4">
+    // min-w-0: the nowrap formulas scroll inside their block instead of widening the grid column.
+    <div className="min-w-0 rounded-lg border border-shadow-700 bg-shadow-900 p-4">
       <h3 className="font-semibold text-white">{title}</h3>
       <div className="mt-2 space-y-2 text-sm text-ash-300">{children}</div>
     </div>
@@ -78,7 +79,7 @@ export function Methodology() {
         Naruto TCG mock; none of it reflects real tournament results.
       </p>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Block title="Win rate">
           <p>
             Only non-mirror matches count. Byes, intentional draws and mirror matches are excluded; a draw counts as half a win.

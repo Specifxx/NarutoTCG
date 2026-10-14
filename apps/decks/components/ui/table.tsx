@@ -2,9 +2,20 @@ import { cx } from "@naruto-tcg/ui";
 import type { HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
 
 /** Data table primitives. The wrapper scrolls horizontally so the page itself never does. */
-export function DataTable({ className, children, ...props }: HTMLAttributes<HTMLTableElement>) {
+export function DataTable({
+  className,
+  children,
+  label,
+  ...props
+}: HTMLAttributes<HTMLTableElement> & {
+  /** Names the scroll region and makes it keyboard-focusable (for tables without focusable cells). */
+  label?: string;
+}) {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-shadow-700">
+    <div
+      className="w-full overflow-x-auto rounded-lg border border-shadow-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+      {...(label ? { role: "region", "aria-label": label, tabIndex: 0 } : {})}
+    >
       <table className={cx("w-full min-w-max border-collapse text-sm", className)} {...props}>
         {children}
       </table>

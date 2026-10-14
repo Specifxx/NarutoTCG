@@ -1,7 +1,7 @@
-import { cx } from "@naruto-tcg/ui";
+import { cx, LeafMark } from "@naruto-tcg/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRightIcon, LeafMark } from "@/components/home/icons";
+import { ArrowRightIcon } from "@/components/home/icons";
 import { StatusPage } from "@/components/home/status-page";
 import { BUTTON_GHOST, FOCUS_RING } from "@/components/home/styles";
 import { PageContainer } from "@/components/ui/page-header";

@@ -11,7 +11,7 @@
   --color-ash-200: #d4d4e0;
   --color-ash-300: #b3b3c4;
   --color-ash-400: #8d8da3;
-  --color-ash-500: #6e6e85;
+  --color-ash-500: #80809a; /* ≥ 4.5:1 on shadow-800..950 for small muted text */
   --color-chakra-300: #ff9a52;
   --color-chakra-400: #ff7a1a;
   --color-chakra-500: #f25c00;

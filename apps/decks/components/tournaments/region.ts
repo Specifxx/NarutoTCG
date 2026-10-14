@@ -46,13 +46,14 @@ const normalize = (text: string | undefined) =>
 
 /**
  * Coarse region for an event, read from its country (ISO code or English name) and, when the
- * country is missing, its region field ("England"). Unrecognized places fall into "other".
+ * country is unrecognized, a region field that names a country ("England"). Region codes are
+ * ignored there because state codes collide with country codes (DE is Delaware, not Germany).
+ * Unrecognized places fall into "other".
  */
 export function classifyRegion(location: EventLocation): RegionId {
   if (location.online) return "online";
-  for (const field of [location.country, location.region]) {
-    const region = COUNTRY_REGION[normalize(field)];
-    if (region) return region;
-  }
-  return "other";
+  const country = COUNTRY_REGION[normalize(location.country)];
+  if (country) return country;
+  const region = normalize(location.region);
+  return (region.length > 3 && COUNTRY_REGION[region]) || "other";
 }

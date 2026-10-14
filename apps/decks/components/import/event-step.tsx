@@ -4,6 +4,7 @@ import type { EventTier } from "@naruto-tcg/types";
 import { cx } from "@naruto-tcg/ui";
 import type { Dispatch, ReactNode } from "react";
 import { EVENT_TIER_LABEL } from "@/lib/format";
+import { isIsoDate } from "@/lib/ingest/text";
 import type { EventMetaInput } from "@/lib/ingest/types";
 import {
   autoFormat,
@@ -115,7 +116,17 @@ export function EventStep({ state, dispatch }: { state: WizardState; dispatch: D
           )}
         </FormField>
 
-        <FormField id={eventFieldId("date")} label="Date" required hint="The final day of the event." error={errors.date}>
+        <FormField
+          id={eventFieldId("date")}
+          label="Date"
+          required
+          hint={
+            form.date && !isIsoDate(form.date)
+              ? `The file's date "${form.date}" couldn't be read: pick the final day of the event.`
+              : "The final day of the event."
+          }
+          error={errors.date}
+        >
           {(props) => <input {...props} type="date" value={form.date} onChange={(e) => edit({ date: e.target.value })} className={FIELD} />}
         </FormField>
 
@@ -232,7 +243,12 @@ export function EventStep({ state, dispatch }: { state: WizardState; dispatch: D
         </FormField>
 
         <div className="grid gap-5 sm:col-span-2 sm:grid-cols-3">
-          <FormField id={eventFieldId("swissRounds")} label="Swiss rounds" hint="Blank: inferred from the pairings." error={errors.swissRounds}>
+          <FormField
+            id={eventFieldId("swissRounds")}
+            label="Swiss rounds"
+            hint={isJson ? "Blank: keep the file's value, or infer it from the pairings." : "Blank: inferred from the pairings."}
+            error={errors.swissRounds}
+          >
             {(props) => (
               <input
                 {...props}
@@ -248,7 +264,11 @@ export function EventStep({ state, dispatch }: { state: WizardState; dispatch: D
               />
             )}
           </FormField>
-          <FormField id="import-event-top-cut" label="Top cut" hint="Blank: inferred from the pairings.">
+          <FormField
+            id="import-event-top-cut"
+            label="Top cut"
+            hint={isJson ? "Infer: keep the file's value, or infer it from the pairings." : "Infer: taken from the pairings."}
+          >
             {(props) => (
               <select {...props} value={form.topCutSize} onChange={(e) => edit({ topCutSize: e.target.value })} className={FIELD}>
                 <option value="">Infer from pairings</option>

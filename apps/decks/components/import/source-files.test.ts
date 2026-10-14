@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { analyzeText, checkFileBeforeRead, formatBytes, kindFromName, MAX_FILE_BYTES, readErrorMessage } from "./source-files";
+import { analyzeText, checkFileBeforeRead, formatBytes, kindFromName, kindWarning, MAX_FILE_BYTES, readErrorMessage } from "./source-files";
 
 const template = (name: string) => readFileSync(new URL(`../../public/templates/${name}`, import.meta.url), "utf8");
 
@@ -98,5 +98,33 @@ describe("file checks", () => {
     expect(kindFromName("pairing.csv")).toBe("pairings");
     expect(kindFromName("top8-decklists.csv")).toBe("decklists");
     expect(kindFromName("export.csv")).toBeNull();
+  });
+});
+
+describe("review fixes", () => {
+  it("rejects a broken tournament record instead of reading it as event details", () => {
+    const record = JSON.parse(template("tournament-template.json"));
+    delete record.matches;
+    const info = analyzeText("t.json", JSON.stringify(record));
+    expect(info.type).toBe("invalid");
+    if (info.type === "invalid") expect(info.error).toMatch(/"players" and a "matches" array/);
+    const scraped = analyzeText("s.json", JSON.stringify({ name: "X", standings: [] }));
+    expect(scraped.type === "invalid" && scraped.error).toMatch(/no "event" object/);
+  });
+
+  it("keeps only the fields an event details file sets", () => {
+    const info = analyzeText("meta.json", JSON.stringify({ name: "Cup", date: "2026-01-01" }));
+    expect(info).toEqual({ type: "event-meta", name: "meta.json", meta: { name: "Cup", date: "2026-01-01" } });
+  });
+
+  it("questions a file name that contradicts clear headers", () => {
+    const info = analyzeText("standings.csv", template("pairings-template.csv"));
+    if (info.type !== "csv") throw new Error("expected csv");
+    expect(info.kind).toBe("standings");
+    expect(kindWarning(info)).toBe("the file name says standings, but the headers look like pairings.");
+    expect(kindWarning({ ...info, kindFrom: "chosen" })).toBeNull();
+    expect(kindWarning({ ...info, kind: "pairings" })).toBeNull();
+    expect(kindWarning({ kind: "standings", kindFrom: "headers", detectedKind: "standings", confidence: 0.4 })).toMatch(/don't clearly match/);
+    expect(kindWarning({ kind: "standings", kindFrom: "headers", detectedKind: "standings", confidence: 0.9 })).toBeNull();
   });
 });

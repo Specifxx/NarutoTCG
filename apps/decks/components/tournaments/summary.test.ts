@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
+import { buildTournamentDecks, toSummary } from "@/lib/decks/catalog";
 import type { Tournament } from "@naruto-tcg/types";
+import { buildBracket } from "./bracket";
+import { buildStandings, eventMetaBreakdown } from "./event";
+import { eventRounds } from "./rounds";
 import { normalizeTournament, structureLabel, summarize } from "./summary";
 import { fixtureTournament } from "./test-fixtures";
 
@@ -85,5 +89,66 @@ describe("normalizeTournament", () => {
     });
     expect(fixed.players).toHaveLength(8);
     expect(() => summarize(fixed)).not.toThrow();
+  });
+
+  it("repairs broken players, matches and text fields so every view helper can run", () => {
+    const t = fixtureTournament();
+    const broken = {
+      ...t,
+      notes: { text: "not a string" },
+      importedAt: 42,
+      location: { city: "Testville", venue: { name: "Hall" }, online: "yes" },
+      players: [
+        null,
+        { name: "No Id", archetypeId: "rogue", placement: 9 },
+        t.players[0],
+        { ...t.players[1], decklist: { leaderId: "NT02-L02", cards: [null, { cardId: "NT02-009", quantity: 4 }] } },
+        { ...t.players[2], decklist: { cards: "nope" } },
+        { id: "zed", placement: "first" },
+        { id: "ann-a", name: "Duplicate Ann", archetypeId: "rogue", placement: 12 },
+        ...t.players.slice(3),
+      ],
+      matches: [
+        ...t.matches,
+        null,
+        { round: 1, stage: "swiss", player1Id: "", player2Id: "ben-b", outcome: "p1" },
+        { round: 0, stage: "swiss", player1Id: "ann-a", player2Id: "ben-b", outcome: "p1" },
+        { round: 2, stage: "swiss", player1Id: "zed", player2Id: "cal-c", outcome: "won" },
+        { round: 2, stage: "elimination", table: "9", player1Id: "zed", player2Id: "fay-f", outcome: "p2", games: { p1: "x" } },
+        { round: 3, stage: "swiss", player1Id: "zed", outcome: "p1" },
+        { round: 3, stage: "swiss", player1Id: "hal-h", player2Id: "eve-e", outcome: "bye" },
+      ],
+    };
+    const fixed = normalizeTournament(broken as unknown as Tournament);
+    expect(fixed).not.toHaveProperty("notes");
+    expect(fixed).not.toHaveProperty("importedAt");
+    expect(fixed.location).toEqual({ city: "Testville" });
+
+    expect(fixed.players.map((p) => p.id)).toEqual(["ann-a", "ben-b", "dee-d", "zed", "gus-g", "fay-f", "cal-c", "eve-e", "hal-h"]);
+    expect(fixed.players[0]).toBe(t.players[0]);
+    expect(fixed.players[1]!.decklist?.cards).toEqual([{ cardId: "NT02-009", quantity: 4 }]);
+    expect(fixed.players[2]).not.toHaveProperty("decklist");
+    expect(fixed.players[3]).toEqual({ id: "zed", name: "zed", archetypeId: "rogue", placement: 9 });
+
+    const extra = fixed.matches.slice(t.matches.length);
+    expect(extra).toEqual([
+      { round: 2, stage: "swiss", player1Id: "zed", player2Id: "fay-f", outcome: "p2" },
+      { round: 3, stage: "swiss", player1Id: "zed", player2Id: null, outcome: "bye" },
+      { round: 3, stage: "swiss", player1Id: "hal-h", player2Id: null, outcome: "bye" },
+    ]);
+
+    expect(() => {
+      const standings = buildStandings(fixed);
+      buildBracket(fixed.matches, new Map(standings.map((r) => [r.playerId, r.swissRank ?? 0])));
+      eventRounds(fixed.matches);
+      eventMetaBreakdown(fixed.players, fixed.topCutSize);
+      buildTournamentDecks([fixed]).map(toSummary);
+      summarize(fixed);
+    }).not.toThrow();
+  });
+
+  it("keeps a well-formed import as the same object", () => {
+    const t = fixtureTournament({ source: "import", notes: "Fine", importedAt: "2026-09-13T10:00:00Z", location: { online: true } });
+    expect(normalizeTournament(t)).toBe(t);
   });
 });

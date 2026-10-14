@@ -10,7 +10,11 @@ export function flagEmoji(code: string | undefined): string | null {
 
 let regionNames: Intl.DisplayNames | null | undefined;
 
-/** English country name for an ISO alpha-2 code, or the code itself when unknown. Server-rendered only. */
+/**
+ * English country name for an ISO alpha-2 code, or the code itself when unknown. ICU data can
+ * differ between Node and the browser, so render it on the server or after mount, never in a
+ * client component's hydration pass.
+ */
 export function countryName(code: string): string {
   const upper = code.toUpperCase();
   if (regionNames === undefined) {

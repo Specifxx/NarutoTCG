@@ -1,6 +1,6 @@
 import type { Tournament } from "@naruto-tcg/types";
-import { ROGUE_ID } from "@/lib/data/archetypes";
-import { formatPercent } from "@/lib/format";
+import { ROGUE_ID, getArchetype } from "@/lib/data/archetypes";
+import { EVENT_TIER_ORDER, formatPercent } from "@/lib/format";
 import { aggregateTournament } from "@/lib/meta/aggregate";
 import { TIER_CONFIG } from "@/lib/meta/config";
 import { OTHER_SERIES_ID, chartSeriesIds, type FieldVsTopCutRow, type OverallShareRow } from "@/lib/meta/share";
@@ -22,12 +22,48 @@ export const DONUT_SLICES = 5;
 /** Locale-independent comparison, so server and client sort identically. */
 const compareText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-/** Aggregates this browser's imported events, skipping any that fail to aggregate. */
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}/;
+const OUTCOMES: ReadonlySet<unknown> = new Set(["p1", "p2", "draw", "bye"]);
+
+/**
+ * An imported event coerced into the shape the meta engine expects, or null when it cannot be
+ * placed in the meta: no id, no ISO date or an unknown event tier (the date presets and tier
+ * points depend on both). Unknown archetype ids count as rogue, a missing top cut as none,
+ * a missing format as "" (only shown under "All formats"); malformed players and matches
+ * with an unknown outcome are dropped.
+ */
+export function sanitizeImportedTournament(raw: Tournament): Tournament | null {
+  if (!raw || typeof raw !== "object" || typeof raw.id !== "string" || !raw.id) return null;
+  const date = typeof raw.date === "string" && ISO_DATE.test(raw.date) ? raw.date.slice(0, 10) : null;
+  if (!date || Number.isNaN(Date.parse(`${date}T00:00:00Z`))) return null;
+  if (!EVENT_TIER_ORDER.includes(raw.tier)) return null;
+  if (!Array.isArray(raw.players) || !Array.isArray(raw.matches)) return null;
+  const topCutSize = typeof raw.topCutSize === "number" && raw.topCutSize > 0 ? Math.floor(raw.topCutSize) : 0;
+  return {
+    ...raw,
+    name: typeof raw.name === "string" && raw.name.trim() ? raw.name : raw.id,
+    date,
+    format: typeof raw.format === "string" ? raw.format.trim() : "",
+    topCutSize,
+    players: raw.players
+      .filter((player) => player && typeof player === "object" && typeof player.id === "string")
+      .map((player) => ({
+        ...player,
+        archetypeId: typeof player.archetypeId === "string" && getArchetype(player.archetypeId) ? player.archetypeId : ROGUE_ID,
+      })),
+    matches: raw.matches.filter(
+      (match) => match && typeof match === "object" && typeof match.player1Id === "string" && OUTCOMES.has(match.outcome),
+    ),
+  };
+}
+
+/** Aggregates this browser's imported events, skipping any that cannot be sanitized or aggregated. */
 export function aggregateImported(tournaments: readonly Tournament[]): TournamentAggregate[] {
   const aggregates: TournamentAggregate[] = [];
   for (const tournament of tournaments) {
     try {
-      aggregates.push(aggregateTournament(tournament));
+      const clean = sanitizeImportedTournament(tournament);
+      if (clean) aggregates.push(aggregateTournament(clean));
     } catch {
       // A malformed import must never take the meta page down.
     }

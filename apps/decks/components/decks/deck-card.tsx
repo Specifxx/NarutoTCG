@@ -17,8 +17,20 @@ function UpvoteIcon({ className }: { className?: string }) {
  * Directory card for a deck. Pure and server-safe; pass `votes` to show a count that already
  * includes this browser's vote.
  */
-export function DeckCard({ deck, tier, votes }: { deck: DeckSummary; tier?: TierId; votes?: number }) {
+export function DeckCard({
+  deck,
+  tier,
+  votes,
+  headingLevel = 3,
+}: {
+  deck: DeckSummary;
+  tier?: TierId;
+  votes?: number;
+  /** Heading level of the deck name, so cards nest correctly under section headings. */
+  headingLevel?: 2 | 3 | 4;
+}) {
   const voteCount = votes ?? deck.votes;
+  const Heading = `h${headingLevel}` as const;
   return (
     <article className="group relative flex h-full flex-col gap-3 rounded-lg border border-shadow-700 bg-shadow-900 p-4 transition hover:border-shadow-500">
       <div className="flex items-center justify-between gap-2">
@@ -26,16 +38,19 @@ export function DeckCard({ deck, tier, votes }: { deck: DeckSummary; tier?: Tier
         {tier && <TierBadge tier={tier} size="sm" />}
       </div>
       <div className="min-w-0">
-        <h3 className="truncate text-base font-bold text-white">
-          <Link href={`/deck/${encodeURIComponent(deck.id)}`} className="after:absolute after:inset-0 hover:text-chakra-400">
+        <Heading className="truncate text-base font-bold text-white">
+          <Link
+            href={`/deck/${encodeURIComponent(deck.id)}`}
+            className="rounded-sm after:absolute after:inset-0 after:rounded-lg hover:text-chakra-400 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-chakra-400"
+          >
             {deck.name}
           </Link>
-        </h3>
+        </Heading>
         <p className="mt-0.5 truncate text-xs text-ash-400">
           by{" "}
           <Link
             href={`/players/${encodeURIComponent(deck.author.handle)}`}
-            className="relative z-10 font-medium text-ash-200 hover:text-chakra-400"
+            className="relative z-10 rounded-sm font-medium text-ash-200 hover:text-chakra-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
           >
             {deck.author.name}
           </Link>{" "}

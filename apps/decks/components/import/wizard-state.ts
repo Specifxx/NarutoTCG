@@ -1,7 +1,8 @@
+import type { Tournament } from "@naruto-tcg/types";
 import { failed } from "@/lib/ingest/assemble";
 import { autoMapColumns, describeFields, missingRequiredFields } from "@/lib/ingest/columns";
 import { ingestCsv, ingestJson, type IngestCsvInput } from "@/lib/ingest/pipeline";
-import { countIssues, type CsvKind, type IngestResult } from "@/lib/ingest/types";
+import { countIssues, type CsvKind, type EventMetaInput, type IngestResult } from "@/lib/ingest/types";
 import {
   EMPTY_EVENT_FORM,
   formFromMeta,
@@ -53,8 +54,10 @@ export interface WizardState {
   form: EventForm;
   /** The tournament JSON's own event details; edits relative to it are sent as overrides. */
   formBase: EventForm | null;
-  /** File the event details were last prefilled from. */
+  /** File(s) the event details were last prefilled from. */
   prefilledFrom: string | null;
+  /** The latest event details file; it keeps overriding a tournament JSON added after it. */
+  eventMeta: { name: string; meta: Partial<EventMetaInput> } | null;
   /** True once Next was pressed on event details, so inline errors stay visible. */
   formSubmitted: boolean;
   /** Step whose Next was pressed while blocked; its blockers are summarized. */
@@ -93,6 +96,7 @@ export function createWizardState(): WizardState {
     form: EMPTY_EVENT_FORM,
     formBase: null,
     prefilledFrom: null,
+    eventMeta: null,
     formSubmitted: false,
     attempted: null,
     attempts: 0,
@@ -122,6 +126,15 @@ export const csvFiles = (state: Pick<WizardState, "files">): CsvSourceFile[] =>
 
 export const jsonFile = (state: Pick<WizardState, "files">): JsonSourceFile | undefined =>
   state.files.find((file): file is JsonSourceFile => file.type === "json");
+
+/** Prefix of every imported event id: the event page loads such ids from this browser, never from the seed. */
+export const LOCAL_ID_PREFIX = "local-";
+
+/** The tournament as this browser stores it: its id carries the "local-" prefix and it is marked as an import. */
+export function asLocalImport(tournament: Tournament): Tournament {
+  const id = tournament.id.startsWith(LOCAL_ID_PREFIX) ? tournament.id : `${LOCAL_ID_PREFIX}${tournament.id}`;
+  return id === tournament.id && tournament.source === "import" ? tournament : { ...tournament, id, source: "import" };
+}
 
 /** Element ids the blocker summary links to (one wizard per page). */
 export const DROPZONE_ID = "import-dropzone";
@@ -197,15 +210,8 @@ function sourceBlockers(state: WizardState): Blocker[] {
  */
 export function ingestFromState(state: WizardState, now: string): IngestResult {
   try {
-    if (state.mode === "json") {
-      const file = jsonFile(state);
-      if (!file) return failed([{ severity: "error", code: "no-file", message: "No JSON file was added.", source: "json" }]);
-      const overrides = state.formBase ? metaOverrides(state.formBase, state.form) : formToMeta(state.form);
-      return ingestJson(file.text, { metaOverrides: overrides, now });
-    }
-    const input: IngestCsvInput = { meta: formToMeta(state.form), now };
-    for (const file of csvFiles(state)) input[file.kind] = { text: file.text, mapping: file.mapping };
-    return ingestCsv(input);
+    const result = runPipeline(state, now);
+    return result.tournament ? { ...result, tournament: asLocalImport(result.tournament) } : result;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     return failed([
@@ -219,11 +225,26 @@ export function ingestFromState(state: WizardState, now: string): IngestResult {
   }
 }
 
+function runPipeline(state: WizardState, now: string): IngestResult {
+  if (state.mode === "json") {
+    const file = jsonFile(state);
+    if (!file) return failed([{ severity: "error", code: "no-file", message: "No JSON file was added.", source: "json" }]);
+    const overrides = state.formBase ? metaOverrides(state.formBase, state.form) : formToMeta(state.form);
+    return ingestJson(file.text, { metaOverrides: overrides, now });
+  }
+  const input: IngestCsvInput = { meta: formToMeta(state.form), now };
+  for (const file of csvFiles(state)) input[file.kind] = { text: file.text, mapping: file.mapping };
+  return ingestCsv(input);
+}
+
 /** Input changed: any validation result or save is stale. */
 const stale = (state: WizardState): WizardState => ({ ...state, result: null, saved: null });
 
 function addFiles(state: WizardState, incoming: AnalyzedInput[], replace: boolean, note?: string): WizardState {
-  let next: WizardState = replace ? { ...state, files: [], formBase: null } : { ...state };
+  // A replacement (the sample event) starts the details over too.
+  let next: WizardState = replace
+    ? { ...state, files: [], form: EMPTY_EVENT_FORM, formBase: null, prefilledFrom: null, eventMeta: null, formSubmitted: false }
+    : { ...state };
   let nextId = next.nextId;
   const notices: Omit<Notice, "id">[] = note ? [{ tone: "info", message: note }] : [];
   const switchTo = (mode: SourceMode, name: string) => {
@@ -266,19 +287,30 @@ function addFiles(state: WizardState, incoming: AnalyzedInput[], replace: boolea
         }
         const previous = jsonFile(next);
         if (previous) notices.push({ tone: "info", message: `Replaced ${previous.name} with ${file.name}: a JSON import takes one file.` });
-        const base = formFromMeta(file.meta, EMPTY_EVENT_FORM);
+        const own = formFromMeta(file.meta, EMPTY_EVENT_FORM);
+        // The base is what the file holds: a format the form derives from the date for a record
+        // without one is then sent as an override instead of being shown but not saved.
+        const base = file.format === "canonical" && !file.meta.format?.trim() ? { ...own, format: "" } : own;
+        const meta = next.eventMeta;
+        if (meta) notices.push({ tone: "info", message: `Event details from ${meta.name} still override ${file.name}'s own.` });
         next = {
           ...next,
           files: [{ ...file, id: `file-${nextId++}` }],
-          form: base,
+          form: meta ? formFromMeta(meta.meta, own) : own,
           formBase: base,
-          prefilledFrom: file.name,
+          prefilledFrom: meta ? `${file.name} and ${meta.name}` : file.name,
           formSubmitted: false,
         };
         break;
       }
-      case "event-meta":
-        next = { ...next, form: formFromMeta(file.meta, next.form), prefilledFrom: file.name };
+      case "event-meta": {
+        const json = next.mode === "json" ? jsonFile(next) : undefined;
+        next = {
+          ...next,
+          form: formFromMeta(file.meta, next.form),
+          prefilledFrom: json ? `${json.name} and ${file.name}` : file.name,
+          eventMeta: { name: file.name, meta: file.meta },
+        };
         notices.push({
           tone: "info",
           message:
@@ -287,6 +319,7 @@ function addFiles(state: WizardState, incoming: AnalyzedInput[], replace: boolea
               : `Event details prefilled from ${file.name}.`,
         });
         break;
+      }
     }
   }
   return stale({

@@ -1,6 +1,6 @@
 import { autoMapColumns, CSV_KINDS, detectCsvKind } from "@/lib/ingest/columns";
 import { parseCsv } from "@/lib/ingest/csv";
-import { detectJsonFormat, EventLocationSchema, EventMetaSchema, EventTierSchema, zodIssues } from "@/lib/ingest/schema";
+import { detectJsonFormat, EventLocationSchema, EventMetaOverridesSchema, EventTierSchema, zodIssues } from "@/lib/ingest/schema";
 import { convertScraped } from "@/lib/ingest/scraped";
 import type { ColumnMapping, CsvKind, EventMetaInput } from "@/lib/ingest/types";
 
@@ -64,7 +64,8 @@ export interface JsonFileInfo {
 export interface EventMetaFileInfo {
   type: "event-meta";
   name: string;
-  meta: EventMetaInput;
+  /** Only the fields the file sets, so a missing location or organizer never clears the form's. */
+  meta: Partial<EventMetaInput>;
 }
 
 export interface InvalidFileInfo {
@@ -161,8 +162,17 @@ function analyzeJson(name: string, text: string, size: number, origin: FileOrigi
     const rows = (key: string) => (Array.isArray(value[key]) ? (value[key] as unknown[]).length : 0);
     return { type: "json", name, size, origin, text, format, players: rows("standings"), matches: rows("pairings"), meta: raw.meta };
   }
+  if (isRecord(value) && ("players" in value || "matches" in value)) {
+    return rejectFile(
+      name,
+      'This looks like a tournament record, but it needs both a "players" and a "matches" array (use [] for no matches). Compare it with tournament-template.json.',
+    );
+  }
+  if (isRecord(value) && ("standings" in value || "pairings" in value)) {
+    return rejectFile(name, 'This looks like a scraped export, but it has no "event" object with the name and date. Compare it with scraped-template.json.');
+  }
   if (isRecord(value) && ("name" in value || "date" in value)) {
-    const parsed = EventMetaSchema.safeParse(value);
+    const parsed = EventMetaOverridesSchema.safeParse(value);
     if (parsed.success) return { type: "event-meta", name, meta: parsed.data };
     const first = zodIssues(parsed.error, "meta")[0];
     return rejectFile(name, `This looks like an event details file, but ${first?.message ?? "it doesn't match the template"}. Compare it with event-meta-template.json.`);
@@ -198,6 +208,19 @@ function analyzeCsv(name: string, text: string, size: number, origin: FileOrigin
     mapping: autoMapColumns(kind, table.headers),
     parseWarnings: table.issues.length,
   };
+}
+
+/**
+ * Why a CSV's kind deserves a second look, or null: headers that match no kind clearly, or a
+ * file name that contradicts clear headers. A kind the user chose is never questioned.
+ */
+export function kindWarning(file: Pick<CsvFileInfo, "kind" | "kindFrom" | "detectedKind" | "confidence">): string | null {
+  if (file.kindFrom === "chosen") return null;
+  if (file.kindFrom === "headers") {
+    return file.confidence < MIN_KIND_CONFIDENCE ? "the headers don't clearly match standings, pairings or decklists." : null;
+  }
+  if (file.detectedKind === file.kind || file.confidence < MIN_KIND_CONFIDENCE) return null;
+  return `the file name says ${CSV_KIND_LABEL[file.kind].toLowerCase()}, but the headers look like ${CSV_KIND_LABEL[file.detectedKind].toLowerCase()}.`;
 }
 
 /**

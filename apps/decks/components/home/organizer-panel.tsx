@@ -61,7 +61,7 @@ export function OrganizerPanel() {
           <code>{INGEST_COMMAND}</code>
         </pre>
         <p className="mt-2 text-xs text-ash-400">
-          Validates and normalizes the export, prints an issue report and writes canonical tournament JSON. Pass{" "}
+          Run it from anywhere in the repo; file paths resolve from the directory you run it in. It validates and normalizes the export, prints an issue report and writes canonical tournament JSON. Pass{" "}
           <code className="font-mono text-ash-200">--meta event.json</code> with a set of CSVs, or{" "}
           <code className="font-mono text-ash-200">--dry-run</code> to only check.
         </p>

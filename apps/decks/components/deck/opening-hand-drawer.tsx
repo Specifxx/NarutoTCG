@@ -2,7 +2,7 @@
 
 import type { Decklist } from "@naruto-tcg/types";
 import { cx } from "@naruto-tcg/ui";
-import { useEffect, useId, useMemo, useReducer, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useReducer, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { expandDecklist } from "@/lib/decks/deck-utils";
 import { pluralize } from "@/lib/format";
@@ -37,13 +37,15 @@ function focusableIn(root: HTMLElement): HTMLElement[] {
 
 /**
  * Opening-hand playtest drawer: a modal dialog that slides in from the right (full width on
- * phones). Escape and the overlay close it, Tab is trapped inside, and focus returns to whatever
- * opened it. Content mounts on first open and keeps its state between openings.
+ * phones). Escape and the overlay close it, Tab is trapped inside, the page behind is inert, and
+ * focus returns to `returnFocusRef` (or whatever had focus when it opened). Content mounts on first
+ * open and keeps its state between openings.
  */
 export function OpeningHandDrawer({
   id,
   open,
   onClose,
+  returnFocusRef,
   deckName,
   decklist,
   targets,
@@ -51,12 +53,15 @@ export function OpeningHandDrawer({
   id: string;
   open: boolean;
   onClose: () => void;
+  /** The trigger; Safari never focuses clicked buttons, so the active element is not enough. */
+  returnFocusRef?: RefObject<HTMLElement | null>;
   deckName: string;
   decklist: Decklist;
   targets: MulliganTargets;
 }) {
   const titleId = useId();
   const tabsId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ hand: null, odds: null });
@@ -83,39 +88,63 @@ export function OpeningHandDrawer({
     return () => cancelAnimationFrame(frame);
   }, [open]);
 
-  // While shown: lock page scroll, focus the close button, and restore focus on the way out.
+  // While shown: lock page scroll, make the page behind inert, focus the close button, and undo
+  // all of it on the way out (inert first, so focus can return to the trigger).
   useEffect(() => {
     if (!shown) return;
-    const returnTo = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const returnTo = returnFocusRef?.current ?? active;
     const { overflow } = document.body.style;
     document.body.style.overflow = "hidden";
+    const background = [...document.body.children].filter(
+      (el): el is HTMLElement => el instanceof HTMLElement && el !== rootRef.current && !el.inert,
+    );
+    background.forEach((el) => (el.inert = true));
     closeRef.current?.focus();
     return () => {
+      background.forEach((el) => (el.inert = false));
       document.body.style.overflow = overflow;
       returnTo?.focus();
     };
-  }, [shown]);
+  }, [shown, returnFocusRef]);
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      onCloseRef.current();
-      return;
-    }
-    if (event.key !== "Tab" || !panelRef.current) return;
-    const items = focusableIn(panelRef.current);
-    if (items.length === 0) return;
-    const first = items[0];
-    const last = items[items.length - 1];
-    const active = document.activeElement;
-    if (event.shiftKey && (active === first || active === panelRef.current)) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
+  // Escape and the Tab trap listen on the window, not the panel: a control that disables itself
+  // when pressed (the last free mulligan, for one) drops focus to <body>, outside the panel.
+  // Escape handled inside (an open card's text) stops propagation and never gets here.
+  useEffect(() => {
+    if (!shown) return;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      const panel = panelRef.current;
+      if (!panel || event.defaultPrevented) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusableIn(panel);
+      const active = document.activeElement;
+      if (items.length === 0) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!panel.contains(active)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && (active === first || active === panel)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [shown]);
 
   const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     const index = TABS.findIndex((t) => t.id === tab);
@@ -138,7 +167,7 @@ export function OpeningHandDrawer({
   if (!mounted) return null;
 
   return createPortal(
-    <div id={id} className={cx("fixed inset-0 z-[60] transition-[visibility] duration-200", shown ? "visible" : "invisible")} inert={!shown}>
+    <div ref={rootRef} className={cx("fixed inset-0 z-[60] transition-[visibility] duration-200", shown ? "visible" : "invisible")} inert={!shown}>
       <div
         aria-hidden="true"
         onClick={() => onCloseRef.current()}
@@ -146,11 +175,11 @@ export function OpeningHandDrawer({
       />
       <div
         ref={panelRef}
+        id={id}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        onKeyDown={onKeyDown}
         className={cx(
           "absolute inset-y-0 right-0 flex w-full max-w-2xl flex-col border-l border-shadow-700 bg-shadow-950 shadow-2xl shadow-black/70 outline-none transition-transform duration-200 ease-out motion-reduce:transition-none",
           shown ? "translate-x-0" : "translate-x-full",

@@ -47,7 +47,7 @@ function TrophyIcon({ className }: { className?: string }) {
 
 /** Small label shown above a value on the mobile card; screen-reader only in the desktop grid. */
 function CellLabel({ children }: { children: string }) {
-  return <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-ash-500 lg:sr-only">{children}</span>;
+  return <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-ash-400 lg:sr-only">{children}</span>;
 }
 
 /** One event in the directory: a card on mobile, a dense grid row from `lg` up. The name links the whole row. */
@@ -69,7 +69,7 @@ export function EventRow({ event }: { event: TournamentSummary }) {
       </div>
 
       <div className="min-w-0">
-        <h3 className="text-base font-semibold leading-snug text-white">
+        <h3 className="break-words text-base font-semibold leading-snug text-white">
           <Link href={eventHref(event.id)} className={cx("rounded-sm after:absolute after:inset-0 hover:text-chakra-400", FOCUS_RING)}>
             {event.name}
           </Link>
@@ -90,7 +90,7 @@ export function EventRow({ event }: { event: TournamentSummary }) {
         <div className="text-sm text-ash-300">
           <CellLabel>Structure</CellLabel>
           {structureLabel(event.swissRounds, event.topCutSize)}
-          <span className="block text-xs text-ash-500">{event.format}</span>
+          <span className="block text-xs text-ash-400">{event.format}</span>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export function EventRow({ event }: { event: TournamentSummary }) {
             <ArchetypeBadge archetypeId={event.winner.archetypeId} short />
           </div>
         ) : (
-          <span className="text-sm text-ash-500">No results yet</span>
+          <span className="text-sm text-ash-400">No results yet</span>
         )}
       </div>
 

@@ -45,6 +45,7 @@ function RowEditor({
   options,
   decklist,
   canRemove,
+  autoFocus,
   onChange,
   onRemove,
 }: {
@@ -53,10 +54,16 @@ function RowEditor({
   options: CardOption[];
   decklist: Decklist;
   canRemove: boolean;
+  /** Focus the first field on mount (a newly added row). */
+  autoFocus: boolean;
   onChange: (patch: Partial<ConditionRow>) => void;
   onRemove: () => void;
 }) {
   const id = useId();
+  const minRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (autoFocus) minRef.current?.focus();
+  }, [autoFocus]);
   const condition = rowToCondition(row, nameOf);
   const matching = condition ? resolveConditionGroups(decklist, [condition])[0].size : 0;
   const label = `Condition ${index + 1}`;
@@ -70,6 +77,7 @@ function RowEditor({
             At least
           </label>
           <input
+            ref={minRef}
             id={`${id}-min`}
             type="number"
             inputMode="numeric"
@@ -266,30 +274,42 @@ export function ConditionBuilder({ decklist, targetIds, onThePlay }: { decklist:
   ]);
   const [horizon, setHorizon] = useState(0);
   const [runs, setRuns] = useState(0);
+  const [focusRowId, setFocusRowId] = useState<string | null>(null);
 
   const conditions = useMemo(() => rowsToConditions(rows, nameOf), [rows]);
   const draws = drawsForHorizon(horizon, onThePlay);
   const exact = useMemo(() => (conditions.length > 0 ? exactResult(decklist, conditions, draws) : null), [decklist, conditions, draws]);
   const needsSimulation = conditions.length > 0 && exact === null;
-  const simulationKey = `${JSON.stringify(conditions)}|${draws}|${runs}`;
+  const keyFor = (run: number) => `${JSON.stringify(conditions)}|${draws}|${run}`;
+  const simulationKey = keyFor(runs);
   const [simulation, setSimulation] = useState<{ key: string; result: ConditionResult } | null>(null);
+  const simulated = simulation?.key === simulationKey ? simulation.result : null;
 
   useEffect(() => {
-    if (!needsSimulation) return;
+    if (!needsSimulation || simulated) return;
     // Debounced so typing a count does not run a simulation per keystroke.
     const timer = window.setTimeout(() => {
       setSimulation({ key: simulationKey, result: simulatedResult(decklist, conditions, draws, randomSeed()) });
     }, 200);
     return () => window.clearTimeout(timer);
-  }, [needsSimulation, simulationKey, decklist, conditions, draws]);
+  }, [needsSimulation, simulated, simulationKey, decklist, conditions, draws]);
 
-  const simulated = simulation?.key === simulationKey ? simulation.result : null;
   const result = exact ?? simulated;
+
+  // Re-run in the handler, not the effect: a pending state would unmount the focused button.
+  const resimulate = () => {
+    const next = runs + 1;
+    setRuns(next);
+    setSimulation({ key: keyFor(next), result: simulatedResult(decklist, conditions, draws, randomSeed()) });
+  };
 
   const update = (rowId: string, patch: Partial<ConditionRow>) =>
     setRows((previous) => previous.map((row) => (row.id === rowId ? { ...row, ...patch } : row)));
+  // The new row takes focus, so the button disabling itself at the row limit never strands it.
   const addRow = () => {
-    setRows((previous) => [...previous, newConditionRow(`r${nextRowId.current++}`)]);
+    const rowId = `r${nextRowId.current++}`;
+    setRows((previous) => [...previous, newConditionRow(rowId)]);
+    setFocusRowId(rowId);
   };
 
   return (
@@ -327,6 +347,7 @@ export function ConditionBuilder({ decklist, targetIds, onThePlay }: { decklist:
           options={options}
           decklist={decklist}
           canRemove={rows.length > 1}
+          autoFocus={row.id === focusRowId}
           onChange={(patch) => update(row.id, patch)}
           onRemove={() => {
             setRows((previous) => previous.filter((r) => r.id !== row.id));
@@ -346,7 +367,7 @@ export function ConditionBuilder({ decklist, targetIds, onThePlay }: { decklist:
         empty={conditions.length === 0}
         horizon={horizon}
         onThePlay={onThePlay}
-        onResimulate={() => setRuns((n) => n + 1)}
+        onResimulate={resimulate}
       />
     </section>
   );

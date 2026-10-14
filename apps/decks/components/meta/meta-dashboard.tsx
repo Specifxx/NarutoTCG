@@ -66,6 +66,7 @@ function MetaView({
   const events = snapshot.aggregates.length;
   const importedShown = snapshot.aggregates.filter((a) => !seedIds.has(a.tournamentId)).length;
   const matches = Math.round(countMatches(snapshot.meta));
+  const hasTopCut = snapshot.meta.topCutSlots > 0;
   const reset = onChange ? () => onChange(resetFilters(state)) : undefined;
 
   return (
@@ -110,7 +111,7 @@ function MetaView({
             title="Tier list"
             description="Archetypes ranked by a composite of adjusted win rate, top-cut conversion and meta presence. See the methodology below."
           >
-            <TierList tiers={snapshot.tiers} trends={snapshot.trends} />
+            <TierList tiers={snapshot.tiers} trends={snapshot.trends} hasTopCut={hasTopCut} />
           </Section>
 
           <Section
@@ -118,7 +119,7 @@ function MetaView({
             title="Archetype stats"
             description="Every archetype in the selected events. Select a column header to sort."
           >
-            <ArchetypeStatsTable stats={snapshot.stats} />
+            <ArchetypeStatsTable stats={snapshot.stats} hasTopCut={hasTopCut} />
           </Section>
 
           <Section
@@ -127,9 +128,9 @@ function MetaView({
             description="Who shows up, who converts, and how the field shifted from event to event."
           >
             <div className="flex flex-col gap-4">
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <MetaShareDonut rows={snapshot.overallShare} totalPlayers={snapshot.meta.playerCount} />
-                <FieldVsCutChart rows={snapshot.fieldVsTopCut} hasTopCut={snapshot.meta.topCutSlots > 0} />
+                <FieldVsCutChart rows={snapshot.fieldVsTopCut} hasTopCut={hasTopCut} />
               </div>
               <EventShareChart rows={snapshot.shareByEvent} />
             </div>
