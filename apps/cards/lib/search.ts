@@ -735,6 +735,15 @@ export function toQueryString(state: Partial<BrowserState>): string {
 }
 
 /**
+ * Query that matches a multi-word tag as one phrase ("Leaf Village" must not
+ * match cards that merely contain "leaf" and "village" somewhere).
+ */
+export function phraseQuery(term: string): string {
+  const text = term.replace(/"/g, "").trim();
+  return /\s/.test(text) ? `"${text}"` : text;
+}
+
+/**
  * Typed link into the card database for use by any page, e.g.
  * `cardsHref({ elements: ["fire"] })` → "/cards?element=fire".
  */
@@ -819,5 +828,5 @@ export function searchSuggestions(index: SearchIndex, limit = 6): string[] {
   const keywordSlots = Math.min(2, Math.floor(limit / 3));
   const keywords = ranked(keywordCounts).slice(0, keywordSlots);
   const traits = ranked(traitCounts).slice(0, limit - keywords.length);
-  return [...traits, ...keywords].map((value) => (/\s/.test(value) ? `"${value}"` : value));
+  return [...traits, ...keywords].map(phraseQuery);
 }

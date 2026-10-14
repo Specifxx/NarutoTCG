@@ -25,6 +25,7 @@ import {
   type CardFilters,
   type SortKey,
   cardsHref,
+  phraseQuery,
 } from "@/lib/search";
 
 // --- fixtures ---------------------------------------------------------------
@@ -494,5 +495,13 @@ describe("cardsHref", () => {
     expect(cardsHref({ elements: ["fire"] })).toBe("/cards?element=fire");
     expect(cardsHref({ query: "team 7", sets: ["NR01"] }, { view: "list" })).toBe("/cards?q=team%207&set=NR01&view=list");
     expect(cardsHref({ query: "a&b=c" })).toBe("/cards?q=a%26b%3Dc");
+  });
+});
+
+describe("phraseQuery", () => {
+  it("quotes multi-word terms and strips stray quotes", () => {
+    expect(phraseQuery("Leaf Village")).toBe('"Leaf Village"');
+    expect(phraseQuery("  Rush ")).toBe("Rush");
+    expect(phraseQuery('Team "7"')).toBe('"Team 7"');
   });
 });
