@@ -1,16 +1,11 @@
 import type { EventLocation, EventTier } from "@naruto-tcg/types";
 
+export { TIER_LABELS as EVENT_TIER_LABEL } from "@/lib/meta/config";
+
 // Fixed locale and UTC so server and client render identical strings (no hydration drift).
 const DATE = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" });
 const SHORT_DATE = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
 const NUMBER = new Intl.NumberFormat("en-US");
-
-export const EVENT_TIER_LABEL: Record<EventTier, string> = {
-  "store-championship": "Store Championship",
-  "online-open": "Online Open",
-  "regional-championship": "Regional Championship",
-  "national-championship": "National Championship",
-};
 
 export const EVENT_TIER_SHORT: Record<EventTier, string> = {
   "store-championship": "Store",

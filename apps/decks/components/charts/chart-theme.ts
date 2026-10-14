@@ -1,4 +1,7 @@
-import { archetypeColor, getArchetype, OTHER_COLOR } from "@/lib/data/archetypes";
+import { archetypeColor, OTHER_COLOR } from "@/lib/data/archetypes";
+import { OTHER_SERIES_ID } from "@/lib/meta/share";
+
+export { chartSeriesIds, seriesIdFor, seriesLabel } from "@/lib/meta/share";
 
 /** Chart chrome for the dark surface. Marks carry color; text uses the ink tokens. */
 export const CHART = {
@@ -17,15 +20,7 @@ export const CHART = {
   gap: 2,
 } as const;
 
-/** Series id used for every archetype folded into "Other". */
-export const OTHER_SERIES = "other";
-
-export function seriesColor(id: string): string {
-  return id === OTHER_SERIES ? OTHER_COLOR : archetypeColor(id);
-}
-
-export function seriesLabel(id: string, short = false): string {
-  if (id === OTHER_SERIES) return "Other";
-  const archetype = getArchetype(id);
-  return archetype ? (short ? archetype.shortName : archetype.name) : id;
+/** Fill for a chart series: the archetype's fixed slot color, or the neutral "Other" color. */
+export function seriesColor(seriesId: string): string {
+  return seriesId === OTHER_SERIES_ID ? OTHER_COLOR : archetypeColor(seriesId);
 }
