@@ -1,4 +1,4 @@
-import { directoryHref, parseChangeWindow } from "@/lib/market/query";
+import { directoryHref, parseChangeWindow, parseMarketQuery, type SearchParamsRecord } from "@/lib/market/query";
 import type { ChangeWindow, MarketQuery } from "@/lib/market/types";
 
 /** Windows offered by the movers switch. The default is left out of URLs. */
@@ -29,6 +29,16 @@ export function moversParam(movers: MoversWindow): Record<string, string | undef
 /** Directory URL for a query plus movers window: the page's single source of truth. */
 export function homeHref(query: MarketQuery, movers: MoversWindow): string {
   return directoryHref(query, moversParam(movers));
+}
+
+/** The directory state a URL search string describes, parsed exactly as the page parses `searchParams`. */
+export function parseDirectorySearch(search: string): { query: MarketQuery; movers: MoversWindow } {
+  const params: SearchParamsRecord = {};
+  for (const [key, value] of new URLSearchParams(search)) {
+    const seen = params[key];
+    params[key] = seen === undefined ? value : [...(Array.isArray(seen) ? seen : [seen]), value];
+  }
+  return { query: parseMarketQuery(params), movers: parseMoversWindow(params.movers) };
 }
 
 export function hasActiveFilters(query: MarketQuery): boolean {

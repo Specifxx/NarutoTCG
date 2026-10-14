@@ -151,7 +151,7 @@ export function ListingsTable({ listings }: { listings: ListingRow[] }) {
 
       <div
         id={tableId}
-        className="mt-4 hidden overflow-x-auto rounded-xl border border-shadow-700 bg-shadow-900 md:block"
+        className="relative mt-4 hidden overflow-x-auto rounded-xl border border-shadow-700 bg-shadow-900 md:block"
       >
         <table className="w-full border-collapse text-sm">
           <caption className="sr-only">Live listings{scope}, cheapest delivered total first, in US dollars</caption>

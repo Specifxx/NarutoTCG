@@ -15,7 +15,7 @@ const td = "px-3 py-2.5 first:pl-4 last:pr-4";
 /** md+ layout. Rarity and 30D get their own columns from lg, finish from xl; until then badges sit under the name. */
 export function ResultsTable({ items, caption }: { items: CardMarketSummary[]; caption: string }) {
   return (
-    <div className="hidden overflow-x-auto rounded-xl border border-shadow-700 bg-shadow-900 md:block">
+    <div className="relative hidden overflow-x-auto rounded-xl border border-shadow-700 bg-shadow-900 md:block">
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">{caption}</caption>
         <thead className="border-b border-shadow-700 bg-shadow-900">

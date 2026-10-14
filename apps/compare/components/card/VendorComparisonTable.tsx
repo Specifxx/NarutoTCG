@@ -55,7 +55,7 @@ function DesktopTable({
   links: VendorLinks;
 }) {
   return (
-    <div className="hidden overflow-x-auto rounded-xl border border-shadow-700 bg-shadow-900 md:block">
+    <div className="relative hidden overflow-x-auto rounded-xl border border-shadow-700 bg-shadow-900 md:block">
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">
           {card.name} prices at each marketplace, in US dollars. Cardmarket prices converted from euros.

@@ -115,7 +115,7 @@ export function MoversSection({ movers, window }: { movers: MarketMovers; window
       </div>
       <PendingRegion
         region="movers"
-        className="-mx-4 mt-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0"
+        className="relative -mx-4 mt-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0"
       >
         <MoverPanel kind="gainers" items={movers.gainers} window={window} />
         <MoverPanel kind="losers" items={movers.losers} window={window} />

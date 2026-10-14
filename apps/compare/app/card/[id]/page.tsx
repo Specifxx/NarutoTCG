@@ -10,26 +10,22 @@ import { ProductJsonLd } from "@/components/card/ProductJsonLd";
 import { SectionHeader } from "@/components/card/SectionHeader";
 import { VariantsList } from "@/components/card/VariantsList";
 import { VendorComparisonTable } from "@/components/card/VendorComparisonTable";
+import { getMarketStats } from "@/components/market/stats";
 import { roundMoney } from "@/lib/market/analytics";
 import { formatCount, formatUsd } from "@/lib/market/format";
 import { FINISH_LABEL, RARITY_LABEL } from "@/lib/market/labels";
 import { getMarketRepository } from "@/lib/market/repository";
 import type { CardMarketDetail } from "@/lib/market/types";
 
-export const revalidate = 300;
+/**
+ * Rendered per request, never cached: prices and "updated X ago" stay current, and
+ * arbitrary ids cannot fill a route cache. There is deliberately no loading.tsx here:
+ * a Suspense boundary would flush a 200 before an unknown id could answer 404.
+ */
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-/**
- * No card is prerendered at build time (it would need the database); each is rendered
- * on first visit and cached for `revalidate` seconds. Declaring the (empty) list is what
- * makes the route ISR rather than per-request SSR, and a fully rendered unknown id is
- * served with a real 404 status.
- */
-export function generateStaticParams(): Array<{ id: string }> {
-  return [];
 }
 
 /** Shared by generateMetadata and the page so a request reads the card once. */
@@ -40,6 +36,8 @@ const loadCard = cache(async (rawId: string): Promise<CardMarketDetail | null> =
   } catch {
     return null;
   }
+  // No catalog id contains NUL, and PostgreSQL rejects it in text parameters (an error, not a miss).
+  if (id.includes("\u0000")) return null;
   return getMarketRepository().getCardDetail(id);
 });
 
@@ -56,9 +54,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CardPage({ params }: PageProps) {
-  const detail = await loadCard((await params).id);
+  const [detail, stats] = await Promise.all([loadCard((await params).id), getMarketStats()]);
   if (!detail) notFound();
-  const repo = getMarketRepository();
   const { summary, quotes, listings, history, variants } = detail;
   const { card } = summary;
   const links = buildVendorLinks(card, quotes);
@@ -81,7 +78,7 @@ export default async function CardPage({ params }: PageProps) {
     <main id="main" className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
       <ProductJsonLd summary={summary} quotes={quotes} />
       <Breadcrumbs card={card} />
-      <CardHero detail={detail} mode={repo.mode} links={links} />
+      <CardHero detail={detail} demoData={stats.demoData} links={links} />
       <VendorComparisonTable card={card} quotes={quotes} links={links} />
       <PriceHistoryChart history={history} changes={summary.changes} cardName={card.name} />
       <section aria-labelledby="listings-heading" className="mt-12">

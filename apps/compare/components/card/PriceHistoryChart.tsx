@@ -41,6 +41,7 @@ const RANGE_LABEL: Record<ChangeWindow, { short: string; long: string }> = {
 
 const label = "text-[11px] font-semibold tracking-wider text-ash-400 uppercase";
 const wholeUsd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+const seriesList = new Intl.ListFormat("en-US", { style: "long", type: "conjunction" });
 function RangeToggle({ range, onChange }: { range: ChangeWindow; onChange: (range: ChangeWindow) => void }) {
   return (
     <div
@@ -156,7 +157,7 @@ function DataTable({ points, cardName, range }: { points: PricePoint[]; cardName
         role="region"
         aria-label={`Price history data, last ${RANGE_LABEL[range].long}`}
         tabIndex={0}
-        className="mt-2 max-h-80 overflow-auto rounded-lg border border-shadow-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+        className="relative mt-2 max-h-80 overflow-auto rounded-lg border border-shadow-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
       >
         <table className="w-full border-collapse text-sm">
           <caption className="sr-only">
@@ -302,7 +303,12 @@ export function PriceHistoryChart({
         <div className="mt-5 h-72 min-w-0 sm:h-80 [&_.recharts-cartesian-axis-tick-value]:tabular-nums [&_.recharts-surface:focus]:outline-none [&_.recharts-wrapper:has(.recharts-surface:focus-visible)]:rounded-md [&_.recharts-wrapper:has(.recharts-surface:focus-visible)]:ring-2 [&_.recharts-wrapper:has(.recharts-surface:focus-visible)]:ring-chakra-400">
           {points.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%" onResize={(width) => setNarrow(width < NARROW_PLOT_PX)}>
-              <LineChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+              <LineChart
+                data={points}
+                margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+                title={`${cardName} price history, last ${RANGE_LABEL[range].long}`}
+                desc={`Line chart of daily ${seriesList.format(visible.map((s) => s.name))} prices in US dollars. ${changeSummary(range, summary)} Exact values are in the data table below the chart.`}
+              >
                 <CartesianGrid vertical={false} stroke={GRID} />
                 <XAxis
                   dataKey="date"

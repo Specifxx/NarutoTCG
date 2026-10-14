@@ -1,7 +1,7 @@
 import { FinishBadge, RarityBadge } from "@/components/market/Badges";
 import { CardArt } from "@/components/market/CardArt";
 import { formatDateTime, formatRelative } from "@/lib/market/format";
-import type { CardMarketDetail, MarketCard, RepositoryMode } from "@/lib/market/types";
+import type { CardMarketDetail, MarketCard } from "@/lib/market/types";
 import { BuyActions } from "./BuyActions";
 import { ClockIcon } from "./icons";
 import type { VendorLinks } from "./links";
@@ -31,11 +31,12 @@ function cardFacts(card: MarketCard): string[] {
  */
 export function CardHero({
   detail,
-  mode,
+  demoData,
   links,
 }: {
   detail: CardMarketDetail;
-  mode: RepositoryMode;
+  /** The prices are simulated sample data. */
+  demoData: boolean;
   links: VendorLinks;
 }) {
   const { summary, quotes } = detail;
@@ -79,7 +80,7 @@ export function CardHero({
               "never"
             )}
           </p>
-          {mode === "seed" && (
+          {demoData && (
             <p className="inline-flex items-center gap-1.5 rounded-full border border-shadow-500 bg-shadow-800 px-2.5 py-0.5 font-medium text-ash-200">
               <span aria-hidden className="size-1.5 rounded-full bg-chakra-400" />
               Demo data — simulated prices

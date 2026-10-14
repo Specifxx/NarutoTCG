@@ -1,7 +1,7 @@
 import { getFxRates } from "@/lib/market/fx";
-import type { RepositoryMode } from "@/lib/market/types";
 
-export function SiteFooter({ mode }: { mode: RepositoryMode }) {
+/** `demoData`: the prices are simulated sample data (seed repository, or a database loaded by db:seed). */
+export function SiteFooter({ demoData }: { demoData: boolean }) {
   const eurUsd = getFxRates().EUR;
   return (
     <footer className="mt-16 border-t border-shadow-700 bg-shadow-950">
@@ -15,7 +15,7 @@ export function SiteFooter({ mode }: { mode: RepositoryMode }) {
             converted from EUR at 1 EUR = {eurUsd.toFixed(2)} USD. Prices refresh daily, so confirm on the seller&apos;s
             page before you buy.
           </p>
-          {mode === "seed" && (
+          {demoData && (
             <p className="mt-2 text-chakra-400">
               Demo mode: prices and listings are simulated sample data, not real marketplace quotes.
             </p>

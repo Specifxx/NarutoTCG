@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { formatCount, formatDateTime, formatRelative } from "@/lib/market/format";
-import type { RepositoryMode } from "@/lib/market/types";
 import { VENDOR_ORDER, VENDORS } from "@/lib/market/vendors";
 
 const vendorList = new Intl.ListFormat("en-US", { style: "long", type: "conjunction" });
@@ -32,19 +31,20 @@ function Stat({
 export function DirectoryHeader({
   cardCount,
   lastUpdated,
-  mode,
+  demoData,
 }: {
   cardCount: number;
   /** ISO timestamp of the most recent vendor update, or null before any data. */
   lastUpdated: string | null;
-  mode: RepositoryMode;
+  /** The prices are simulated sample data. */
+  demoData: boolean;
 }) {
   return (
     <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div className="max-w-2xl">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <p className="text-xs font-semibold tracking-[0.18em] text-chakra-400 uppercase">Single-card market</p>
-          {mode === "seed" && (
+          {demoData && (
             <p className="inline-flex items-center gap-1.5 rounded-full border border-shadow-500 bg-shadow-800 px-2.5 py-0.5 text-xs font-medium text-ash-200">
               <span aria-hidden className="size-1.5 rounded-full bg-chakra-400" />
               Demo data — simulated prices

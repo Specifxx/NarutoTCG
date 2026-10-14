@@ -1,13 +1,14 @@
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { DirectoryHeader } from "@/components/directory/DirectoryHeader";
 import { DirectoryProvider, PendingRegion } from "@/components/directory/DirectoryProvider";
 import { DirectoryResults } from "@/components/directory/DirectoryResults";
 import { FilterBar } from "@/components/directory/FilterBar";
-import { parseMoversWindow } from "@/components/directory/href";
+import { homeHref, parseMoversWindow } from "@/components/directory/href";
 import { MoversSection } from "@/components/directory/MoversSection";
+import { getMarketStats } from "@/components/market/stats";
 import { MOVERS_LIMIT } from "@/lib/market/constants";
-import { FINISH_LABEL, RARITY_LABEL } from "@/lib/market/labels";
-import { parseMarketQuery, type SearchParamsRecord } from "@/lib/market/query";
+import { DEFAULT_SORT, FINISH_LABEL, RARITY_LABEL } from "@/lib/market/labels";
+import { directoryHref, parseMarketQuery, type SearchParamsRecord } from "@/lib/market/query";
 import { getMarketRepository } from "@/lib/market/repository";
 
 interface PageProps {
@@ -15,9 +16,25 @@ interface PageProps {
 }
 
 const DIRECTORY_ID = "directory";
+const siteUrl = process.env.NEXT_PUBLIC_COMPARE_URL;
 
-/** Names the active filters. The layout's title template skips its own segment, so the site title is appended here. */
-export async function generateMetadata({ searchParams }: PageProps, parent: ResolvingMetadata): Promise<Metadata> {
+/**
+ * Canonical link for a directory URL. Next resolves a canonical whose path is "/" against
+ * metadataBase to the bare origin, dropping the query, so filter pages pass the finished
+ * URL and opt out of that resolution (nothing else on these pages needs metadataBase).
+ */
+function canonical(href: string): Pick<Metadata, "alternates" | "metadataBase"> {
+  if (href === "/") return { alternates: { canonical: "/" } };
+  return { alternates: { canonical: siteUrl ? new URL(href, siteUrl).href : href }, metadataBase: null };
+}
+
+/**
+ * Names the active filters (the root layout's title template appends the site name).
+ * Searches, re-sorted lists and deeper pages are near-duplicates of the index, so they
+ * stay out of search results but their links are still followed; filter-only pages are
+ * real landing pages ("Parallel card prices") and are their own canonical.
+ */
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const query = parseMarketQuery(await searchParams);
   const parts = [
     query.q ? `“${query.q}”` : null,
@@ -25,9 +42,12 @@ export async function generateMetadata({ searchParams }: PageProps, parent: Reso
     ...(query.rarities ?? []).map((r) => RARITY_LABEL[r]),
     ...(query.finishes ?? []).map((f) => FINISH_LABEL[f]),
   ].filter((part): part is string => part !== null);
-  if (parts.length === 0) return {};
-  const site = (await parent).title?.absolute;
-  return { title: [`${parts.join(", ")} card prices`, site].filter(Boolean).join(" · ") };
+  const variant = Boolean(query.q) || (query.sort ?? DEFAULT_SORT) !== DEFAULT_SORT || (query.page ?? 1) > 1;
+  return {
+    ...(parts.length > 0 ? { title: `${parts.join(", ")} card prices` } : {}),
+    ...canonical(variant ? "/" : directoryHref({ sets: query.sets, rarities: query.rarities, finishes: query.finishes })),
+    ...(variant ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 export default async function DirectoryPage({ searchParams }: PageProps) {
@@ -39,15 +59,15 @@ export default async function DirectoryPage({ searchParams }: PageProps) {
     repo.queryCards(query),
     repo.getFacets(),
     repo.getMovers(moversWindow, MOVERS_LIMIT),
-    repo.getStats(),
+    getMarketStats(),
   ]);
   // The repository clamps out-of-range pages; links must build on the page actually shown.
   const shownQuery = { ...query, page: page.page };
 
   return (
     <main id="main" className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-      <DirectoryHeader cardCount={stats.cards} lastUpdated={stats.lastUpdatedAt} mode={repo.mode} />
-      <DirectoryProvider query={shownQuery} movers={moversWindow}>
+      <DirectoryHeader cardCount={stats.cards} lastUpdated={stats.lastUpdatedAt} demoData={stats.demoData} />
+      <DirectoryProvider query={shownQuery} movers={moversWindow} renderedHref={homeHref(query, moversWindow)}>
         <MoversSection movers={movers} window={moversWindow} />
         <section id={DIRECTORY_ID} aria-labelledby="directory-heading" className="mt-12 scroll-mt-20">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">

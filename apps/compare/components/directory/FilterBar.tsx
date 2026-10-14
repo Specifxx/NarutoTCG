@@ -147,7 +147,8 @@ export function FilterBar({ facets }: { facets: MarketFacets }) {
           ))}
         </Form>
 
-        <div className="flex flex-col gap-2 sm:flex-1 sm:flex-row sm:items-center">
+        {/* Wraps so the sort control drops to its own line when several active filters widen the facet buttons. */}
+        <div className="flex flex-col gap-2 sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center">
           {/* Positioned so phone-width popovers span this row and drop directly beneath it. */}
           <div className="relative grid grid-cols-3 gap-2 sm:flex">
             <MultiSelect

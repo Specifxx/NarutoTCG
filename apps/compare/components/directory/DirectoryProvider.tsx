@@ -17,7 +17,7 @@ import {
 } from "react";
 import { cx } from "@naruto-tcg/ui";
 import type { MarketQuery } from "@/lib/market/types";
-import { homeHref, type MoversWindow } from "./href";
+import { homeHref, parseDirectorySearch, type MoversWindow } from "./href";
 
 /** Parts of the page that dim while a navigation they started is in flight. */
 export type DirectoryRegion = "results" | "movers";
@@ -68,14 +68,46 @@ function merge(state: DirectoryState, patch: DirectoryPatch): DirectoryState {
  * applied optimistically, so quick successive changes (ticking several checkboxes,
  * typing while results load) build on each other rather than on the last server render.
  */
-export function DirectoryProvider({ query, movers, children }: DirectoryState & { children: ReactNode }) {
+export function DirectoryProvider({
+  query,
+  movers,
+  renderedHref,
+  children,
+}: DirectoryState & {
+  /** Canonical href of the request the server rendered (before page clamping), to compare with the address bar. */
+  renderedHref: string;
+  children: ReactNode;
+}) {
   const router = useRouter();
   const [state, setOptimisticState] = useOptimistic<ViewState>({ query, movers, busy: null });
   const latest = useRef<DirectoryState>(state);
+  /** The address-bar href last re-requested by the reconciler, so a persistent mismatch cannot loop. */
+  const reconciled = useRef<string | null>(null);
 
   useEffect(() => {
     latest.current = { query: state.query, movers: state.movers };
   }, [state]);
+
+  // Overlapping navigations can let a superseded response commit after the latest one,
+  // leaving results, chips and search text for one state under the URL of another. Once
+  // nothing is in flight, the address bar wins: re-request it if the render disagrees.
+  const settled = state.busy === null;
+  useEffect(() => {
+    if (!settled || window.location.pathname !== "/") return;
+    const current = parseDirectorySearch(window.location.search);
+    const href = homeHref(current.query, current.movers);
+    if (href === renderedHref) {
+      reconciled.current = null;
+      return;
+    }
+    if (reconciled.current === href) return;
+    reconciled.current = href;
+    latest.current = current;
+    startTransition(() => {
+      setOptimisticState({ ...current, busy: "results" });
+      router.replace(href, { scroll: false });
+    });
+  }, [settled, renderedHref, router, setOptimisticState]);
 
   const navigate = useCallback(
     (patch: DirectoryPatch, { region: target, push = false, scrollTo }: NavigateOptions) => {
