@@ -120,6 +120,8 @@ export interface Store {
   tableCount?: number;
   /** BCP 47 language tags spoken by staff, e.g. ["en", "es"]. */
   languages: string[];
+  /** Where an imported record came from. */
+  source?: EventSource;
 }
 
 export interface Venue {

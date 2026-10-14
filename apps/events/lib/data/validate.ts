@@ -116,6 +116,8 @@ export function validateStores(input: unknown): StoreSeed[] {
     else checkUnique(s.features as StoreFeature[], `${at} feature`, issues);
     if (s.tableCount !== undefined && !(isNum(s.tableCount) && s.tableCount >= 0)) issues.push(`${at}.tableCount must be >= 0`);
     if (!Array.isArray(s.languages) || !s.languages.every(isStr)) issues.push(`${at}.languages must be an array of tags`);
+    if (s.source !== undefined && !(isObj(s.source) && isUrl(s.source.url) && isStr(s.source.retrievedAt)))
+      issues.push(`${at}.source must be { url, retrievedAt }`);
   });
   checkUnique(
     input.filter(isObj).map((s) => String(s.slug)),
