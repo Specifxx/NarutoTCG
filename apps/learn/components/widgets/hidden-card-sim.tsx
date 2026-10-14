@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from "framer-motion";
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ParticleBurst } from "@/components/fx/particle-burst";
 import { useParticleFlight } from "@/components/fx/particle-flight";
 import { ChakraPool } from "@/components/game/chakra-pool";
@@ -442,6 +442,40 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
     slotRef.current?.querySelector<HTMLElement>('[role="button"]')?.focus();
   }, []);
 
+  /* Outside click/tap closes the reveal prompt; focus Reveal each time it opens. */
+  const popRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!confirmOpen) return;
+    const raf = requestAnimationFrame(() => popRef.current?.querySelector<HTMLElement>("[data-reveal]")?.focus());
+    const onDown = (e: PointerEvent) => {
+      if (!slotRef.current?.contains(e.target as Node)) setConfirmOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [confirmOpen]);
+
+  /* The pressed control usually unmounts: move focus to the next primary control. */
+  const rootRef = useRef<HTMLDivElement>(null);
+  const seenPhase = useRef(phase);
+  useEffect(() => {
+    if (seenPhase.current === phase) return;
+    seenPhase.current = phase;
+    if (phase !== "ready" && phase !== "armed" && phase !== "won" && phase !== "lost") return;
+    const t = window.setTimeout(() => {
+      const a = document.activeElement;
+      if (a && a !== document.body) return;
+      const target =
+        phase === "armed"
+          ? slotRef.current?.querySelector<HTMLElement>('[role="button"]')
+          : rootRef.current?.querySelector<HTMLElement>("[data-sim-primary]");
+      target?.focus({ preventScroll: true });
+    }, 120);
+    return () => window.clearTimeout(t);
+  }, [phase]);
+
   const steps = trackSteps(phase, path, hero.cost);
   const noteStyle = NOTE_STYLES[note.tone];
   const turn =
@@ -458,9 +492,28 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
       ? { label: "Thinking", icon: null }
       : { label: `Opened with ${firstName(enemy.name)}`, icon: "hand" as const };
   const cardWidth = cardSize === "md" ? "w-[136px]" : "w-[92px]";
+  const narration = (
+    <div
+      aria-live="polite"
+      className={cn("mt-3 flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors duration-300", noteStyle.box)}
+    >
+      <span className={cn("mt-0.5 shrink-0", noteStyle.iconClass)}>
+        <Icon name={noteStyle.icon} size={18} />
+      </span>
+      <motion.div
+        key={note.text}
+        initial={{ opacity: 0.2, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="min-w-0"
+      >
+        <RichText as="p" text={note.text} className="text-[14px] leading-relaxed text-ash-200" />
+      </motion.div>
+    </div>
+  );
 
   return (
-    <div className="panel relative overflow-x-clip p-3 sm:p-5">
+    <div ref={rootRef} className="panel relative overflow-x-clip p-3 sm:p-5">
       {layer}
 
       {/* Top bar */}
@@ -663,6 +716,7 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
                   <AnimatePresence>
                     {confirmOpen && (
                       <motion.div
+                        ref={popRef}
                         role="dialog"
                         aria-labelledby={`${uid}-confirm`}
                         initial={{ opacity: 0, y: -6, scale: 0.95 }}
@@ -681,7 +735,7 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
                           You have {chakra}. Revealing pays the printed cost and fires MAIN and AMBUSH effects.
                         </p>
                         <div className="mt-3 flex gap-2">
-                          <Button variant="mist" size="sm" onClick={reveal} autoFocus>
+                          <Button variant="mist" size="sm" onClick={reveal} data-reveal>
                             <Icon name="eye" size={14} />
                             Reveal · {hero.cost}
                           </Button>
@@ -779,6 +833,8 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
               </div>
             </div>
 
+            <div className="sm:hidden">{narration}</div>
+
             {/* Your tray */}
             <div className="relative mt-5 flex flex-col gap-4 rounded-2xl border border-energy-400/15 bg-energy-900/20 p-3 md:flex-row md:items-center md:gap-5 md:p-4">
               <div className="flex items-center gap-3">
@@ -808,7 +864,12 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 {phase === "ready" && (
                   <>
-                    <Button variant="mist" onClick={() => play(true)} className="w-full md:w-auto md:self-start">
+                    <Button
+                      variant="mist"
+                      onClick={() => play(true)}
+                      className="w-full md:w-auto md:self-start"
+                      data-sim-primary
+                    >
                       <Icon name="eye-off" size={16} />
                       Play hidden · 1 Chakra
                     </Button>
@@ -837,12 +898,12 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
                 {phase === "won" && (
                   <div className="flex flex-wrap gap-2">
                     {scenario.id === "kakashi" ? (
-                      <Button variant="gold" onClick={() => reset("shikamaru")}>
+                      <Button variant="gold" onClick={() => reset("shikamaru")} data-sim-primary>
                         <Icon name="sparkles" size={16} />
                         Bonus: Shikamaru
                       </Button>
                     ) : (
-                      <Button variant="secondary" onClick={() => reset("kakashi")}>
+                      <Button variant="secondary" onClick={() => reset("kakashi")} data-sim-primary>
                         <Icon name="arrow-left" size={16} />
                         Back to Kakashi
                       </Button>
@@ -854,7 +915,7 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
                   </div>
                 )}
                 {phase === "lost" && (
-                  <Button variant="primary" onClick={() => reset()} className="w-full md:w-auto md:self-start">
+                  <Button variant="primary" onClick={() => reset()} className="w-full md:w-auto md:self-start" data-sim-primary>
                     <Icon name="undo" size={16} />
                     Rewind and play hidden
                   </Button>
@@ -863,24 +924,8 @@ export default function HiddenCardSim({ onComplete, completed }: WidgetProps) {
             </div>
           </div>
 
-          {/* Narration */}
-          <div
-            aria-live="polite"
-            className={cn("mt-3 flex items-start gap-3 rounded-2xl border px-4 py-3 transition-colors duration-300", noteStyle.box)}
-          >
-            <span className={cn("mt-0.5 shrink-0", noteStyle.iconClass)}>
-              <Icon name={noteStyle.icon} size={18} />
-            </span>
-            <motion.div
-              key={note.text}
-              initial={{ opacity: 0.2, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="min-w-0"
-            >
-              <RichText as="p" text={note.text} className="text-[14px] leading-relaxed text-ash-200" />
-            </motion.div>
-          </div>
+          {/* Narration (phones render it under the arena instead, so it stays beside the board) */}
+          <div className="hidden sm:block">{narration}</div>
         </div>
 
         {/* Side panel */}

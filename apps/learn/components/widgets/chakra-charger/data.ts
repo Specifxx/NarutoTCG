@@ -12,8 +12,8 @@ import type { CardDef } from "@/lib/game/types";
 export const BASE_CHAKRA = 5;
 export const HIDDEN_COST = 1;
 export const ROUND = 3;
-/** Particle orbs that fly per point of Chakra while charging. */
-export const ORBS_PER_POINT = 3;
+/** Particle orbs that fly per point of Chakra (a charge tap sends at least 10). */
+export const ORBS_PER_POINT = 6;
 
 export type TermKind = "base" | "character" | "hidden" | "bonus";
 

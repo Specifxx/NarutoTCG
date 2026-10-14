@@ -140,6 +140,16 @@ export function BoardUnit({
           <span className="truncate">{card.name.split(" ")[0]}</span>
         </span>
       )}
+      {size === "xs" && !unit.hidden && (
+        <span
+          className="line-clamp-2 max-w-[76px] rounded-md bg-white/[0.06] px-1.5 py-px text-center text-[9.5px] font-bold leading-tight text-ash-100"
+          title={`${card.name}, ${card.title}`}
+          aria-hidden="true"
+        >
+          {card.name.split(" ")[0]}
+          {unit.stack.length > 1 && <span className="font-semibold text-gold-200"> · {card.title}</span>}
+        </span>
+      )}
       <AnimatePresence initial={false}>
         {options.map((o) => (
           <MoveButton

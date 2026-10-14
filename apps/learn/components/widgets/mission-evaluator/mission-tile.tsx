@@ -76,7 +76,7 @@ function SideRow({
       <span className={cn("eyebrow w-8 shrink-0 !text-[9px] !tracking-[0.14em]", SIDE_TEXT[side])}>{side === "you" ? "You" : "Opp"}</span>
       <div
         className={cn(
-          "flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-3 pb-2.5 pt-1",
+          "flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-3 pb-2.5 pt-1 sm:gap-x-3",
           cardSize === "sm" ? "min-h-[134px]" : "min-h-[92px]",
         )}
       >
@@ -273,7 +273,7 @@ export const MissionTile = forwardRef<HTMLElement, MissionTileProps>(function Mi
       animate={{ opacity: stage === "pending" ? 0.5 : 1, scale: active ? 1.015 : 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 26 }}
       className={cn(
-        "relative min-w-0 scroll-mb-4 scroll-mt-48 rounded-2xl border bg-gradient-to-b from-shadow-800/90 to-shadow-900/90 p-3 transition-[border-color,box-shadow] duration-500 sm:p-4",
+        "relative min-w-0 scroll-mb-4 scroll-mt-[16.5rem] rounded-2xl border bg-gradient-to-b from-shadow-800/90 to-shadow-900/90 p-3 transition-[border-color,box-shadow] duration-500 sm:p-4",
         active
           ? "border-gold-400/60 shadow-[0_0_44px_-12px_rgba(245,197,66,0.65)]"
           : verdictShown

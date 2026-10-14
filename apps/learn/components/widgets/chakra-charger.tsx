@@ -71,6 +71,19 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
   const playsRef = useRef<readonly Play[]>([]);
   const fullAnnounced = useRef(false);
   const gaugeRef = useRef<HTMLDivElement>(null);
+  /** The 9-dot meter in the end bar: the on-screen gauge stand-in on phones. */
+  const meterRef = useRef<HTMLSpanElement>(null);
+  /** Ignore the second click of a double-click that lands on the slot's swapped-in button. */
+  const lockUntil = useRef(0);
+  const debounced = () => {
+    const now = performance.now();
+    if (now < lockUntil.current) return true;
+    lockUntil.current = now + 350;
+    return false;
+  };
+  /** On phones the big gauge has scrolled under the sticky nav: use the end-bar dot meter instead. */
+  const spendAnchor = (dot: number): HTMLElement | null =>
+    (compact ? (meterRef.current?.children[dot] as HTMLElement | undefined) : undefined) ?? gaugeRef.current;
   const cardEls = useRef<Record<string, HTMLElement | null>>({});
 
   const goPhase = (next: Phase) => {
@@ -102,8 +115,9 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
 
   const chargedTerms = useMemo(() => SOURCES.filter((s) => charged.has(s.id)).flatMap((s) => s.terms), [charged]);
   const allTapped = charged.size === SOURCES.length;
-  const landed = Math.min(TOTAL_CHAKRA, drops / ORBS_PER_POINT);
-  const fullyCharged = allTapped && drops >= TOTAL_CHAKRA * ORBS_PER_POINT;
+  // `drops` counts Chakra points that have landed in the gauge.
+  const landed = Math.min(TOTAL_CHAKRA, drops);
+  const fullyCharged = allTapped && drops >= TOTAL_CHAKRA;
   const remaining = TOTAL_CHAKRA - spentOf(plays);
   const level = phase === "charge" ? landed : phase === "spend" ? remaining : 0;
 
@@ -146,18 +160,29 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
     source.terms.forEach((term, i) => {
       const fly = () => {
         if (epoch.current !== runId) return;
+        // At least 10 orbs per tap; each point lands after its share of orbs arrives.
+        const count = Math.max(10, term.amount * ORBS_PER_POINT);
+        const palette = TERM_STYLES[term.kind].palette;
+        const stagger = term.amount > 2 ? 0.04 : 0.06;
         emit(from, gaugeRef.current, {
-          count: term.amount * ORBS_PER_POINT,
-          palette: TERM_STYLES[term.kind].palette,
+          count,
+          palette,
           duration: 0.85,
-          stagger: term.amount > 2 ? 0.045 : 0.085,
-          size: term.amount > 2 ? 10 : 12,
-          onArrive: () => {
+          stagger,
+          size: 15,
+          onArrive: (i) => {
             if (epoch.current !== runId) return;
-            setDrops((d) => d + 1);
+            const pts = Math.floor(((i + 1) * term.amount) / count) - Math.floor((i * term.amount) / count);
+            if (pts > 0) setDrops((d) => d + pts);
             setSplash((s) => s + 1);
           },
         });
+        // Comet tail: a fainter, smaller stream just behind the main orbs.
+        if (!reduce) {
+          later(() => {
+            if (epoch.current === runId) emit(from, gaugeRef.current, { count, palette, duration: 0.85, stagger, size: 6 });
+          }, 50);
+        }
       };
       if (i === 0 || reduce) fly();
       else later(fly, 340 * i);
@@ -173,7 +198,7 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
   };
 
   const play = (cardId: string, mode: PlayMode) => {
-    if (phaseRef.current !== "spend") return;
+    if (phaseRef.current !== "spend" || debounced()) return;
     const entry = handEntry(cardId);
     if (!entry || playsRef.current.some((p) => p.cardId === cardId)) return;
     const cost = playCost(entry.card, mode);
@@ -184,8 +209,8 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
     setPop({ id: ++seq.current, text: `−${cost}`, tone: "drain" });
 
     const runId = epoch.current;
-    emit(gaugeRef.current, cardEls.current[cardId], {
-      count: Math.max(4, cost * ORBS_PER_POINT),
+    emit(spendAnchor(left), cardEls.current[cardId], {
+      count: Math.min(18, Math.max(6, cost * ORBS_PER_POINT)),
       palette: mode === "up" ? "energy" : "mist",
       duration: 0.7,
       stagger: 0.04,
@@ -203,7 +228,7 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
   };
 
   const undo = (cardId: string) => {
-    if (phaseRef.current !== "spend") return;
+    if (phaseRef.current !== "spend" || debounced()) return;
     const target = playsRef.current.find((p) => p.cardId === cardId);
     if (!target) return;
     const next = playsRef.current.filter((p) => p.cardId !== cardId);
@@ -211,8 +236,8 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
     setPop({ id: ++seq.current, text: `+${target.cost}`, tone: "gain" });
 
     const runId = epoch.current;
-    emit(cardEls.current[cardId], gaugeRef.current, {
-      count: Math.max(4, target.cost * ORBS_PER_POINT),
+    emit(cardEls.current[cardId], spendAnchor(TOTAL_CHAKRA - spentOf(next) - 1), {
+      count: Math.min(18, Math.max(6, target.cost * ORBS_PER_POINT)),
       palette: "energy",
       duration: 0.7,
       stagger: 0.04,
@@ -231,6 +256,8 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
     const left = TOTAL_CHAKRA - spentOf(playsRef.current);
     goPhase("end");
     setWasted(left);
+    // Phones: the gauge (drain or zero-waste burst) sits above the hand, off-screen.
+    if (compact) gaugeRef.current?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
     if (left > 0) {
       setVapor({ id: ++seq.current, amount: left, from: left / TOTAL_CHAKRA });
       setPop({ id: ++seq.current, text: `−${left} wasted`, tone: "waste" });
@@ -451,7 +478,7 @@ export default function ChakraCharger({ onComplete, completed }: WidgetProps) {
                         )}
                       >
                         <div className="flex min-w-0 items-center gap-3">
-                          <span aria-hidden="true" className="flex max-w-[132px] shrink-0 flex-wrap gap-1">
+                          <span ref={meterRef} aria-hidden="true" className="flex max-w-[132px] shrink-0 flex-wrap gap-1">
                             {Array.from({ length: TOTAL_CHAKRA }, (_, i) => (
                               <span
                                 key={i}

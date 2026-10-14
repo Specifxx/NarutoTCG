@@ -67,6 +67,12 @@ function useElementMap() {
   return [map, register] as const;
 }
 
+/** Bottom edge of the sticky site header (with its sub-nav), in viewport px. */
+function stickyHeaderBottom() {
+  const el = document.querySelector("header.sticky");
+  return el ? Math.max(0, el.getBoundingClientRect().bottom) : 112;
+}
+
 function sortedMissions(state: GameState) {
   return [...state.missions].sort((a, b) => RANK_ORDER.indexOf(a.def.rank) - RANK_ORDER.indexOf(b.def.rank));
 }
@@ -129,6 +135,9 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
   const [scoreEls, registerScore] = useElementMap();
   const performedOn = useRef<PuzzleRun | null>(null);
   const plateEls = useRef<Partial<Record<Side, HTMLElement>>>({});
+  const boardScroll = useRef<HTMLDivElement>(null);
+  const commandEl = useRef<HTMLDivElement>(null);
+  const revealTimer = useRef<number | undefined>(undefined);
 
   const registerPlate = useCallback((side: Side, el: HTMLElement | null) => {
     if (el) plateEls.current[side] = el;
@@ -364,6 +373,16 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
       setSteps((s) => [...s, turns]);
       setSelection(null);
       setNotice(null);
+      // Keep keyboard focus on the board: the move button that was pressed unmounts with the selection.
+      const focusUid = action.type === "play" ? `u${run.state.nextUid}` : action.type === "pass" ? null : action.uid;
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          if (document.activeElement && document.activeElement !== document.body) return;
+          const unit = focusUid ? unitEls.current.get(focusUid) : undefined;
+          const target = unit?.querySelector<HTMLElement>('[role="button"]') ?? document.getElementById("puzzle-hand");
+          target?.focus({ preventScroll: true });
+        }),
+      );
       const [first, ...rest] = frames;
       if (first) applyFx(first);
       if (rest.length > 0) {
@@ -456,23 +475,6 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
     }
   }, [coach, puzzle.solution.length, resetBoard]);
 
-  const selectCard = useCallback(
-    (entry: HandEntry) => {
-      if (!myTurn) return;
-      if (inCoach) {
-        setNotice({ tone: "info", text: "In the walkthrough the next move is chosen for you. Press Next step." });
-        return;
-      }
-      setNotice(null);
-      setSelection((prev) =>
-        prev?.kind === "card" && prev.cardId === entry.cardId && prev.copy === entry.copy
-          ? null
-          : { kind: "card", cardId: entry.cardId, copy: entry.copy },
-      );
-    },
-    [myTurn, inCoach],
-  );
-
   const selectUnit = useCallback(
     (uid: string) => {
       if (!myTurn || inCoach) return;
@@ -494,15 +496,81 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
     [scoreEls],
   );
 
-  const jumpToLane = useCallback(
-    (missionId: string) => {
-      laneEls.current.get(missionId)?.scrollIntoView({
-        behavior: reduce ? "auto" : "smooth",
-        block: "nearest",
-        inline: "center",
-      });
+  /**
+   * Bring a lane into view: centre it in the swipeable board, then scroll the window so it sits between the
+   * sticky header and the sticky command bar. When it is too tall, `prefer` picks which end stays visible.
+   */
+  const revealLane = useCallback(
+    (missionId: string, prefer: "top" | "bottom" = "top") => {
+      const lane = laneEls.current.get(missionId);
+      if (!lane) return;
+      const behavior: ScrollBehavior = reduce ? "instant" : "smooth";
+      const box = boardScroll.current;
+      if (box && box.scrollWidth > box.clientWidth + 1) {
+        const b = box.getBoundingClientRect();
+        const r = lane.getBoundingClientRect();
+        box.scrollTo({ left: box.scrollLeft + r.left - b.left - (b.width - r.width) / 2, behavior });
+      }
+      const r = lane.getBoundingClientRect();
+      const top = stickyHeaderBottom() + 12;
+      const bottom = window.innerHeight - (commandEl.current?.offsetHeight ?? 0) - 24;
+      if (r.top >= top && r.bottom <= bottom) return;
+      const fits = r.height <= bottom - top;
+      const delta = fits
+        ? r.top < top
+          ? r.top - top
+          : r.bottom - bottom
+        : prefer === "bottom"
+          ? r.bottom - bottom
+          : r.top - top;
+      window.scrollTo({ top: window.scrollY + delta, behavior });
     },
     [laneEls, reduce],
+  );
+
+  /** Reveal a lane once newly shown move buttons have expanded. */
+  const scheduleReveal = useCallback(
+    (missionId: string, prefer: "top" | "bottom") => {
+      window.clearTimeout(revealTimer.current);
+      revealTimer.current = window.setTimeout(() => revealLane(missionId, prefer), reduce ? 0 : 300);
+    },
+    [revealLane, reduce],
+  );
+  useEffect(() => () => window.clearTimeout(revealTimer.current), []);
+
+  const jumpToLane = useCallback((missionId: string) => revealLane(missionId, "top"), [revealLane]);
+
+  // Walkthrough: keep the lane of the next highlighted move on screen.
+  useEffect(() => {
+    if (!coachTarget || coachTarget.pass) return;
+    const lane =
+      coachTarget.missionId ?? (coachTarget.uid ? findUnit(run.state, coachTarget.uid)?.mission.def.id : undefined);
+    if (lane) scheduleReveal(lane, "bottom");
+  }, [coachTarget, run.state, scheduleReveal]);
+
+  const selectCard = useCallback(
+    (entry: HandEntry) => {
+      if (!myTurn) return;
+      if (inCoach) {
+        setNotice({ tone: "info", text: "In the walkthrough the next move is chosen for you. Press Next step." });
+        return;
+      }
+      setNotice(null);
+      const same = selection?.kind === "card" && selection.cardId === entry.cardId && selection.copy === entry.copy;
+      setSelection(same ? null : { kind: "card", cardId: entry.cardId, copy: entry.copy });
+      // On phones the lanes are far above the hand: bring the first lane with a legal move into view.
+      if (!same && !wide) {
+        const upgrade = [...legalKeys].find((k) => k.startsWith(`upgrade:${entry.cardId}>`));
+        const upgradeLane = upgrade ? findUnit(run.state, upgrade.slice(upgrade.indexOf(">") + 1))?.mission.def.id : undefined;
+        const lane =
+          upgradeLane ??
+          missions.find(
+            (m) => legalKeys.has(`play:${entry.cardId}@${m.def.id}`) || legalKeys.has(`play:${entry.cardId}@${m.def.id}:hidden`),
+          )?.def.id;
+        if (lane) scheduleReveal(lane, "bottom");
+      }
+    },
+    [myTurn, inCoach, selection, wide, legalKeys, run.state, missions, scheduleReveal],
   );
 
   /* ---------------------------------------------------------------- */
@@ -658,6 +726,15 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
     () => steps.map((turns, i) => (stage && i === steps.length - 1 ? turns.slice(0, stage.index + 1) : turns)),
     [steps, stage],
   );
+  // The latest opponent move that hid or defeated one of your characters, shown on a loss.
+  const turningPoint = useMemo(() => {
+    for (const turn of steps.flat().reverse()) {
+      if (turn.side !== "opp") continue;
+      const line = turn.lines.find((l) => l.tone === "defeat" || l.tone === "hide");
+      if (line) return `${turn.headline}. ${line.text}.`;
+    }
+    return null;
+  }, [steps]);
   const lastTurn = visibleSteps.length ? visibleSteps[visibleSteps.length - 1]!.at(-1) : undefined;
 
   const feedback: Feedback = useMemo(() => {
@@ -674,9 +751,10 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
     if (effectiveSelection?.kind === "card") {
       const card = cards[effectiveSelection.cardId];
       const upgrades = Object.keys(unitOptions).length;
+      const effects = card?.effects.map((e) => `${e.trigger.replace("_", " ")}: ${e.text}`).join(" ") ?? "";
       return {
         tone: "info",
-        text: `${card?.name ?? "Card"} selected. Choose a mission${upgrades ? " or upgrade your matching character" : ""}. Esc to cancel.`,
+        text: `${card ? `${card.name}, ${card.title}` : "Card"} selected${effects ? ` (${effects})` : ""}. Choose a mission${upgrades ? " or upgrade your matching character" : ""}. Esc to cancel.`,
       };
     }
     if (effectiveSelection?.kind === "unit") {
@@ -852,6 +930,7 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
         </p>
         <motion.div
           layoutScroll
+          ref={boardScroll}
           className="scrollbar-none -mx-4 mt-2 snap-x snap-mandatory scroll-px-4 overflow-x-auto px-4 pb-3 pt-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:snap-none lg:overflow-visible lg:px-0"
         >
           <div className="grid auto-cols-[minmax(256px,82vw)] grid-flow-col grid-rows-[auto_auto_auto] gap-x-3 gap-y-0 sm:auto-cols-[minmax(280px,44vw)] lg:auto-cols-[minmax(0,1fr)]">
@@ -908,7 +987,7 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
       </div>
 
       {/* Command bar */}
-      <div className="sticky bottom-3 z-30 mt-6">
+      <div ref={commandEl} className="sticky bottom-3 z-30 mt-6">
         {inCoach ? (
           <CoachPanel
             poolRef={poolEl}
@@ -985,6 +1064,7 @@ function PuzzleGame({ puzzle }: { puzzle: PuzzleDef }) {
         onRetry={reset}
         onReview={closeResult}
         onHints={openHintsFromResult}
+        turningPoint={turningPoint}
       />
     </div>
   );

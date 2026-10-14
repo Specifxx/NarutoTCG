@@ -60,8 +60,8 @@ export function KageSealCard({ active, reduce, compact }: { active: boolean; red
         </div>
         <div className="relative border-t border-white/10 bg-black/50 px-1.5 py-1">
           <p className={cn("truncate font-black leading-tight text-white", compact ? "text-[9.5px]" : "text-[11.5px]")}>Kage Seal</p>
-          <p className={cn("truncate font-medium leading-tight text-ash-400", compact ? "text-[7.5px]" : "text-[9px]")}>
-            Base income · not a card
+          <p className={cn("line-clamp-2 font-medium leading-tight text-ash-400", compact ? "text-[7.5px]" : "text-[9px]")}>
+            Not a card · base income
           </p>
         </div>
       </div>

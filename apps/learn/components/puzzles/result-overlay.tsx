@@ -37,6 +37,7 @@ export function ResultOverlay({
   onRetry,
   onReview,
   onHints,
+  turningPoint = null,
 }: {
   open: boolean;
   evaluation: RoundEvaluation | null;
@@ -52,6 +53,8 @@ export function ResultOverlay({
   onRetry: () => void;
   onReview: () => void;
   onHints: () => void;
+  /** On a loss: the opponent move that hid or defeated one of your characters, if any. */
+  turningPoint?: string | null;
 }) {
   const reduce = useReducedMotion();
   const dialog = useRef<HTMLDivElement>(null);
@@ -192,6 +195,16 @@ export function ResultOverlay({
                       : `Already cleared · best ${clear.bestStars}★`}
                   </motion.p>
                 </div>
+              )}
+
+              {!win && turningPoint && (
+                <p className="mt-5 flex w-full items-start gap-2 rounded-xl border border-blood-400/30 bg-blood-500/10 px-3 py-2 text-left text-[12.5px] leading-snug text-ash-200">
+                  <Icon name="bolt" size={14} className="mt-0.5 shrink-0 text-blood-400" />
+                  <span>
+                    <span className="font-black text-blood-400">Turning point: </span>
+                    {turningPoint}
+                  </span>
+                </p>
               )}
 
               <ul className="mt-5 w-full space-y-1.5 text-left" aria-label="Mission results">

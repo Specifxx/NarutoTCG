@@ -31,6 +31,8 @@ const NO_GAINS: Record<Side, Gain | null> = { you: null, opp: null };
 export default function MissionEvaluator({ onComplete, completed }: WidgetProps) {
   const reduce = useReducedMotion() ?? false;
   const isWide = useMediaQuery("(min-width: 640px)");
+  // `sm` cards keep full names and trigger badges; only the narrowest phones drop to `xs`.
+  const roomyCards = useMediaQuery("(min-width: 360px)");
   const uid = useId();
   const edgeLayoutId = `${uid}-edge`;
   const { emit, layer } = useParticleFlight();
@@ -219,6 +221,11 @@ export default function MissionEvaluator({ onComplete, completed }: WidgetProps)
     setTileBursts({});
     setTicker("Mission evaluation begins with the D-rank mission.");
     schedule(() => runMission(0, g), reduce ? 100 : 400);
+    // The Evaluate button unmounts: keep keyboard focus on the next control.
+    window.setTimeout(
+      () => rootRef.current?.querySelector<HTMLElement>("[data-skip-results]")?.focus({ preventScroll: true }),
+      50,
+    );
   };
 
   const skip = () => {
@@ -303,13 +310,13 @@ export default function MissionEvaluator({ onComplete, completed }: WidgetProps)
 
       {/* Rule chips */}
       <ul
-        className="scrollbar-none -mx-3 mt-4 flex gap-1.5 overflow-x-auto px-3 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+        className="mt-4 flex flex-wrap gap-1.5"
         aria-label="Mission evaluation rules"
       >
         {RULES.map((r) => (
           <li
             key={r.text}
-            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11.5px] font-semibold text-ash-300"
+            className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11.5px] font-semibold text-ash-300"
           >
             <Icon name={r.icon} size={12} className="text-gold-300" />
             <RichText text={r.text} />
@@ -352,7 +359,7 @@ export default function MissionEvaluator({ onComplete, completed }: WidgetProps)
               edgeLayoutId={edgeLayoutId}
               idPrefix={`${uid}-tile`}
               burst={tileBursts[o.missionId] ?? 0}
-              cardSize={isWide ? "sm" : "xs"}
+              cardSize={isWide || roomyCards ? "sm" : "xs"}
             />
           );
         })}
@@ -406,7 +413,7 @@ export default function MissionEvaluator({ onComplete, completed }: WidgetProps)
             </>
           )}
           {phase === "evaluating" && (
-            <Button variant="secondary" onClick={skip}>
+            <Button variant="secondary" onClick={skip} data-skip-results>
               <Icon name="chevron-right" size={16} />
               Skip to results
             </Button>

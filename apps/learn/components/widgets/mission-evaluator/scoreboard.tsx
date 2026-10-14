@@ -85,8 +85,9 @@ export function Scoreboard({
   className?: string;
 }) {
   // Must be a direct child of the tall widget panel: sticky only sticks within its parent.
+  // Sits just below the sticky lesson header + stage tabs (~160px phones, 184px desktop).
   return (
-    <div className={cn("sticky top-[7rem] z-20", className)}>
+    <div className={cn("sticky top-[164px] z-20 sm:top-[184px]", className)}>
       <div className="relative flex items-center justify-between gap-2 overflow-visible rounded-2xl border border-white/10 bg-shadow-900/90 px-3 py-2.5 shadow-[0_16px_40px_-18px_rgba(0,0,0,0.9)] backdrop-blur-md sm:px-4">
         <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
           <span className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-energy-500/[0.12] to-transparent" />

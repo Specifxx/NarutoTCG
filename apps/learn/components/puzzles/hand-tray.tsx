@@ -33,8 +33,11 @@ export function HandTray({
   wide: boolean;
   coachCardId: string | null;
 }) {
+  // Phones get the full rules text of the selected (or walkthrough) card under the hand.
+  const detailId = selectedKey?.split(":")[0] ?? coachCardId;
+  const detail = !wide && detailId ? cards[detailId] : undefined;
   return (
-    <section aria-labelledby="puzzle-hand-title" className="panel relative p-4 sm:p-5">
+    <section id="puzzle-hand" tabIndex={-1} aria-labelledby="puzzle-hand-title" className="panel relative p-4 focus:outline-none sm:p-5">
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[1.25rem]">
         <span className="absolute inset-x-10 -bottom-20 h-40 rounded-full bg-chakra-500/10 blur-3xl" />
       </span>
@@ -65,7 +68,7 @@ export function HandTray({
                 <motion.li key={key} layout="position" className="relative flex flex-col items-center gap-1.5">
                   <GameCard
                     card={card}
-                    size={wide ? "md" : "sm"}
+                    size="md"
                     layoutId={handLayoutId(entry.cardId, entry.copy)}
                     selected={selected}
                     dimmed={!entry.playable && !selected}
@@ -86,6 +89,23 @@ export function HandTray({
               );
             })}
           </ul>
+          {detail && (
+            <div className="mt-2 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-[12.5px] leading-snug" aria-hidden="true">
+              <p className="font-bold text-white">
+                {detail.name} <span className="font-semibold text-ash-400">· {detail.title}</span>
+              </p>
+              {detail.effects.length > 0 ? (
+                detail.effects.map((e, i) => (
+                  <p key={i} className="mt-1 text-ash-200">
+                    <span className="font-black text-chakra-200">{e.trigger.replace("_", " ")}:</span> {e.text}
+                  </p>
+                ))
+              ) : !detail.chakraBonus ? (
+                <p className="mt-1 text-ash-400">No effect text.</p>
+              ) : null}
+              {detail.chakraBonus ? <p className="mt-1 text-ash-200">CHAKRA +{detail.chakraBonus} each Start phase.</p> : null}
+            </div>
+          )}
         </div>
       )}
     </section>

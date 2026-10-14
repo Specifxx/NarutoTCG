@@ -78,7 +78,7 @@ export function ResultsPanel({
             <ParticleBurst fire={burst} palette="leaf" shape="mixed" count={34} spread={150} />
           </span>
           <div className="min-w-0">
-            <h3 ref={headingRef} tabIndex={-1} id={`${scenario.id}-results`} className="scroll-mt-48 text-xl font-black text-white outline-none">
+            <h3 ref={headingRef} tabIndex={-1} id={`${scenario.id}-results`} className="scroll-mt-[16.5rem] text-xl font-black text-white outline-none">
               {perfect ? "Perfect read!" : `${rightCount} of ${rows.length} calls right`}
             </h3>
             <p className="text-[13.5px] text-ash-400">
