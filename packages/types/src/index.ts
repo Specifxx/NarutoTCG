@@ -1,4 +1,4 @@
-export type CardType = "character" | "jutsu" | "mission" | "item" | "event";
+export type CardType = "leader" | "character" | "jutsu" | "mission" | "item" | "event";
 export type Rarity = "common" | "uncommon" | "rare" | "super-rare" | "secret-rare" | "promo";
 
 export interface NarutoCard {
@@ -13,6 +13,8 @@ export interface NarutoCard {
   power?: number;
   text?: string;
   imageUrl?: string;
+  /** Free-form tribal/keyword traits such as "Uzumaki", "Akatsuki" or "Sannin". */
+  traits?: string[];
 }
 
 export interface DeckEntry {
@@ -39,3 +41,5 @@ export interface PriceRecord {
   url?: string;
   recordedAt: string;
 }
+
+export * from "./competitive";

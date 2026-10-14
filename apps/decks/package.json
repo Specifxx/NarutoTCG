@@ -6,21 +6,32 @@
     "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start --port 3001",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed": "tsx scripts/generate-seed.ts",
+    "ingest": "tsx scripts/ingest.ts"
   },
   "dependencies": {
     "@naruto-tcg/types": "workspace:*",
     "@naruto-tcg/ui": "workspace:*",
     "next": "^15.3.0",
+    "papaparse": "^5.7.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-is": "^19.3.0",
+    "recharts": "^3.10.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.0.0",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.1.0",
-    "typescript": "^5.8.0"
+    "tsx": "^4.23.15",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.11"
   }
 }
