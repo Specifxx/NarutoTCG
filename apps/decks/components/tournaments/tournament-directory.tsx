@@ -11,7 +11,7 @@ import { eventTotals, filterEvents, formatOptions, mergeEventSummaries, offeredO
 import { EventListHeader, EventRow } from "./event-row";
 import { REGION_LABELS, type RegionId } from "./region";
 import { BUTTON_GHOST_SM, FIELD, FOCUS_RING } from "./styles";
-import { normalizeTournament, summarize, type TournamentSummary } from "./summary";
+import { summarize, type TournamentSummary } from "./summary";
 
 function SearchIcon({ className }: { className?: string }) {
   return (
@@ -31,8 +31,9 @@ function SearchIcon({ className }: { className?: string }) {
 export function TournamentDirectory({ events }: { events: TournamentSummary[] }) {
   const id = useId();
   const imported = useImportedTournaments();
+  // Stored events arrive sanitized; everything in this browser's store counts as an import.
   const all = useMemo(
-    () => mergeEventSummaries(events, imported.map((t) => ({ ...summarize(normalizeTournament(t)), source: "import" as const }))),
+    () => mergeEventSummaries(events, imported.map((t) => ({ ...summarize(t), source: "import" as const }))),
     [events, imported],
   );
 

@@ -4,6 +4,7 @@ import { getSeedTournaments } from "@/lib/data/tournaments";
 import { normalizeSearchText } from "@/lib/decks/catalog";
 import { getDeckSummaries } from "@/lib/decks/repository";
 import type { DeckSummary } from "@/lib/decks/types";
+import { sanitizeTournament } from "@/lib/storage/sanitize";
 import { IMPORTED_TAG, cardOptionsFor, featuredDecks, importedDeckSummaries, matchCardOptions, mergeDecks } from "./decks";
 
 const seed = getDeckSummaries();
@@ -27,6 +28,19 @@ describe("importedDeckSummaries", () => {
   it("skips events that cannot be built", () => {
     const broken = { id: "x", name: "X", date: "2026-01-01", players: [null], matches: [] } as unknown as Tournament;
     expect(importedDeckSummaries([broken, importedCopy()]).every((deck) => deck.tournament?.id === "my-local-event")).toBe(true);
+  });
+
+  it("never produces NaN votes or undefined tags from incomplete stored events the store sanitized", () => {
+    const { tier, topCutSize, ...incomplete } = importedCopy();
+    void tier;
+    void topCutSize;
+    const decks = importedDeckSummaries([sanitizeTournament(incomplete)!]);
+    expect(decks.length).toBeGreaterThan(0);
+    for (const deck of decks) {
+      expect(Number.isFinite(deck.votes)).toBe(true);
+      expect(deck.tags.every((tag) => typeof tag === "string" && !tag.includes("undefined"))).toBe(true);
+      expect(deck.tournament?.tier).toBe("store-championship");
+    }
   });
 });
 

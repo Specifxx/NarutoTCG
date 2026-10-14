@@ -2,13 +2,16 @@ import type { Tournament } from "@naruto-tcg/types";
 import { describe, expect, it } from "vitest";
 import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
 import { tournamentDeckId } from "@/lib/decks/types";
-import { findImportedDeck, isImportedDeckId, sanitizeImportedTournament } from "./imported-deck";
+import { sanitizeTournament } from "@/lib/storage/sanitize";
+import { findImportedDeck, isImportedDeckId } from "./imported-deck";
 import { DECK_KIND_LABEL, authorRole, deckKind, deckPageTitle } from "./deck-meta";
 
 const seed = SEED_TOURNAMENTS[0]!;
 const imported: Tournament = { ...seed, id: "local-test-cup-2026-09-12", source: "import" };
 const pilot = imported.players.find((player) => player.decklist)!;
 const deckId = tournamentDeckId(imported.id, pilot.id);
+/** A hand-edited event as the imports store hands it to the page: sanitized. */
+const stored = (raw: unknown): Tournament => sanitizeTournament(raw)!;
 
 describe("isImportedDeckId", () => {
   it("recognizes decks from local- events only", () => {
@@ -34,8 +37,13 @@ describe("findImportedDeck", () => {
     expect(findImportedDeck([imported], "not-a-deck-id")).toBeNull();
   });
 
-  it("repairs a missing tier and cut size", () => {
-    const sloppy = { ...imported, tier: "mega-event", topCutSize: -3 } as unknown as Tournament;
+  it("returns null instead of throwing when an event cannot be built", () => {
+    const unreadable = { ...imported, players: [null, ...imported.players] } as unknown as Tournament;
+    expect(findImportedDeck([unreadable], deckId)).toBeNull();
+  });
+
+  it("opens decks from stored events with a missing tier and cut size", () => {
+    const sloppy = stored({ ...imported, tier: "mega-event", topCutSize: -3 });
     const deck = findImportedDeck([sloppy], deckId)!;
     expect(deck.tournament?.tier).toBe("store-championship");
     expect(deck.tournament?.topCutSize).toBe(0);
@@ -47,12 +55,12 @@ describe("findImportedDeck", () => {
         ? ({ ...player, name: "", archetypeId: "not-an-archetype", placement: undefined, country: 7 } as unknown as typeof player)
         : player,
     );
-    const sloppy = {
+    const sloppy = stored({
       ...imported,
       name: undefined,
       players: [null, { name: "No id" }, ...players, { ...pilot, name: "Duplicate" }],
       matches: [null, { player1Id: pilot.id, outcome: "weird" }, ...imported.matches],
-    } as unknown as Tournament;
+    });
     const deck = findImportedDeck([sloppy], deckId)!;
     expect(deck).not.toBeNull();
     expect(deck.archetypeId).toBe("rogue");
@@ -64,17 +72,11 @@ describe("findImportedDeck", () => {
   });
 
   it("drops malformed decklist entries and lists without a leader", () => {
-    const withList = (decklist: unknown) =>
-      ({ ...imported, players: imported.players.map((p) => (p.id === pilot.id ? { ...p, decklist } : p)) }) as unknown as Tournament;
+    const withList = (decklist: unknown) => stored({ ...imported, players: imported.players.map((p) => (p.id === pilot.id ? { ...p, decklist } : p)) });
     const cards = [...pilot.decklist!.cards, { cardId: "", quantity: 2 }, { cardId: "NT01-001", quantity: 0 }, null];
     expect(findImportedDeck([withList({ ...pilot.decklist, cards })], deckId)!.decklist.cards).toEqual(pilot.decklist!.cards);
     expect(findImportedDeck([withList({ cards: pilot.decklist!.cards })], deckId)).toBeNull();
     expect(findImportedDeck([withList("not a list")], deckId)).toBeNull();
-  });
-
-  it("returns null for events without an id", () => {
-    expect(sanitizeImportedTournament({ ...imported, id: "" })).toBeNull();
-    expect(sanitizeImportedTournament(null as unknown as Tournament)).toBeNull();
   });
 });
 

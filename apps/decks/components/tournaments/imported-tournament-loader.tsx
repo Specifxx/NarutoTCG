@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { useImportedTournaments } from "@/lib/storage/imports";
 import { useHydrated } from "@/lib/storage/local-store";
 import { BUTTON_GHOST, BUTTON_PRIMARY, FOCUS_RING } from "./styles";
-import { normalizeTournament } from "./summary";
 import { TournamentView } from "./tournament-view";
 
 function Breadcrumb() {
@@ -46,8 +45,9 @@ export function ImportedTournamentLoader({ id }: { id: string }) {
   const imported = useImportedTournaments();
   const tournament = useMemo(() => {
     const found = imported.find((t) => t.id === id);
-    // Everything in this browser's store is an import, whatever the file said, so it can be deleted.
-    return found && { ...normalizeTournament(found), source: "import" as const };
+    // Stored events arrive sanitized. Everything in this browser's store is an import, whatever
+    // the file said, so it can be deleted.
+    return found && (found.source === "import" ? found : { ...found, source: "import" as const });
   }, [imported, id]);
 
   useEffect(() => {

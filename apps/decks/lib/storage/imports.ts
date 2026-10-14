@@ -1,5 +1,6 @@
 import type { Tournament } from "@naruto-tcg/types";
 import { createLocalStore, useLocalStore } from "./local-store";
+import { sanitizeTournament } from "./sanitize";
 
 /**
  * Tournaments a TO imported through the wizard, kept in this browser only. They are merged
@@ -8,21 +9,26 @@ import { createLocalStore, useLocalStore } from "./local-store";
 
 const EMPTY: Tournament[] = [];
 
-function looksLikeTournament(value: unknown): value is Tournament {
-  if (!value || typeof value !== "object") return false;
-  const t = value as Partial<Tournament>;
-  return (
-    typeof t.id === "string" &&
-    typeof t.name === "string" &&
-    typeof t.date === "string" &&
-    Array.isArray(t.players) &&
-    Array.isArray(t.matches)
-  );
+/**
+ * Every readable stored record, sanitized (see {@link sanitizeTournament}), in stored order.
+ * Unreadable records are skipped so one bad entry never hides the others. Runs once per change
+ * of the stored value, so pages get the same objects on every render.
+ */
+function parseImports(raw: unknown): Tournament[] | null {
+  if (!Array.isArray(raw)) return null;
+  const tournaments: Tournament[] = [];
+  for (const item of raw) {
+    try {
+      const tournament = sanitizeTournament(item);
+      if (tournament) tournaments.push(tournament);
+    } catch {
+      // Skipped: a record the sanitizer cannot read must not take the other imports down.
+    }
+  }
+  return tournaments;
 }
 
-export const importsStore = createLocalStore<Tournament[]>("ntcg.decks.imports.v1", EMPTY, (raw) =>
-  Array.isArray(raw) ? raw.filter(looksLikeTournament) : null,
-);
+export const importsStore = createLocalStore<Tournament[]>("ntcg.decks.imports.v1", EMPTY, parseImports);
 
 export function useImportedTournaments(): Tournament[] {
   return useLocalStore(importsStore)[0];

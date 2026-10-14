@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { emptyCounts, mergeAggregates } from "@/lib/meta/aggregate";
 import { OTHER_SERIES_ID, chartSeriesIds, overallShare } from "@/lib/meta/share";
 import type { ArchetypeStats, MatchupCell, TournamentAggregate } from "@/lib/meta/types";
+import { sanitizeTournament } from "@/lib/storage/sanitize";
 import {
   aggregateImported,
   availableFormats,
@@ -11,10 +12,10 @@ import {
   countMatches,
   formatLift,
   formatWinRateInterval,
+  isMetaReady,
   matchupCellTitle,
   mergeImportedAggregates,
   newestEventDate,
-  sanitizeImportedTournament,
   sliceDonut,
   sortFieldVsTopCut,
   trendDirection,
@@ -49,7 +50,7 @@ describe("imported aggregates", () => {
     expect(seed).toHaveLength(2);
   });
 
-  it("aggregates valid imports and skips malformed ones", () => {
+  it("aggregates valid imports and skips ones that cannot be read", () => {
     const valid: Tournament = {
       id: "imp-1",
       name: "Imported Store Championship — Somewhere",
@@ -60,11 +61,13 @@ describe("imported aggregates", () => {
       players: [],
       matches: [],
     } as unknown as Tournament;
+    // Never sanitized: the try/catch keeps the page up even then.
     const broken = {
       id: "imp-2",
       name: "Broken",
       date: "2026-10-12",
-      players: [{ id: "p1" }],
+      tier: "store-championship",
+      players: [null],
       matches: [null],
     } as unknown as Tournament;
     const result = aggregateImported([valid, broken]);
@@ -72,56 +75,58 @@ describe("imported aggregates", () => {
   });
 });
 
-describe("sanitizeImportedTournament", () => {
+// Field repairs (tier, cut, format, players, matches) happen in the imports store: see
+// lib/storage/sanitize.test.ts. The meta only needs a real date on top of that.
+describe("stored imports in the meta", () => {
   const base = {
     id: "local-1",
     name: "Local Store Championship",
     date: "2026-10-12",
     tier: "store-championship",
     format: "Standard (NT01–NT04)",
+    location: {},
+    organizer: "Local Games",
+    swissRounds: 1,
     topCutSize: 4,
+    bestOf: 3,
+    source: "import",
     players: [
       { id: "a", name: "A", archetypeId: "sand-gaara", placement: 1 },
       { id: "b", name: "B", archetypeId: "akatsuki-pain", placement: 2 },
     ],
     matches: [{ round: 1, stage: "swiss", player1Id: "a", player2Id: "b", outcome: "p1" }],
   };
-  const tournament = (overrides: Record<string, unknown> = {}) => ({ ...base, ...overrides }) as unknown as Tournament;
+  /** The event as the imports store hands it to the page: sanitized. */
+  const tournament = (overrides: Record<string, unknown> = {}) => sanitizeTournament({ ...base, ...overrides })!;
 
-  it("passes a well-formed import through unchanged", () => {
-    expect(sanitizeImportedTournament(tournament())).toEqual(base);
+  it("places events with a real ISO date or timestamp", () => {
+    expect(isMetaReady(tournament())).toBe(true);
+    expect(isMetaReady(tournament({ date: "2026-10-12T18:00:00Z" }))).toBe(true);
   });
 
-  it("skips imports that cannot be placed in time or tier", () => {
-    expect(sanitizeImportedTournament(tournament({ date: "10/12/2026" }))).toBeNull();
-    expect(sanitizeImportedTournament(tournament({ date: "2026-13-45" }))).toBeNull();
-    expect(sanitizeImportedTournament(tournament({ date: undefined }))).toBeNull();
-    expect(sanitizeImportedTournament(tournament({ tier: undefined }))).toBeNull();
-    expect(sanitizeImportedTournament(tournament({ tier: "worlds" }))).toBeNull();
-    expect(sanitizeImportedTournament(tournament({ id: "" }))).toBeNull();
+  it("skips imports that cannot be placed in time", () => {
+    for (const date of ["10/12/2026", "2026-13-45", "2026-02-30", "2026-1-5", "2026-10-12 garbage", "Oct 30, 2026", "", undefined]) {
+      expect(isMetaReady(tournament({ date }))).toBe(false);
+    }
   });
 
-  it("trims ISO timestamps to dates and defaults a missing cut and format", () => {
-    const clean = sanitizeImportedTournament(tournament({ date: "2026-10-12T18:00:00Z", topCutSize: undefined, format: undefined }))!;
-    expect(clean.date).toBe("2026-10-12");
-    expect(clean.topCutSize).toBe(0);
-    expect(clean.format).toBe("");
+  it("aggregates a well-formed import as is and trims ISO timestamps to dates", () => {
+    const [plain, stamped] = aggregateImported([tournament(), tournament({ id: "local-2", date: "2026-10-12T18:00:00Z" })]);
+    expect(plain).toMatchObject({ tournamentId: "local-1", date: "2026-10-12", tier: "store-championship", format: base.format, topCutSize: 4 });
+    expect(stamped!.date).toBe("2026-10-12");
   });
 
-  it("maps unknown archetypes to rogue and drops malformed players and matches", () => {
-    const clean = sanitizeImportedTournament(
+  it("counts players the store mapped to rogue and leaves out matches it dropped", () => {
+    const [agg] = aggregateImported([
       tournament({
         players: [...base.players, { id: "c", placement: 3 }, { id: "d", archetypeId: "kaguya", placement: 4 }, null, { name: "no id" }],
-        matches: [...base.matches, null, { player1Id: "a", player2Id: "c" }, { player1Id: "c", player2Id: "d", outcome: "draw" }],
+        matches: [...base.matches, null, { player1Id: "a", player2Id: "c" }, { round: 1, stage: "swiss", player1Id: "c", player2Id: "d", outcome: "draw" }],
       }),
-    )!;
-    expect(clean.players.map((p) => [p.id, p.archetypeId])).toEqual([
-      ["a", "sand-gaara"],
-      ["b", "akatsuki-pain"],
-      ["c", "rogue"],
-      ["d", "rogue"],
     ]);
-    expect(clean.matches.map((m) => m.outcome)).toEqual(["p1", "draw"]);
+    expect(agg!.playerCount).toBe(4);
+    expect(Object.keys(agg!.archetypes).sort()).toEqual(["akatsuki-pain", "rogue", "sand-gaara"]);
+    expect(agg!.archetypes.rogue).toMatchObject({ entries: 2, mirrorMatches: 1 });
+    expect(agg!.archetypes["sand-gaara"]!.matches).toEqual({ wins: 1, losses: 0, draws: 0 });
   });
 
   it("keeps NaN out of the merged meta and bad dates out of the date presets", () => {
@@ -130,11 +135,12 @@ describe("sanitizeImportedTournament", () => {
       tournament({ id: "local-2", tier: undefined }),
       tournament({ id: "local-3", date: "Oct 30, 2026" }),
     ]);
-    expect(aggs.map((a) => a.tournamentId)).toEqual(["local-1"]);
+    expect(aggs.map((a) => a.tournamentId)).toEqual(["local-1", "local-2"]);
+    expect(aggs[1]!.tier).toBe("store-championship");
     const meta = mergeAggregates(aggs);
     expect(Object.values(meta.archetypes).every((c) => Number.isFinite(c.points))).toBe(true);
     expect(newestEventDate(aggs)).toBe("2026-10-12");
-    expect(availableFormats(aggs)).toEqual([]);
+    expect(availableFormats(aggs)).toEqual([base.format, "Unknown format"]);
   });
 });
 

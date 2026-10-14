@@ -2,6 +2,7 @@ import type { Tournament } from "@naruto-tcg/types";
 import { describe, expect, it } from "vitest";
 import { IMPORTED_TAG } from "@/components/directory/decks";
 import { getSeedTournaments } from "@/lib/data/tournaments";
+import { sanitizeTournament } from "@/lib/storage/sanitize";
 import { importedPlayerProfile } from "./imported-profile";
 
 /** A seed event re-keyed as an import whose players are unknown to the seed. */
@@ -57,11 +58,11 @@ describe("importedPlayerProfile", () => {
     expect(importedPlayerProfile([{ id: "", players: [] } as unknown as Tournament], winner.id)).toBeNull();
   });
 
-  it("survives events with missing fields", () => {
+  it("survives stored events with missing fields once the imports store has sanitized them", () => {
     const { tier, topCutSize, ...rest } = event;
     void tier;
     void topCutSize;
-    const profile = importedPlayerProfile([rest as Tournament], winner.id)!;
+    const profile = importedPlayerProfile([sanitizeTournament(rest)!], winner.id)!;
     expect(profile.results[0]).toMatchObject({ tier: "store-championship", topCutSize: 0 });
     expect(Number.isFinite(profile.decks[0]!.votes)).toBe(true);
   });

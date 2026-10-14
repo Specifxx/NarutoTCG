@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
 import { buildTournamentDecks, toSummary } from "@/lib/decks/catalog";
-import type { Tournament } from "@naruto-tcg/types";
+import { sanitizeTournament } from "@/lib/storage/sanitize";
 import { buildBracket } from "./bracket";
 import { buildStandings, eventMetaBreakdown } from "./event";
 import { eventRounds } from "./rounds";
-import { normalizeTournament, structureLabel, summarize } from "./summary";
+import { structureLabel, summarize } from "./summary";
 import { fixtureTournament } from "./test-fixtures";
 
 describe("summarize", () => {
@@ -67,33 +67,13 @@ describe("structureLabel", () => {
   });
 });
 
-describe("normalizeTournament", () => {
-  it("returns complete records unchanged", () => {
+describe("hand-edited imports", () => {
+  // The cases the imports store's sanitizer repairs are covered in lib/storage/sanitize.test.ts;
+  // this checks that the event views can run on what it hands them.
+  it("every view helper runs on a broken stored record once the store has sanitized it", () => {
     const t = fixtureTournament();
-    expect(normalizeTournament(t)).toBe(t);
-    for (const seed of SEED_TOURNAMENTS) expect(normalizeTournament(seed)).toBe(seed);
-  });
-
-  it("fills fields a stored import can lack", () => {
-    const broken = { ...fixtureTournament(), tier: "mystery", location: undefined, organizer: 4, format: "", swissRounds: -1, topCutSize: "8", bestOf: 5, source: "x" };
-    const fixed = normalizeTournament(broken as unknown as Tournament);
-    expect(fixed).toMatchObject({
-      tier: "store-championship",
-      location: {},
-      organizer: "Unknown organizer",
-      format: "Unknown format",
-      swissRounds: 0,
-      topCutSize: 0,
-      bestOf: 3,
-      source: "import",
-    });
-    expect(fixed.players).toHaveLength(8);
-    expect(() => summarize(fixed)).not.toThrow();
-  });
-
-  it("repairs broken players, matches and text fields so every view helper can run", () => {
-    const t = fixtureTournament();
-    const broken = {
+    const missingFields = { ...t, tier: "mystery", location: undefined, organizer: 4, format: "", swissRounds: -1, topCutSize: "8", bestOf: 5, source: "x" };
+    const brokenRows = {
       ...t,
       notes: { text: "not a string" },
       importedAt: 42,
@@ -119,36 +99,17 @@ describe("normalizeTournament", () => {
         { round: 3, stage: "swiss", player1Id: "hal-h", player2Id: "eve-e", outcome: "bye" },
       ],
     };
-    const fixed = normalizeTournament(broken as unknown as Tournament);
-    expect(fixed).not.toHaveProperty("notes");
-    expect(fixed).not.toHaveProperty("importedAt");
-    expect(fixed.location).toEqual({ city: "Testville" });
-
-    expect(fixed.players.map((p) => p.id)).toEqual(["ann-a", "ben-b", "dee-d", "zed", "gus-g", "fay-f", "cal-c", "eve-e", "hal-h"]);
-    expect(fixed.players[0]).toBe(t.players[0]);
-    expect(fixed.players[1]!.decklist?.cards).toEqual([{ cardId: "NT02-009", quantity: 4 }]);
-    expect(fixed.players[2]).not.toHaveProperty("decklist");
-    expect(fixed.players[3]).toEqual({ id: "zed", name: "zed", archetypeId: "rogue", placement: 9 });
-
-    const extra = fixed.matches.slice(t.matches.length);
-    expect(extra).toEqual([
-      { round: 2, stage: "swiss", player1Id: "zed", player2Id: "fay-f", outcome: "p2" },
-      { round: 3, stage: "swiss", player1Id: "zed", player2Id: null, outcome: "bye" },
-      { round: 3, stage: "swiss", player1Id: "hal-h", player2Id: null, outcome: "bye" },
-    ]);
-
-    expect(() => {
-      const standings = buildStandings(fixed);
-      buildBracket(fixed.matches, new Map(standings.map((r) => [r.playerId, r.swissRank ?? 0])));
-      eventRounds(fixed.matches);
-      eventMetaBreakdown(fixed.players, fixed.topCutSize);
-      buildTournamentDecks([fixed]).map(toSummary);
-      summarize(fixed);
-    }).not.toThrow();
-  });
-
-  it("keeps a well-formed import as the same object", () => {
-    const t = fixtureTournament({ source: "import", notes: "Fine", importedAt: "2026-09-13T10:00:00Z", location: { online: true } });
-    expect(normalizeTournament(t)).toBe(t);
+    for (const broken of [missingFields, brokenRows]) {
+      const fixed = sanitizeTournament(broken)!;
+      expect(fixed).not.toBeNull();
+      expect(() => {
+        const standings = buildStandings(fixed);
+        buildBracket(fixed.matches, new Map(standings.map((r) => [r.playerId, r.swissRank ?? 0])));
+        eventRounds(fixed.matches);
+        eventMetaBreakdown(fixed.players, fixed.topCutSize);
+        buildTournamentDecks([fixed]).map(toSummary);
+        summarize(fixed);
+      }).not.toThrow();
+    }
   });
 });
