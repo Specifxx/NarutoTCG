@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type SiteAppId = "simulator" | "decks" | "compare" | "learn";
+export type SiteAppId = "simulator" | "decks" | "compare" | "learn" | "events";
 
 export interface SiteApp {
   id: SiteAppId;
@@ -33,6 +33,13 @@ export const SITE_APPS: readonly SiteApp[] = [
     blurb: "Compare card prices",
     envKey: "NEXT_PUBLIC_COMPARE_URL",
     fallback: "http://localhost:3002",
+  },
+  {
+    id: "events",
+    label: "Events",
+    blurb: "Events and local stores",
+    envKey: "NEXT_PUBLIC_EVENTS_URL",
+    fallback: "http://localhost:3004",
   },
   {
     id: "learn",
@@ -93,6 +100,14 @@ function AppIcon({ id }: { id: SiteAppId }) {
           <path d="M10 19V5" />
           <path d="M16 19v-7" />
           <path d="M22 19H2" />
+        </svg>
+      );
+    case "events":
+      return (
+        <svg {...common}>
+          <rect x="3.5" y="5" width="17" height="15" rx="2" />
+          <path d="M3.5 10h17M8 3v4M16 3v4" />
+          <path d="M8 14h3v3H8z" />
         </svg>
       );
     case "learn":

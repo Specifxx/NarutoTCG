@@ -2,12 +2,15 @@
 
 Turborepo monorepo (pnpm) with Next.js App Router, TypeScript and Tailwind CSS.
 
+Release phases and target dates for each app are in [SCHEDULE.md](SCHEDULE.md).
+
 | App | Port | Purpose |
 | --- | --- | --- |
 | `apps/simulator` | 3000 | Play-test the game |
 | `apps/decks` | 3001 | Build and share decks |
 | `apps/compare` | 3002 | Compare card prices |
 | `apps/learn` | 3003 | Learn how to play (served under `/learn`) |
+| `apps/events` | 3004 | Event calendar, store locator, tournaments |
 
 | Package | Purpose |
 | --- | --- |
@@ -23,7 +26,7 @@ pnpm typecheck
 
 ## Shared navigation
 
-Every app renders `SiteHeader` from `@naruto-tcg/ui`, linking Simulator, Decks, Compare and Learn.
+Every app renders `SiteHeader` from `@naruto-tcg/ui`, linking Simulator, Decks, Compare, Events and Learn.
 Links default to the local dev ports; override them at build time for deployments:
 
 | Variable | Default |
@@ -32,6 +35,9 @@ Links default to the local dev ports; override them at build time for deployment
 | `NEXT_PUBLIC_DECKS_URL` | `http://localhost:3001` |
 | `NEXT_PUBLIC_COMPARE_URL` | `http://localhost:3002` |
 | `NEXT_PUBLIC_LEARN_URL` | `http://localhost:3003/learn` |
+| `NEXT_PUBLIC_EVENTS_URL` | `http://localhost:3004` |
+
+To deploy on Vercel (one project per app), see [docs/deploy-with-claude-in-chrome.md](docs/deploy-with-claude-in-chrome.md).
 
 ## Learn portal (`apps/learn`)
 

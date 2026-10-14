@@ -1,14 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { SiteHeader, resolveSiteUrls } from "@naruto-tcg/ui";
+import { ReleaseRoadmap, SiteHeader, resolveSiteUrls } from "@naruto-tcg/ui";
 import { AmbientBackdrop } from "@/components/fx/ambient-backdrop";
 import { LearnSubnav } from "@/components/layout/learn-subnav";
 import { Providers } from "@/components/providers";
+import { SITE_URL } from "@/lib/site-url";
 import "./globals.css";
 
-const SITE_URL = process.env.NEXT_PUBLIC_LEARN_URL?.trim() || "http://localhost:3003/learn";
 const DESCRIPTION =
   "Learn to play the NARUTO Mythos TCG with animated lessons, interactive Chakra and Ambush simulators, Lethal Puzzles and a searchable keyword glossary. Free, fan-made, no sign-up.";
+
+// Re-render hourly so roadmap statuses follow the calendar without a redeploy.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   // Absolute base for the Open Graph image (social link previews need full URLs).
@@ -45,6 +48,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main id="main-content" tabIndex={-1} className="relative flex-1 outline-none">
             {children}
           </main>
+          <ReleaseRoadmap current="learn" />
           <footer className="relative border-t border-white/5">
             <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-xs text-ash-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <p>
