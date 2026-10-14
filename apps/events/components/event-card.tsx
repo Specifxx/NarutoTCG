@@ -32,9 +32,10 @@ export function EventCard({
   return (
     <article
       className={cx(
-        "group relative flex gap-4 rounded-xl border bg-shadow-900/80 p-4 transition-colors",
+        "group relative flex gap-4 rounded-xl border bg-shadow-900/80 p-4 transition-colors has-[a:focus-visible]:border-transparent has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-chakra-400",
         highlighted ? cx("border-transparent ring-2", meta.classes.ring) : "border-shadow-700 hover:border-shadow-500",
-        (past || cancelled) && "opacity-70",
+        // Muted without lowering text contrast; badges and the title already state the status.
+        (past || cancelled) && "border-dashed",
         className,
       )}
     >
@@ -43,6 +44,7 @@ export function EventCard({
           "flex w-14 shrink-0 flex-col items-center justify-center self-start rounded-lg border py-2 text-center",
           meta.classes.border,
           meta.classes.bg,
+          (past || cancelled) && "grayscale",
         )}
         aria-hidden="true"
       >
@@ -67,7 +69,7 @@ export function EventCard({
           <Link
             href={`/events/${event.id}`}
             className={cx(
-              "after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none group-focus-within:text-chakra-400 hover:text-chakra-400",
+              "scroll-mt-12 after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none group-focus-within:text-chakra-400 hover:text-chakra-400",
               cancelled && "line-through decoration-rose-400/70",
             )}
           >
@@ -76,23 +78,27 @@ export function EventCard({
         </h3>
 
         <dl className="mt-2 grid gap-1 text-sm text-ash-400">
-          <div className="flex items-start gap-1.5">
+          <div>
             <dt className="sr-only">When</dt>
-            <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <dd>
-              <span className="sr-only">{event.display.dateSpan}, </span>
-              {event.display.timeRange}
+            <dd className="flex items-start gap-1.5">
+              <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>
+                <span className="sr-only">{event.display.dateSpan}, </span>
+                {event.display.timeRange}
+              </span>
             </dd>
           </div>
           {showVenue && (
-            <div className="flex items-start gap-1.5">
+            <div>
               <dt className="sr-only">Where</dt>
-              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <dd className="min-w-0">
-                <span className="text-ash-200">{event.venue.name}</span>
-                <span className="text-ash-400">
-                  {" "}
-                  · {event.venue.city} <span aria-hidden="true">{event.display.flag}</span>
+              <dd className="flex min-w-0 items-start gap-1.5">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="min-w-0">
+                  <span className="text-ash-200">{event.venue.name}</span>
+                  <span className="text-ash-400">
+                    {" "}
+                    · {event.venue.city} <span aria-hidden="true">{event.display.flag}</span>
+                  </span>
                 </span>
               </dd>
             </div>

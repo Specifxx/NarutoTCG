@@ -22,7 +22,20 @@ export function toIcsUtc(iso: string): string {
 }
 
 function escapeText(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/([,;])/g, "\\$1");
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r\n|\r|\n/g, "\\n")
+    .replace(/[\x00-\x08\x0b-\x1f\x7f]/g, "")
+    .replace(/([,;])/g, "\\$1");
+}
+
+/** Canonical absolute URL, or undefined for anything unparsable (strips stray control characters). */
+function safeUrl(value: string): string | undefined {
+  try {
+    return new URL(value).href;
+  } catch {
+    return undefined;
+  }
 }
 
 /** Fold lines longer than 75 octets per RFC 5545 §3.1. */
@@ -58,6 +71,7 @@ export function buildIcs(entries: CalendarEntry[], options: { now?: Date; calend
     ...(options.calendarName ? [`X-WR-CALNAME:${escapeText(options.calendarName)}`] : []),
   ];
   for (const e of entries) {
+    const url = e.url ? safeUrl(e.url) : undefined;
     lines.push(
       "BEGIN:VEVENT",
       `UID:${escapeText(e.uid)}@events.naruto-tcg`,
@@ -67,7 +81,7 @@ export function buildIcs(entries: CalendarEntry[], options: { now?: Date; calend
       `SUMMARY:${escapeText(e.title)}`,
       ...(e.description ? [`DESCRIPTION:${escapeText(e.description)}`] : []),
       ...(e.location ? [`LOCATION:${escapeText(e.location)}`] : []),
-      ...(e.url ? [`URL:${e.url}`] : []),
+      ...(url ? [`URL:${url}`] : []),
       `STATUS:${e.status === "cancelled" ? "CANCELLED" : e.status === "postponed" ? "TENTATIVE" : "CONFIRMED"}`,
       "END:VEVENT",
     );

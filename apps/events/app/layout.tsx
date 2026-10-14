@@ -4,11 +4,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { EventsSubnav } from "@/components/events-subnav";
 import { SiteFooter } from "@/components/site-footer";
+import { SITE_ORIGIN } from "@/lib/site";
 import { zoneUrls } from "@/lib/zones";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3004"),
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
     default: "Naruto TCG · Events",
     template: "%s · Naruto TCG Events",

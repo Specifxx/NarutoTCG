@@ -15,11 +15,13 @@
     "lucide-react": "1.49.0"
   },
   "peerDependencies": {
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "tailwindcss": "^4.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "react": "^19.0.0",
+    "tailwindcss": "^4.1.0",
     "typescript": "^5.8.0"
   }
 }

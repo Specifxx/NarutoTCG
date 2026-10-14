@@ -1,22 +1,28 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPlaces } from "@/lib/data";
 import { isValidPoint } from "@/lib/geo";
-import { placeToResolved, searchPlaces, type ResolvedPlace } from "@/lib/places";
+import { isConfidentMatch, placeToResolved, rankPlaces, type RankedPlace, type ResolvedPlace } from "@/lib/places";
 
 /**
  * Resolve "ZIP / postcode / city" text to coordinates for radius search.
  *
- *   GET /api/geocode?q=90012            → 200 { result: ResolvedPlace } | 404 { error }
+ *   GET /api/geocode?q=90012            → 200 { result: ResolvedPlace } | 404/502/503 { error }
  *   GET /api/geocode?q=man&suggest=1    → 200 { results: ResolvedPlace[] }
  *
- * The bundled gazetteer answers first. Full lookups (not typeahead) fall back to
- * OpenStreetMap Nominatim, cached for a week, unless GEOCODER=off. Nominatim's
- * usage policy requires an identifying User-Agent and low request volume, which
- * the gazetteer-first strategy and caching keep us within.
+ * Typeahead only ever uses the bundled gazetteer. Full lookups answer from the
+ * gazetteer when the match is confident (postcode, exact name, no contradicting
+ * ", state/country"); otherwise they ask OpenStreetMap Nominatim (unless
+ * GEOCODER=off) and fall back to the best gazetteer guess if it has nothing.
+ *
+ * Nominatim's usage policy allows ~1 request/second with an identifying
+ * User-Agent: upstream calls are gated to one per second per instance,
+ * identical in-flight queries share one request, and the cache key is the
+ * normalised query.
  */
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const USER_AGENT = "NarutoTCG-Events/0.1 (+https://github.com/Specifxx/NarutoTCG)";
+const UPSTREAM_MIN_INTERVAL_MS = 1_000;
 
 interface NominatimHit {
   lat: string;
@@ -24,6 +30,9 @@ interface NominatimHit {
   display_name: string;
   address?: { country_code?: string };
 }
+
+let lastUpstreamAt = 0;
+const inFlight = new Map<string, Promise<ResolvedPlace | null>>();
 
 async function geocodeRemote(query: string): Promise<ResolvedPlace | null> {
   const params = new URLSearchParams({ q: query, format: "jsonv2", limit: "1", addressdetails: "1" });
@@ -45,6 +54,21 @@ async function geocodeRemote(query: string): Promise<ResolvedPlace | null> {
   };
 }
 
+/** Shared upstream request for `query`, or null when the per-second budget is spent. */
+function lookupRemote(query: string): Promise<ResolvedPlace | null> | null {
+  const key = query.toLowerCase().replace(/\s+/g, " ");
+  const pending = inFlight.get(key);
+  if (pending) return pending;
+  const now = Date.now();
+  if (now - lastUpstreamAt < UPSTREAM_MIN_INTERVAL_MS) return null;
+  lastUpstreamAt = now;
+  const request = geocodeRemote(key).finally(() => inFlight.delete(key));
+  inFlight.set(key, request);
+  return request;
+}
+
+const CACHEABLE = { "Cache-Control": "public, max-age=3600, s-maxage=86400" };
+
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
   const suggest = request.nextUrl.searchParams.get("suggest") === "1";
@@ -52,22 +76,36 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Enter between 2 and 100 characters." }, { status: 400 });
   }
 
-  const matches = searchPlaces(q, await getPlaces(), suggest ? 6 : 1).map(placeToResolved);
-  const cache = { "Cache-Control": "public, max-age=3600, s-maxage=86400" };
+  const ranked = rankPlaces(q, await getPlaces());
+  if (suggest) {
+    return NextResponse.json({ results: ranked.slice(0, 6).map((r) => placeToResolved(r.place)) }, { headers: CACHEABLE });
+  }
 
-  if (suggest) return NextResponse.json({ results: matches }, { headers: cache });
-  if (matches[0]) return NextResponse.json({ result: matches[0] }, { headers: cache });
+  const best: RankedPlace | undefined = ranked[0];
+  if (best && isConfidentMatch(best)) return NextResponse.json({ result: placeToResolved(best.place) }, { headers: CACHEABLE });
 
   if (process.env.GEOCODER !== "off") {
-    try {
-      const remote = await geocodeRemote(q);
-      if (remote) return NextResponse.json({ result: remote }, { headers: cache });
-    } catch {
+    const pending = lookupRemote(q);
+    if (pending) {
+      try {
+        const remote = await pending;
+        if (remote) return NextResponse.json({ result: remote }, { headers: CACHEABLE });
+      } catch {
+        if (!best) {
+          return NextResponse.json(
+            { error: "Location lookup is unavailable right now. Try a nearby city name." },
+            { status: 502 },
+          );
+        }
+      }
+    } else if (!best) {
       return NextResponse.json(
-        { error: "Location lookup is unavailable right now. Try a nearby city name." },
-        { status: 502 },
+        { error: "Location lookup is busy. Try again in a moment, or try a nearby city name." },
+        { status: 503, headers: { "Retry-After": "1" } },
       );
     }
   }
+
+  if (best) return NextResponse.json({ result: placeToResolved(best.place) }, { headers: CACHEABLE });
   return NextResponse.json({ error: `We couldn't find "${q}". Try a city name or postcode.` }, { status: 404 });
 }

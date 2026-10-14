@@ -2,7 +2,7 @@ import type { EventFormat, EventType, Region } from "@naruto-tcg/types";
 import { isEventFormat, isEventType, isRegion } from "./event-meta";
 import type { EventSummary } from "./event-summary";
 import { distanceIn, type DistanceUnit } from "./geo";
-import { normalizeQuery } from "./places";
+import { normalizeQuery, searchTerms } from "./places";
 import { isLocalDate } from "./time";
 
 /**
@@ -167,7 +167,10 @@ export interface FilteredEvent {
  */
 export function applyEventFilters(events: EventSummary[], filters: EventFilters, now: Date): FilteredEvent[] {
   const nowMs = now.getTime();
-  const q = normalizeQuery(filters.q);
+  const terms = searchTerms(filters.q);
+  // An inverted range is transient while someone edits one bound; treat it as swapped.
+  const [from, to] =
+    filters.from && filters.to && filters.from > filters.to ? [filters.to, filters.from] : [filters.from, filters.to];
   const types = new Set(filters.types);
   const formats = new Set(filters.formats);
   const origin = hasLocation(filters) ? { lat: filters.lat, lng: filters.lng } : null;
@@ -180,9 +183,9 @@ export function applyEventFilters(events: EventSummary[], filters: EventFilters,
     if (filters.region && event.region !== filters.region) continue;
     if (filters.freeOnly && event.entryFee.amount !== 0) continue;
     // Overlap of the event's local date span with the inclusive [from, to] range.
-    if (filters.from && event.display.localEndDate < filters.from) continue;
-    if (filters.to && event.display.localDate > filters.to) continue;
-    if (q) {
+    if (from && event.display.localEndDate < from) continue;
+    if (to && event.display.localDate > to) continue;
+    if (terms.length) {
       const haystack = normalizeQuery(
         [
           event.title,
@@ -196,7 +199,7 @@ export function applyEventFilters(events: EventSummary[], filters: EventFilters,
           .filter(Boolean)
           .join(" "),
       );
-      if (!q.split(" ").every((term) => haystack.includes(term))) continue;
+      if (!terms.every((term) => haystack.includes(term))) continue;
     }
     let distance: number | null = null;
     if (origin) {
@@ -209,7 +212,7 @@ export function applyEventFilters(events: EventSummary[], filters: EventFilters,
   if (filters.sort === "distance" && origin) {
     out.sort((a, b) => a.distance! - b.distance! || a.event.startsAt.localeCompare(b.event.startsAt));
   } else {
-    out.sort((a, b) => a.event.startsAt.localeCompare(b.event.startsAt) || a.event.id.localeCompare(b.event.id));
+    out.sort((a, b) => a.event.startsAt.localeCompare(b.event.startsAt) || a.event.id.localeCompare(b.event.id, "en"));
   }
   return out;
 }

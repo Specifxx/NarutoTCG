@@ -205,19 +205,15 @@ export function formatTimeRange(startsAt: string, endsAt: string, timeZone: stri
   )}, ${formatTime(endsAt, timeZone, locale)} ${zone}`;
 }
 
-/** Date label covering multi-day events, e.g. "Sat, Oct 24, 2026" or "Fri, Oct 23 – Sun, Oct 25, 2026". */
+/**
+ * Date label covering multi-day events, e.g. "Sat, Oct 24, 2026", "Fri, Oct 23 – Sun, Oct 25, 2026"
+ * or "Sat, 5 Dec – Sun, 6 Dec 2026". Intl's range formatting keeps punctuation
+ * consistent per locale and only repeats the year when it changes.
+ */
 export function formatDateSpan(startsAt: string, endsAt: string, timeZone: string, locale = "en-US"): string {
-  const startKey = localDateKey(startsAt, timeZone);
-  const endKey = localDateKey(endsAt, timeZone);
-  if (startKey === endKey) return formatDate(startsAt, timeZone, locale);
-  const sameYear = startKey.slice(0, 4) === endKey.slice(0, 4);
-  const startLabel = formatDate(startsAt, timeZone, locale, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    ...(sameYear ? {} : { year: "numeric" }),
-  });
-  return `${startLabel} – ${formatDate(endsAt, timeZone, locale)}`;
+  if (localDateKey(startsAt, timeZone) === localDateKey(endsAt, timeZone)) return formatDate(startsAt, timeZone, locale);
+  const f = dtf(locale, { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone });
+  return normalizeSpaces(f.formatRange(new Date(startsAt), new Date(endsAt)));
 }
 
 /** Remaining time split into units, clamped at zero. */

@@ -271,7 +271,7 @@ export function validateMilestones(input: unknown, eventIds: Set<string>): Miles
     if (!(typeof m.announced === "string" && isLocalDate(m.announced))) issues.push(`${at}.announced must be YYYY-MM-DD`);
     if (m.eventId !== undefined && !(isStr(m.eventId) && eventIds.has(m.eventId)))
       issues.push(`${at}.eventId "${String(m.eventId)}" does not match an event`);
-    if (m.href !== undefined && !(isStr(m.href) && (m.href.startsWith("/") || isUrl(m.href))))
+    if (m.href !== undefined && !(isStr(m.href) && (/^\/(?![/\\])/.test(m.href) || isUrl(m.href))))
       issues.push(`${at}.href must be a path or URL`);
   });
   checkUnique(
