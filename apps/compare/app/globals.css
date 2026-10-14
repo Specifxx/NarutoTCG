@@ -1,2 +1,14 @@
 @import "@naruto-tcg/ui/theme.css";
 @source "../../../packages/ui/src";
+
+/* Chart series, validated for the dark surface (dataviz categorical slots 1-4). */
+@theme {
+  --color-series-market: #3987e5;
+  --color-series-tcgplayer: #d95926;
+  --color-series-ebay: #199e70;
+  --color-series-cardmarket: #c98500;
+}
+
+html {
+  color-scheme: dark;
+}
