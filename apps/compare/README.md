@@ -122,6 +122,10 @@ Each item names its card by `card.id`, or by `setCode` + `number` and/or `name`,
 
 The response lists `accepted` and `rejected` items by index with a reason. Status is `200` when anything was accepted, `422` when nothing was, `401` without a valid secret, `413` over 1 MB, `415` without a JSON content type. Without `DATABASE_URL` the response says `"mode": "dry-run"`.
 
+### Capturing prices with Claude in Chrome
+
+[`docs/chrome-extension-prompt.md`](./docs/chrome-extension-prompt.md) is a ready-to-paste prompt. It has Claude in Chrome read an open TCGplayer, eBay or Cardmarket page and output this exact payload, including vendor low / mid / high / market values and individual listings.
+
 ## Affiliate links
 
 Buy buttons and listing links go through `buildAffiliateUrl`: `TCGPLAYER_AFFILIATE_URL` (an Impact deep-link base), `EBAY_CAMPAIGN_ID` (eBay Partner Network) and `CARDMARKET_REFERRER`. Unset variables leave links untouched. Every marketplace link uses `rel="sponsored noopener noreferrer"`, and the footer carries the disclosure. Search URL templates per vendor are in `lib/market/vendors.ts`.
