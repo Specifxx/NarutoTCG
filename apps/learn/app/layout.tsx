@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { ReleaseRoadmap, SiteHeader, resolveSiteUrls, visibleSiteApps } from "@naruto-tcg/ui";
+import { Analytics } from "@vercel/analytics/next";
 import { AmbientBackdrop } from "@/components/fx/ambient-backdrop";
 import { LearnSubnav } from "@/components/layout/learn-subnav";
 import { Providers } from "@/components/providers";
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </div>
           </footer>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );

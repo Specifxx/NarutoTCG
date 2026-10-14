@@ -13,6 +13,7 @@
   "dependencies": {
     "@naruto-tcg/types": "workspace:*",
     "@naruto-tcg/ui": "workspace:*",
+    "@vercel/analytics": "^2.0.1",
     "framer-motion": "^14.2.0",
     "next": "^15.3.0",
     "react": "^19.0.0",
