@@ -172,6 +172,7 @@ export function LessonPlayer({
                 celebrateLearn={celebrateLearn}
                 onStarEarned={onTrainStar}
                 onContinue={() => goStage("test")}
+                onReview={reviewLesson}
               />
             )}
             {stage === "test" && (

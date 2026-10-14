@@ -18,7 +18,7 @@ const STEPS: readonly DemoStep[] = [
   { label: "Token 1 lands: Power 5", duration: 800 },
   { label: "Token 2 lands: Power 6", duration: 800 },
   { label: "Token 3 lands: Power 7", duration: 1800 },
-  { label: "End phase: every Power token is removed", duration: 1800 },
+  { label: "End phase: all Power tokens removed", duration: 1800 },
 ];
 
 const TOKEN_COUNT = 3;

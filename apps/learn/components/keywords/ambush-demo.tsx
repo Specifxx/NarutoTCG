@@ -13,7 +13,7 @@ import { DemoStage, type DemoSceneState, type DemoStep } from "./demo-stage";
 const KAKASHI = PRACTICE_CARDS["kakashi-copy"]!;
 
 const STEPS: readonly DemoStep[] = [
-  { label: "Played hidden for 1 Chakra: 0 Power, effects off", duration: 1800 },
+  { label: "Played hidden for 1: 0 Power, no effects", duration: 1800 },
   { label: "Reveal it: pay the printed cost of 4", duration: 1300 },
   { label: "Flipped face-up: AMBUSH fires", duration: 1400 },
   { label: "AMBUSH: POWERUP 2, Power 3 → 5", duration: 2400 },

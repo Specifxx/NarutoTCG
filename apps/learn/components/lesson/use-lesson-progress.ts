@@ -65,7 +65,8 @@ export function usePathProgress(lessons: readonly LessonSummary[]): PathProgress
     const statuses = stars.map((s, i): LessonStatus => {
       if (s.mastered) return "mastered";
       if (s.earned[0]) return "complete";
-      return i === nextIdx ? "next" : "todo";
+      if (i === nextIdx) return "next";
+      return s.count > 0 ? "started" : "todo";
     });
     const resumeIdx = nextIdx !== -1 ? nextIdx : stars.findIndex((s) => !s.mastered);
     const resumeStars = stars[resumeIdx];

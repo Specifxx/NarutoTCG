@@ -46,6 +46,7 @@ export function TrainStage({
   celebrateLearn,
   onStarEarned,
   onContinue,
+  onReview,
 }: {
   lesson: TutorialLesson;
   keys: LessonKeys;
@@ -53,6 +54,8 @@ export function TrainStage({
   celebrateLearn: boolean;
   onStarEarned: () => void;
   onContinue: () => void;
+  /** Jump back to the Learn steps. */
+  onReview: () => void;
 }) {
   const { hydrated, has, award } = useProgress();
   const a = ACCENT_STYLES[lesson.accent];
@@ -145,10 +148,17 @@ export function TrainStage({
                 </p>
               </div>
             </div>
-            <Button variant="success" onClick={onContinue}>
-              {quizDone ? "Retake the checkpoint" : "Take the checkpoint"}
-              <Icon name="arrow-right" size={16} />
-            </Button>
+            {quizDone && !learnDone ? (
+              <Button variant="success" onClick={onReview}>
+                Finish the Learn steps
+                <Icon name="arrow-right" size={16} />
+              </Button>
+            ) : (
+              <Button variant="success" onClick={onContinue}>
+                {quizDone ? "Retake the checkpoint" : "Take the checkpoint"}
+                <Icon name="arrow-right" size={16} />
+              </Button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -349,7 +349,15 @@ export function TestStage({
   useEffect(() => {
     if (picked === null) return;
     const t = window.setTimeout(() => {
-      feedbackRef.current?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+      // Bring the explanation and Next button into view, but never push the question card under the sticky tabs.
+      const fb = feedbackRef.current;
+      if (fb) {
+        const want = (nextRef.current ?? fb).getBoundingClientRect().bottom + 24 - window.innerHeight;
+        const card = fb.closest(".panel") ?? fb;
+        const cap = card.getBoundingClientRect().top - STICKY_OFFSET;
+        const delta = Math.min(want, cap);
+        if (delta > 0) window.scrollTo({ top: window.scrollY + delta, behavior: reduce ? "auto" : "smooth" });
+      }
       nextRef.current?.focus({ preventScroll: true });
     }, 80);
     return () => window.clearTimeout(t);

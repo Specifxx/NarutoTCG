@@ -152,7 +152,7 @@ export function SiteHeader({ current, urls, children }: SiteHeaderProps) {
       >
         Skip to content
       </a>
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6">
+      <div className="relative z-20 mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6">
         <a
           href={resolved.simulator}
           className="group flex items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
@@ -210,7 +210,7 @@ export function SiteHeader({ current, urls, children }: SiteHeaderProps) {
           </summary>
           <nav
             aria-label="Naruto TCG apps"
-            className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-white/10 bg-shadow-900/95 p-2 shadow-2xl shadow-black/60 backdrop-blur-xl"
+            className="absolute right-0 top-full z-30 mt-2 w-64 rounded-xl border border-white/10 bg-shadow-900/95 p-2 shadow-2xl shadow-black/60 backdrop-blur-xl"
           >
             <ul className="flex flex-col gap-1">
               {SITE_APPS.map((app) => {

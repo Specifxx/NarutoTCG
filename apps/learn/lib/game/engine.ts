@@ -160,8 +160,13 @@ export function checkAction(state: GameState, action: GameAction, catalog: CardC
     if (!card) return "Unknown card.";
     const mission = findMission(state, action.missionId);
     if (!mission) return "Unknown mission.";
-    const clash = mission.units.some((u) => u.side === side && topCard(u, catalog).name === card.name);
-    if (clash) return `You already have ${card.name} on this mission. Upgrade it instead.`;
+    const clash = mission.units.find((u) => u.side === side && topCard(u, catalog).name === card.name);
+    if (clash) {
+      const canUpgrade = !clash.hidden && card.cost > topCard(clash, catalog).cost;
+      return canUpgrade
+        ? `You already have ${card.name} on this mission. Upgrade it instead.`
+        : `You already have ${card.name} on this mission (one character per name on your side).`;
+    }
     const cost = action.hidden ? 1 : card.cost;
     if (state.chakra[side] < cost) return `Not enough Chakra (needs ${cost}).`;
     return null;

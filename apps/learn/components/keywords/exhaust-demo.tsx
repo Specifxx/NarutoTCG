@@ -9,10 +9,10 @@ import { cn } from "@/lib/cn";
 import { DemoStage, type DemoSceneState, type DemoStep } from "./demo-stage";
 
 const STEPS: readonly DemoStep[] = [
-  { label: "Start phase: 7 Chakra (5 + 2 characters in play)", duration: 1600 },
+  { label: "Start: 7 Chakra (5 + 2 in play)", duration: 1600 },
   { label: "Play Rock Lee face-up: exhaust 3", duration: 1500 },
   { label: "Play a card hidden: exhaust 1", duration: 1400 },
-  { label: "End phase: the 3 unspent Chakra are discarded", duration: 1700 },
+  { label: "End phase: 3 unspent Chakra discarded", duration: 1700 },
   { label: "Nothing carries over to the next Round", duration: 1300 },
 ];
 

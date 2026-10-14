@@ -79,6 +79,9 @@ export function KeywordChip({
   const [place, setPlace] = useState<Placement | null>(null);
   const anchor = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Whether the tooltip was already open when the current tap/press began, so a
+  // tap that opened it via focus doesn't immediately close it again on click.
+  const wasOpen = useRef(false);
   const tooltipId = useId();
 
   useEffect(() => setMounted(true), []);
@@ -151,9 +154,27 @@ export function KeywordChip({
         aria-expanded={open}
         onPointerEnter={(e) => e.pointerType === "mouse" && show()}
         onPointerLeave={(e) => e.pointerType === "mouse" && hide()}
+        onPointerDown={(e) => {
+          // Mouse users open by hovering and close by leaving, so a click never closes.
+          wasOpen.current = e.pointerType === "mouse" ? false : open;
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") wasOpen.current = open;
+          if (e.key === "Tab" && !e.shiftKey && open) {
+            // Let keyboard users reach the tooltip's glossary link.
+            const link = document.getElementById(tooltipId)?.querySelector<HTMLElement>("a");
+            if (link) {
+              e.preventDefault();
+              link.focus();
+            }
+          }
+        }}
         onFocus={show}
-        onBlur={hide}
-        onClick={() => (open ? setOpen(false) : show())}
+        onBlur={(e) => {
+          if (document.getElementById(tooltipId)?.contains(e.relatedTarget as Node | null)) return;
+          hide();
+        }}
+        onClick={() => (wasOpen.current ? setOpen(false) : show())}
         className={cn(
           "relative mx-0.5 inline-flex translate-y-[-1px] items-center gap-1 rounded-md border px-1.5 py-[1px] align-baseline text-[0.86em] font-bold leading-snug tracking-wide transition hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
           style.chip,
@@ -176,6 +197,10 @@ export function KeywordChip({
                 transition={{ type: "spring", stiffness: 520, damping: 34, mass: 0.6 }}
                 onPointerEnter={show}
                 onPointerLeave={hide}
+                onBlur={(e) => {
+                  if (e.currentTarget.contains(e.relatedTarget as Node | null) || e.relatedTarget === anchor.current) return;
+                  hide();
+                }}
                 style={{
                   position: "fixed",
                   left: place.left,

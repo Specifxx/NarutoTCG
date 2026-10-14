@@ -26,6 +26,7 @@ interface Geometry {
 const STATUS: Record<LessonStatus, { label: string; className: string }> = {
   mastered: { label: "Mastered", className: "border-gold-400/40 bg-gold-400/10 text-gold-200" },
   complete: { label: "Complete", className: "border-leaf-400/40 bg-leaf-500/10 text-leaf-300" },
+  started: { label: "In progress", className: "border-chakra-400/30 bg-chakra-500/10 text-chakra-300" },
   next: { label: "Next up", className: "border-chakra-400/50 bg-chakra-500/15 text-chakra-200" },
   todo: { label: "Not started", className: "border-white/10 bg-white/[0.04] text-ash-400" },
 };

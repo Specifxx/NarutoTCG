@@ -96,14 +96,14 @@ export function RoundAtAGlance({ lessons }: { lessons: readonly LessonSummary[] 
           )}
         </div>
 
-        <ol className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+        <ol className="relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
           {PHASES.map((phase, i) => {
             const lesson = lessons.find((l) => l.id === phase.lessonId);
             const accent = ACCENT_STYLES[lesson?.accent ?? "chakra"];
             return (
               <motion.li
                 key={phase.id}
-                className="relative"
+                className="relative min-w-0"
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.5 }}
@@ -142,7 +142,9 @@ export function RoundAtAGlance({ lessons }: { lessons: readonly LessonSummary[] 
                   <p className="mt-3 flex-1 text-[13.5px] leading-relaxed text-ash-300">{phase.text}</p>
                   {lesson && (
                     <span className={cn("mt-3 flex items-center gap-1.5 text-xs font-bold", accent.text)}>
-                      <span className="shrink-0">Lesson {lesson.order} ·</span> <span className="min-w-0 truncate">{lesson.title}</span>
+                      <span className="min-w-0 line-clamp-2 text-balance">
+                        Lesson {lesson.order} · {lesson.title}
+                      </span>
                       <Icon name="arrow-right" size={13} className="shrink-0 transition-transform group-hover:translate-x-1" />
                     </span>
                   )}

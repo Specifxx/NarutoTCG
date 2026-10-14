@@ -162,7 +162,12 @@ function EmptyState({
   onAllCategories: () => void;
   onClear: () => void;
 }) {
-  const suggestion = useMemo(() => (query.trim() ? suggestTerm(query) : null), [query]);
+  const suggestion = useMemo(() => {
+    const q = query.trim();
+    if (!q || allCount > 0) return null;
+    const s = suggestTerm(q);
+    return s && s.term.toLowerCase() !== q.toLowerCase() ? s : null;
+  }, [query, allCount]);
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -181,7 +186,14 @@ function EmptyState({
         {categoryLabel && <span className="text-ash-400"> in {categoryLabel}</span>}
       </h3>
       <p className="mt-2 max-w-md text-sm leading-relaxed text-ash-400">
-        This hidden character stayed hidden. Check the spelling, try a broader word, or start from one of these.
+        {categoryLabel && allCount > 0 ? (
+          <>
+            {query.trim() ? <>“{query.trim()}”</> : "This search"} matches {allCount} {allCount === 1 ? "term" : "terms"} in
+            other categories. Search them all, or start from one of these.
+          </>
+        ) : (
+          "This hidden character stayed hidden. Check the spelling, try a broader word, or start from one of these."
+        )}
       </p>
 
       {suggestion && (

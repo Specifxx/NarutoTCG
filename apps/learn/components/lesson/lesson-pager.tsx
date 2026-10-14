@@ -58,7 +58,7 @@ function PagerLink({
           {eyebrow}
           {next && <Icon name="arrow-right" size={12} />}
         </span>
-        <span className="mt-1 block truncate text-[15px] font-bold text-white">{title}</span>
+        <span className="mt-1 line-clamp-2 text-balance text-[15px] font-bold text-white">{title}</span>
       </span>
     </Link>
   );

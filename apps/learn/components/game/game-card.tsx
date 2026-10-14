@@ -180,6 +180,8 @@ export interface GameCardProps {
   hideBackPower?: boolean;
   /** Hide the "Hidden" label on the back (e.g. for a deck pile). */
   hideBackLabel?: boolean;
+  /** While face-down, keep the card's identity out of the DOM (enemy hidden cards). */
+  conceal?: boolean;
   children?: ReactNode;
 }
 
@@ -212,6 +214,7 @@ export function GameCard({
   layoutId,
   hideBackPower,
   hideBackLabel,
+  conceal,
   children,
 }: GameCardProps) {
   const interactive = Boolean(onClick) && !disabled;
@@ -252,7 +255,7 @@ export function GameCard({
         transition={{ type: "spring", stiffness: 160, damping: 18 }}
       >
         <div className="backface-hidden absolute inset-0">
-          <CardFront card={card} size={size} power={power} tokens={powerTokens} />
+          {!(conceal && faceDown) && <CardFront card={card} size={size} power={power} tokens={powerTokens} />}
         </div>
         <div className="backface-hidden absolute inset-0 [transform:rotateY(180deg)]">
           <CardBack

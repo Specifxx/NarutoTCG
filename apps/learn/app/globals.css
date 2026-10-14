@@ -140,6 +140,11 @@
 }
 
 @layer base {
+  /* clip (not hidden) so stray particle bursts can't widen the page or create a scroll container. */
+  html,
+  body {
+    overflow-x: clip;
+  }
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;

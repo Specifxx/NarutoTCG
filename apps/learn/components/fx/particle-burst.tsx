@@ -53,6 +53,7 @@ export function ParticleBurst({
   const reduce = useReducedMotion();
   const [batches, setBatches] = useState<Batch[]>([]);
   const seq = useRef(0);
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const last = useRef(fireOnMount ? Number.NaN : fire);
 
   useEffect(() => {
@@ -77,9 +78,18 @@ export function ParticleBurst({
       };
     });
     setBatches((b) => [...b.slice(-3), { id: batchId, particles, ring }]);
-    const t = setTimeout(() => setBatches((b) => b.filter((x) => x.id !== batchId)), (duration + 0.25) * 1000);
-    return () => clearTimeout(t);
+    // Removal timers live in a ref so a quick follow-up burst doesn't cancel them.
+    const t = setTimeout(() => {
+      timers.current.delete(t);
+      setBatches((b) => b.filter((x) => x.id !== batchId));
+    }, (duration + 0.25) * 1000);
+    timers.current.add(t);
   }, [fire, reduce, palette, count, spread, duration, shape, ring]);
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => pending.forEach(clearTimeout);
+  }, []);
 
   return (
     <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center overflow-visible">

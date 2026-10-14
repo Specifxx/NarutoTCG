@@ -297,7 +297,20 @@ export function SetupRitual({
   const [burst, setBurst] = useState(0);
   const [doneFired, setDoneFired] = useState(false);
 
-  const ready = mulligan === "done";
+  const ready = mulligan === "done" && coinPhase === "seated" && missionPhase === "deck" && drawn;
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const deckRef = useRef<HTMLDivElement>(null);
+  const handRef = useRef<HTMLDivElement>(null);
+  const readyRef = useRef<HTMLParagraphElement>(null);
+  /** Below lg the step card sits ~900px above the table: bring the animated part into view. */
+  const showOnPhone = useCallback(
+    (el: HTMLElement | null) => {
+      if (!el || !window.matchMedia("(max-width: 1023px)").matches) return;
+      el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+    },
+    [reduce],
+  );
 
   /* 1. Toss ---------------------------------------------------------- */
   const flip = () => {
@@ -354,6 +367,7 @@ export function SetupRitual({
   const stackDeck = () => {
     if (missionPhase !== "picked") return;
     setMissionPhase("dealing");
+    showOnPhone(deckRef.current);
     const gap = reduce ? 0 : 420;
     for (let i = 1; i <= 4; i++) later(() => setDealt(i), gap * i);
     later(() => setMissionPhase("deck"), gap * 4 + 250);
@@ -364,25 +378,27 @@ export function SetupRitual({
     if (drawn || hand.length > 0) return;
     setHand(shuffled(deck).slice(0, HAND_SIZE));
     setDrawSeq((s) => s + 1);
+    showOnPhone(handRef.current);
     later(() => setDrawn(true), reduce ? 50 : 900);
   };
 
   /* 4. Mulligan ------------------------------------------------------ */
   useEffect(() => {
-    if (step !== 3 || mulligan !== "waiting" || !edge) return;
+    if (step !== 3 || mulligan !== "waiting" || !edge || !drawn) return;
     if (edge === "opp") {
       setMulligan("rival-first");
       later(() => setMulligan("choose"), reduce ? 200 : 1300);
     } else {
       setMulligan("choose");
     }
-  }, [step, mulligan, edge, later, reduce]);
+  }, [step, mulligan, edge, drawn, later, reduce]);
 
   const doMulligan = () => {
     if (mulligan !== "choose" || mulliganUsed) return;
     setMulliganUsed(true);
     setMulligan("redrawing");
     setHand([]);
+    showOnPhone(handRef.current);
     later(
       () => {
         setHand(shuffled(deck).slice(0, HAND_SIZE));
@@ -409,6 +425,32 @@ export function SetupRitual({
     setBurst((b) => b + 1);
     onDone();
   }, [ready, doneFired, onDone]);
+
+  /* Focus: the pressed button usually unmounts, so hand focus to the next control. */
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const t = window.setTimeout(() => {
+      const root = rootRef.current;
+      if (!root) return;
+      const active = document.activeElement;
+      const lost = !active || active === document.body || (root.contains(active) && (active as HTMLButtonElement).disabled);
+      if (!lost && !(ready && root.contains(active))) return;
+      if (ready) {
+        readyRef.current?.focus();
+        return;
+      }
+      const target =
+        Array.from(root.querySelectorAll<HTMLElement>("[data-ritual-actions] button:not([disabled])")).find(
+          (b) => b.offsetParent !== null,
+        ) ?? root.querySelector<HTMLElement>("[data-ritual-heading]");
+      target?.focus({ preventScroll: true });
+    }, reduce ? 30 : 260);
+    return () => window.clearTimeout(t);
+  }, [step, coinPhase, missionPhase, drawn, mulligan, ready, reduce]);
 
   /* Step completion ------------------------------------------------- */
   const stepDone = [coinPhase === "seated", missionPhase === "deck", drawn, ready];
@@ -486,8 +528,59 @@ export function SetupRitual({
 
   const current = STEPS[Math.min(step, 3)]!;
 
+  const actionButtons = (
+    <>
+      {step === 0 && coinPhase === "idle" && (
+        <Button variant="gold" onClick={flip}>
+          <Emblem name="edge" size={16} />
+          Toss the Edge token
+        </Button>
+      )}
+      {step === 1 && (missionPhase === "idle" || missionPhase === "shuffling") && (
+        <Button variant="gold" onClick={shuffleMissions} disabled={missionPhase !== "idle"}>
+          <Icon name="refresh" size={15} />
+          {missionPhase === "shuffling" ? "Shuffling…" : "Shuffle & keep 2"}
+        </Button>
+      )}
+      {step === 1 && (missionPhase === "picked" || missionPhase === "dealing") && (
+        <Button variant="gold" onClick={stackDeck} disabled={missionPhase !== "picked"}>
+          <Icon name="layers" size={15} />
+          {missionPhase === "dealing" ? "Stacking…" : "Stack the Mission deck"}
+        </Button>
+      )}
+      {step === 2 && !drawn && (
+        <Button variant="gold" onClick={drawFive} disabled={hand.length > 0}>
+          <Icon name="hand" size={15} />
+          {hand.length > 0 ? "Drawing…" : "Draw 5"}
+        </Button>
+      )}
+      {step === 3 && (
+        <>
+          <Button variant="success" onClick={keepHand} disabled={mulligan !== "choose"}>
+            <Icon name="check" size={15} strokeWidth={2.6} />
+            {mulliganUsed ? "Keep this hand" : "Keep hand"}
+          </Button>
+          <Button variant="danger" onClick={doMulligan} disabled={mulligan !== "choose" || mulliganUsed}>
+            <Icon name="refresh" size={15} />
+            {mulliganUsed ? "Mulligan used" : "Mulligan"}
+          </Button>
+        </>
+      )}
+      {canContinue && (
+        <Button
+          variant="primary"
+          // Guard stale clicks from the exiting card (AnimatePresence keeps it clickable).
+          onClick={() => setStep((s) => (s === step && stepDone[s] ? Math.min(3, s + 1) : s))}
+        >
+          Continue
+          <Icon name="arrow-right" size={15} />
+        </Button>
+      )}
+    </>
+  );
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+    <div ref={rootRef} className="grid gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
       {/* Step rail + instructions */}
       <div className="min-w-0 space-y-4">
         <ol className="flex items-center gap-1.5" aria-label="Setup steps">
@@ -528,7 +621,11 @@ export function SetupRitual({
               role="status"
             >
               <ParticleBurst fire={burst} palette="leaf" shape="mixed" count={30} spread={140} />
-              <p className="eyebrow flex items-center gap-1.5 text-leaf-300">
+              <p
+                ref={readyRef}
+                tabIndex={-1}
+                className="eyebrow flex scroll-mt-[176px] items-center gap-1.5 text-leaf-300 outline-none sm:scroll-mt-[200px]"
+              >
                 <Icon name="check" size={13} strokeWidth={3} />
                 Ready for Round 1
               </p>
@@ -570,52 +667,13 @@ export function SetupRitual({
                 <Icon name={current.icon} size={13} />
                 Step {step + 1} of 4
               </p>
-              <h4 className="mt-1.5 text-lg font-black text-white">{current.title}</h4>
+              <h4 data-ritual-heading tabIndex={-1} className="mt-1.5 text-lg font-black text-white outline-none">
+                {current.title}
+              </h4>
               <div className="mt-2 text-[13.5px] leading-relaxed text-ash-300">{stepBody[current.id]}</div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {step === 0 && coinPhase === "idle" && (
-                  <Button variant="gold" onClick={flip}>
-                    <Emblem name="edge" size={16} />
-                    Toss the Edge token
-                  </Button>
-                )}
-                {step === 1 && (missionPhase === "idle" || missionPhase === "shuffling") && (
-                  <Button variant="gold" onClick={shuffleMissions} disabled={missionPhase !== "idle"}>
-                    <Icon name="refresh" size={15} />
-                    {missionPhase === "shuffling" ? "Shuffling…" : "Shuffle & keep 2"}
-                  </Button>
-                )}
-                {step === 1 && (missionPhase === "picked" || missionPhase === "dealing") && (
-                  <Button variant="gold" onClick={stackDeck} disabled={missionPhase !== "picked"}>
-                    <Icon name="layers" size={15} />
-                    {missionPhase === "dealing" ? "Stacking…" : "Stack the Mission deck"}
-                  </Button>
-                )}
-                {step === 2 && !drawn && (
-                  <Button variant="gold" onClick={drawFive} disabled={hand.length > 0}>
-                    <Icon name="hand" size={15} />
-                    {hand.length > 0 ? "Drawing…" : "Draw 5"}
-                  </Button>
-                )}
-                {step === 3 && (
-                  <>
-                    <Button variant="success" onClick={keepHand} disabled={mulligan !== "choose"}>
-                      <Icon name="check" size={15} strokeWidth={2.6} />
-                      {mulliganUsed ? "Keep this hand" : "Keep hand"}
-                    </Button>
-                    <Button variant="danger" onClick={doMulligan} disabled={mulligan !== "choose" || mulliganUsed}>
-                      <Icon name="refresh" size={15} />
-                      {mulliganUsed ? "Mulligan used" : "Mulligan"}
-                    </Button>
-                  </>
-                )}
-                {canContinue && (
-                  <Button variant="primary" onClick={() => setStep((s) => Math.min(3, s + 1))}>
-                    Continue
-                    <Icon name="arrow-right" size={15} />
-                  </Button>
-                )}
+              <div data-ritual-actions className="mt-4 hidden flex-wrap gap-2 lg:flex">
+                {actionButtons}
               </div>
               {step === 3 && mulliganUsed && (
                 <p className="mt-2 text-[12px] text-ash-500">
@@ -678,7 +736,13 @@ export function SetupRitual({
                 </p>
               </motion.div>
             ) : (
-              <motion.div key="deck" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <motion.div
+                key="deck"
+                ref={deckRef}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="scroll-mt-[176px] sm:scroll-mt-[200px]"
+              >
                 <MissionDeck slots={slots} dealt={dealt} edge={edge} />
               </motion.div>
             )}
@@ -692,7 +756,7 @@ export function SetupRitual({
             dealtIds={dealtIds}
           >
             {step >= 2 && (
-              <div className="mt-3 flex items-end gap-2 border-t border-white/[0.06] pt-3">
+              <div ref={handRef} className="mt-3 flex items-end gap-2 border-t border-white/[0.06] pt-3">
                 <DeckPile count={deck.length - hand.length} />
                 <HandFan hand={hand} drawSeq={drawSeq} compact={compact} />
               </div>
@@ -700,6 +764,19 @@ export function SetupRitual({
           </SeatRow>
         </div>
       </LayoutGroup>
+
+      {/* Phones: the step's buttons follow you down the table so actions and results share a viewport. */}
+      {!ready && (
+        <div
+          data-ritual-actions
+          className="sticky bottom-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-shadow-950/90 p-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur lg:hidden"
+        >
+          <span className="w-full text-[11px] font-bold text-gold-300">
+            Step {step + 1} of 4 · {current.title}
+          </span>
+          {actionButtons}
+        </div>
+      )}
     </div>
   );
 }

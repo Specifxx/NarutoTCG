@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ParticleBurst } from "@/components/fx/particle-burst";
 import { Button } from "@/components/ui/button";
 import { Emblem } from "@/components/ui/emblem";
@@ -33,10 +33,35 @@ function ToastItem({ id, label, xp }: { id: number; label: string; xp: number })
   );
 }
 
-/** XP toasts (bottom-right) and the full-screen rank-up celebration. */
+/** True while some other modal dialog (not the rank-up one) is open. */
+function otherModalOpen() {
+  return Boolean(document.querySelector('[aria-modal="true"]:not([data-rank-up]), dialog[open]'));
+}
+
+/** XP toasts and the full-screen rank-up celebration. */
 export function XpFeedback() {
-  const { toasts, rankUp, clearRankUp } = useProgress();
+  const { toasts, rankUp: pendingRankUp, clearRankUp } = useProgress();
   const [burst, setBurst] = useState(0);
+  // The celebration waits until any other dialog (e.g. a puzzle result) has closed.
+  const [rankUp, setRankUp] = useState<typeof pendingRankUp>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const restoreFocus = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!pendingRankUp) {
+      setRankUp(null);
+      return;
+    }
+    const tryShow = () => {
+      if (otherModalOpen()) return false;
+      restoreFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setRankUp(pendingRankUp);
+      return true;
+    };
+    if (tryShow()) return;
+    const id = setInterval(() => tryShow() && clearInterval(id), 400);
+    return () => clearInterval(id);
+  }, [pendingRankUp]);
 
   useEffect(() => {
     if (!rankUp) return;
@@ -45,16 +70,42 @@ export function XpFeedback() {
     return () => clearTimeout(t);
   }, [rankUp]);
 
+  const close = () => {
+    clearRankUp();
+    const target = restoreFocus.current;
+    requestAnimationFrame(() => {
+      if (target?.isConnected) target.focus({ preventScroll: true });
+      else document.getElementById("main-content")?.focus({ preventScroll: true });
+    });
+  };
+
   useEffect(() => {
     if (!rankUp) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && clearRankUp();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      // Single-button dialog: keep Tab on it.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        panel.current?.querySelector<HTMLElement>("button")?.focus();
+      }
+    };
+    // Keep focus inside while open, even if a widget tries to move it.
+    const onFocusIn = (e: FocusEvent) => {
+      if (panel.current && !panel.current.contains(e.target as Node)) {
+        panel.current.querySelector<HTMLElement>("button")?.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [rankUp, clearRankUp]);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocusIn);
+    };
+  }, [rankUp]);
 
   return (
     <>
-      <ol aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-[90] flex w-[min(320px,calc(100vw-2rem))] flex-col gap-2">
+      <ol aria-live="polite" className="pointer-events-none fixed right-4 top-3 z-[96] sm:bottom-4 sm:top-auto flex w-[min(320px,calc(100vw-2rem))] flex-col gap-2">
         <AnimatePresence initial={false}>
           {toasts.map((t) => (
             <ToastItem key={t.id} {...t} />
@@ -66,12 +117,13 @@ export function XpFeedback() {
           <motion.div
             role="dialog"
             aria-modal="true"
+            data-rank-up=""
             aria-labelledby="rank-up-title"
             className="fixed inset-0 z-[95] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={clearRankUp}
+            onClick={close}
           >
             <motion.div
               className="panel relative flex w-full max-w-sm flex-col items-center gap-4 overflow-visible px-8 py-10 text-center"
@@ -79,6 +131,7 @@ export function XpFeedback() {
               animate={{ scale: 1, y: 0, rotate: 0 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", stiffness: 260, damping: 18 }}
+              ref={panel}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative">
@@ -97,7 +150,7 @@ export function XpFeedback() {
                 {rankUp.title}
               </h2>
               <p className="text-sm text-ash-300">{rankUp.blurb}</p>
-              <Button variant="gold" onClick={clearRankUp} autoFocus>
+              <Button variant="gold" onClick={close} autoFocus>
                 Continue training
               </Button>
             </motion.div>

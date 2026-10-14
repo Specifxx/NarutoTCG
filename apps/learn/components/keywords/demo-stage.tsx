@@ -112,7 +112,7 @@ export function DemoStage({
         className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
       />
       <p className="sr-only">{description}</p>
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-12 top-0">
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-16 top-0">
         {children({ step, cycle, playing })}
       </div>
 
@@ -128,7 +128,7 @@ export function DemoStage({
         {wantsPlay ? <PauseGlyph /> : <Icon name="play" size={14} />}
       </button>
 
-      <div className="absolute inset-x-0 bottom-0 z-30 flex h-12 items-center gap-3 border-t border-white/[0.06] bg-black/45 px-4 backdrop-blur-sm">
+      <div className="absolute inset-x-0 bottom-0 z-30 flex min-h-16 items-center gap-3 border-t border-white/[0.06] bg-black/45 px-4 backdrop-blur-sm">
         <div className="relative min-w-0 flex-1 overflow-hidden" aria-hidden="true">
           <AnimatePresence mode="wait" initial={false}>
             <motion.p
@@ -137,7 +137,7 @@ export function DemoStage({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.22 }}
-              className="truncate text-[12.5px] font-semibold text-ash-100"
+              className="line-clamp-2 py-2 text-[12.5px] font-semibold leading-snug text-ash-100"
             >
               <span className={cn("mr-1.5 font-black tabular-nums", a.text)}>{step + 1}</span>
               {current?.label}

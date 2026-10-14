@@ -168,9 +168,24 @@ export default function DeckForge({ onComplete, completed }: WidgetProps) {
     setMissions((m) => (m.includes(id) ? m.filter((x) => x !== id) : m.length >= MISSIONS_NEEDED ? m : [...m, id]));
 
   const onRitualDone = useCallback(() => setRitualDone(true), []);
+  /** The pressed button disappears (hidden panel / unmounted card), so land on the ritual's first action. */
+  const focusRitualAction = () =>
+    window.setTimeout(() => {
+      const panel = document.getElementById("deck-forge-panel-ritual");
+      const target =
+        Array.from(panel?.querySelectorAll<HTMLElement>("[data-ritual-actions] button:not([disabled])") ?? []).find(
+          (b) => b.offsetParent !== null,
+        ) ?? panel?.querySelector<HTMLElement>("[data-ritual-heading]");
+      target?.focus({ preventScroll: true });
+    }, 80);
+  const beginRitual = () => {
+    openRitual();
+    focusRitualAction();
+  };
   const replayRitual = () => {
     setRitual((r) => snapshot((r?.key ?? 0) + 1));
     setRitualDone(false);
+    focusRitualAction();
   };
 
   const reset = () => {
@@ -327,7 +342,7 @@ export default function DeckForge({ onComplete, completed }: WidgetProps) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                 >
-                  <Button variant="success" onClick={openRitual}>
+                  <Button variant="success" onClick={beginRitual}>
                     Begin the setup ritual
                     <Icon name="arrow-right" size={15} />
                   </Button>

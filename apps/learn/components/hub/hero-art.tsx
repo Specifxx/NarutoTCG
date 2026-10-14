@@ -302,6 +302,8 @@ export function HeroArt({
 
         {/* The seal */}
         <Parallax x={sx} y={sy} depth={6} className="absolute inset-0">
+          {/* Clip the rotating square layers so their rotated bounding boxes never add page overflow (F43). */}
+          <div className="absolute inset-0 overflow-hidden [contain:paint]">
           <Spinner duration={120} reduce={reduce} className="inset-[1%]">
             <OuterRing />
           </Spinner>
@@ -317,6 +319,7 @@ export function HeroArt({
             </span>
           </Spinner>
           <EmblemRing lessons={lessons} reduce={reduce} />
+          </div>
 
           {/* Charge arc + core */}
           <div className="absolute inset-[35%]">

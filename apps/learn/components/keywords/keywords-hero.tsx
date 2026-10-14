@@ -32,11 +32,11 @@ function StatChip({ icon, children }: { icon: IconName; children: ReactNode }) {
 }
 
 const FLOATERS: ReadonlyArray<{ label: string; category: KeywordCategory; className: string; delay: string }> = [
-  { label: "AMBUSH", category: "trigger", className: "-top-5 left-6", delay: "0s" },
-  { label: "POWERUP 2", category: "effect", className: "-top-3 right-3", delay: "-2.2s" },
-  { label: "MAIN", category: "trigger", className: "top-[38%] -left-7", delay: "-4s" },
-  { label: "SCORE", category: "trigger", className: "-bottom-4 left-12", delay: "-1.3s" },
-  { label: "CHAKRA +1", category: "resource", className: "-bottom-5 right-6", delay: "-3.1s" },
+  { label: "AMBUSH", category: "trigger", className: "-top-10 left-6", delay: "0s" },
+  { label: "POWERUP 2", category: "effect", className: "-top-9 right-3", delay: "-2.2s" },
+  { label: "MAIN", category: "trigger", className: "top-[38%] -left-16", delay: "-4s" },
+  { label: "SCORE", category: "trigger", className: "-bottom-10 left-12", delay: "-1.3s" },
+  { label: "CHAKRA +1", category: "resource", className: "-bottom-10 right-6", delay: "-3.1s" },
 ];
 
 function MasteryRing({ value, total }: { value: number; total: number }) {

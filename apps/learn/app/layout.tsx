@@ -36,13 +36,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-dvh overflow-x-hidden">
+      <body className="flex min-h-dvh flex-col">
         <Providers>
           <AmbientBackdrop />
           <SiteHeader current="learn" urls={resolveSiteUrls(process.env)}>
             <LearnSubnav />
           </SiteHeader>
-          <main id="main-content" className="relative">
+          <main id="main-content" tabIndex={-1} className="relative flex-1 outline-none">
             {children}
           </main>
           <footer className="relative border-t border-white/5">

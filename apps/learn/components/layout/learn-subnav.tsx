@@ -57,6 +57,14 @@ export function LearnSubnav() {
       </nav>
       <Link
         href="/"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-gold-200 to-gold-500 text-[11px] font-black text-shadow-950 sm:hidden"
+        aria-label={hydrated ? `Rank ${rank.rank.title}, ${xp} XP` : "Your rank"}
+        title={hydrated ? `${rank.rank.title} · ${xp} XP` : undefined}
+      >
+        {rank.index + 1}
+      </Link>
+      <Link
+        href="/"
         className="group hidden shrink-0 items-center gap-2.5 rounded-lg border border-gold-400/20 bg-gold-400/5 py-1 pl-1.5 pr-3 transition hover:border-gold-400/50 sm:flex"
         aria-label={hydrated ? `Rank ${rank.rank.title}, ${xp} XP` : "Your rank"}
       >

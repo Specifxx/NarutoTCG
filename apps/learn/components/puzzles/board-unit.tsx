@@ -102,6 +102,7 @@ export function BoardUnit({
           card={card}
           size={size}
           faceDown={unit.hidden}
+          conceal={!mine && !scout}
           power={power}
           powerTokens={unit.powerTokens}
           layoutId={layoutId}

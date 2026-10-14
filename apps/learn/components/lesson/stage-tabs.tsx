@@ -53,7 +53,7 @@ export function StageTabs({
   };
 
   return (
-    <div className="sticky top-[112px] z-30 mt-8 flex justify-center sm:mt-10">
+    <div className="sticky top-[106px] z-30 -mx-4 mt-8 flex justify-center bg-shadow-950/85 px-4 pb-2 pt-1.5 backdrop-blur-xl sm:-mx-6 sm:mt-10 sm:px-6">
       <div
         role="tablist"
         aria-label="Lesson stages"

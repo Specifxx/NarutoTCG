@@ -111,7 +111,7 @@ export function StepVisual({ visual, accent }: { visual: StepVisualSpec; accent:
           type="button"
           onClick={() => setRun((r) => r + 1)}
           className="group inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-bold text-ash-300 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-300"
-          aria-label={`Replay the ${meta.label.toLowerCase()} animation`}
+          aria-label={`Replay animation: ${meta.label}`}
         >
           <span className="transition-transform duration-500 group-hover:-rotate-180">
             <Icon name="refresh" size={13} />

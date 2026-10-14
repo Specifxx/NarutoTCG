@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FACTION_STYLES } from "@/components/game/game-card";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Emblem } from "@/components/ui/emblem";
@@ -193,14 +193,23 @@ export function DeckChecklist({
 function Stepper({ id, count, onChange }: { id: string; count: number; onChange: (id: string, next: number) => void }) {
   const card = cardOf(id);
   const label = `${card.name}, ${card.title}`;
+  const minusRef = useRef<HTMLButtonElement>(null);
+  const plusRef = useRef<HTMLButtonElement>(null);
+  // Keep keyboard focus inside the stepper when a button disables itself.
+  const step = (next: number) => {
+    onChange(id, next);
+    if (next <= 0) requestAnimationFrame(() => plusRef.current?.focus());
+    else if (next >= STEPPER_MAX) requestAnimationFrame(() => minusRef.current?.focus());
+  };
   const btn =
     "flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-ash-100 transition hover:border-white/25 hover:bg-white/10 active:scale-90 disabled:pointer-events-none disabled:opacity-30";
   return (
     <div className="flex shrink-0 items-center gap-1" role="group" aria-label={`Copies of ${label}`}>
       <button
+        ref={minusRef}
         type="button"
         className={btn}
-        onClick={() => onChange(id, count - 1)}
+        onClick={() => step(count - 1)}
         disabled={count <= 0}
         aria-label={`Remove a copy of ${label}`}
       >
@@ -226,9 +235,11 @@ function Stepper({ id, count, onChange }: { id: string; count: number; onChange:
         </AnimatePresence>
       </span>
       <button
+        ref={plusRef}
         type="button"
         className={btn}
-        onClick={() => onChange(id, count + 1)}
+        data-add-id={id}
+        onClick={() => step(count + 1)}
         disabled={count >= STEPPER_MAX}
         aria-label={`Add a copy of ${label}`}
       >
@@ -255,6 +266,7 @@ function DeckRow({
   return (
     <motion.li
       layout
+      className="min-w-0"
       initial={{ opacity: 0, y: -8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 380, damping: 30 }}
@@ -334,8 +346,16 @@ export function Decklist({
   const shared = sharedNames(counts);
   const sharedSet = new Set(shared.map((g) => g.name));
   const pool = CARD_IDS.filter((id) => !rows.includes(id));
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [focusId, setFocusId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!focusId) return;
+    const el = rootRef.current?.querySelector<HTMLButtonElement>(`[data-add-id="${focusId}"]`);
+    (el && !el.disabled ? el : el?.parentElement?.querySelector<HTMLButtonElement>("button"))?.focus();
+    setFocusId(null);
+  }, [focusId]);
   return (
-    <div>
+    <div ref={rootRef}>
       <div className="flex items-baseline justify-between gap-2">
         <p className="eyebrow flex items-center gap-1.5 text-chakra-300">
           <Icon name="layers" size={13} />
@@ -365,7 +385,7 @@ export function Decklist({
         </div>
       ))}
 
-      <ul className="mt-3 grid gap-2 xl:grid-cols-2">
+      <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2 xl:grid-cols-2">
         {rows.map((id) => (
           <DeckRow
             key={id}
@@ -390,7 +410,10 @@ export function Decklist({
                   layout
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => onAdd(id)}
+                  onClick={() => {
+                    onAdd(id);
+                    setFocusId(id);
+                  }}
                   className="flex max-w-full items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] py-1 pl-1.5 pr-3 text-left text-[12px] font-semibold text-ash-200 transition-colors hover:border-chakra-400/50 hover:bg-chakra-500/10 hover:text-white"
                   aria-label={`Add ${card.name}, ${card.title} to the deck`}
                 >

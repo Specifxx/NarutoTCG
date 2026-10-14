@@ -45,7 +45,7 @@ export const stageIndex = (stage: Stage) => STAGES.findIndex((s) => s.id === sta
 export const isStage = (value: unknown): value is Stage => value === "learn" || value === "train" || value === "test";
 
 /** Where a learner progress status sits on the Path of the Ninja. */
-export type LessonStatus = "mastered" | "complete" | "next" | "todo";
+export type LessonStatus = "mastered" | "complete" | "started" | "next" | "todo";
 
 /** Award key for each stage, in stage order. */
 export const stageKeys = (keys: LessonKeys): readonly [string, string, string] => [keys.complete, keys.widget, keys.quiz];
