@@ -23,4 +23,6 @@ pnpm typecheck
 
 ## Cross-app navigation
 
-Every app renders the shared `SiteHeader` (Decks, Simulator, Compare, Learn). Links resolve to `NEXT_PUBLIC_DECKS_URL`, `NEXT_PUBLIC_SIMULATOR_URL`, `NEXT_PUBLIC_COMPARE_URL` and `NEXT_PUBLIC_LEARN_URL` when set. Without them, links point to `http://localhost:<port>` in development and to `/<app>` in production, for Next.js multi-zone hosting.
+Every app renders the shared `SiteHeader` (Decks, Simulator, Compare, Learn). Links resolve to `NEXT_PUBLIC_DECKS_URL`, `NEXT_PUBLIC_SIMULATOR_URL`, `NEXT_PUBLIC_COMPARE_URL` and `NEXT_PUBLIC_LEARN_URL`; the current app always links to its own `/`. Without them, links point to `http://localhost:<port>` in development.
+
+Next.js inlines these values at build time, so set all four in every app's build environment (for example `.env.production` or the host's build settings). Turbo's build hash covers `NEXT_PUBLIC_*` and `.env*` files, so changing one rebuilds. A production build without one leaves that app's link out of the header (the apps deploy separately, so a guessed path would 404), and `next build` prints a warning naming the missing variables.

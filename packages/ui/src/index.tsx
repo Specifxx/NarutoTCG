@@ -72,6 +72,7 @@ function ShurikenMark({ className }: { className?: string }) {
 
 /**
  * Sticky cross-app header shared by Decks, Simulator, Compare and Learn.
+ * Apps without a resolvable URL (see `appHref`) are left out of the nav.
  * Pages must render `<main id="main">` for the skip link to land.
  */
 export function SiteHeader({ current }: { current: AppKey }) {
@@ -85,7 +86,7 @@ export function SiteHeader({ current }: { current: AppKey }) {
       </a>
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
         <a
-          href={appHref(current, current)}
+          href="/"
           className="flex shrink-0 items-center gap-2 rounded-md font-bold tracking-tight text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
         >
           <ShurikenMark className="h-7 w-7 text-chakra-500" />
@@ -97,11 +98,13 @@ export function SiteHeader({ current }: { current: AppKey }) {
         <nav aria-label="Naruto TCG apps" className="ml-auto">
           <ul className="flex items-center gap-0.5 sm:gap-1">
             {APP_LINKS.map((app) => {
+              const href = appHref(app.key, current);
+              if (!href) return null;
               const active = app.key === current;
               return (
                 <li key={app.key}>
                   <a
-                    href={appHref(app.key, current)}
+                    href={href}
                     aria-current={active ? "page" : undefined}
                     className={cx(
                       "relative flex h-10 items-center rounded-md px-2 text-[13px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 sm:px-3 sm:text-sm",

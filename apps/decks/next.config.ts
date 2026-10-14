@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
+import { warnMissingAppUrls } from "@naruto-tcg/ui/nav";
 
-const nextConfig: NextConfig = {
-  transpilePackages: ["@naruto-tcg/ui", "@naruto-tcg/types"],
-};
-
-export default nextConfig;
+export default function config(phase: string): NextConfig {
+  if (phase === PHASE_PRODUCTION_BUILD) warnMissingAppUrls();
+  return {
+    transpilePackages: ["@naruto-tcg/ui", "@naruto-tcg/types"],
+  };
+}
