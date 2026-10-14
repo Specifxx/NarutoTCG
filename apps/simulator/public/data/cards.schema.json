@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "naruto-tcg-simulator/cards@1",
+  "title": "Naruto TCG Simulator card pool",
+  "type": "object",
+  "required": ["format", "cards"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "format": { "const": "naruto-tcg-simulator/cards@1" },
+    "generatedAt": { "type": "string" },
+    "source": { "type": "string" },
+    "cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/card" }
+    }
+  },
+  "$defs": {
+    "card": {
+      "type": "object",
+      "required": ["id", "name", "set", "number", "type", "rarity"],
+      "properties": {
+        "id": { "type": "string", "description": "Unique and stable, e.g. SIM-001 or KS-005." },
+        "name": { "type": "string", "description": "Character name. Cards sharing a name can Upgrade into each other." },
+        "title": { "type": "string", "description": "Version subtitle, e.g. \"Sage Mode\"." },
+        "set": { "type": "string" },
+        "setName": { "type": "string" },
+        "number": { "type": "string", "description": "Collection number, e.g. 005/140." },
+        "type": { "enum": ["leader", "character", "jutsu", "item", "mission", "event"] },
+        "rarity": { "enum": ["common", "uncommon", "rare", "super-rare", "secret-rare", "promo"] },
+        "element": { "enum": ["fire", "wind", "lightning", "earth", "water", "yin", "yang", "neutral"] },
+        "village": { "type": "string", "description": "e.g. Leaf Village, Sand Village, Akatsuki." },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "cost": { "type": "integer", "minimum": 0 },
+        "power": { "type": "integer", "minimum": 0 },
+        "points": { "type": "integer", "minimum": 0, "description": "Mission cards only." },
+        "text": {
+          "type": "string",
+          "description": "One ability per line: MAIN|AMBUSH|UPGRADE|SCORE: ..., CONTINUOUS: ..., EQUIP: +n Power., CHAKRA +n, TECHNIQUE [n]: ..."
+        },
+        "flavor": { "type": "string" },
+        "imageUrl": { "type": ["string", "null"], "format": "uri" },
+        "artist": { "type": "string" },
+        "sourceUrl": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}

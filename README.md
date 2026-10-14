@@ -4,7 +4,7 @@ Turborepo monorepo (pnpm) with Next.js App Router, TypeScript and Tailwind CSS.
 
 | App | Port | Purpose |
 | --- | --- | --- |
-| `apps/simulator` | 3000 | Play-test the game |
+| `apps/simulator` | 3000 | Rule-enforced playmat, deck builder, compare & rules guide ([details](apps/simulator/README.md)) |
 | `apps/decks` | 3001 | Build and share decks |
 | `apps/compare` | 3002 | Compare card prices |
 | `apps/learn` | 3003 | Learn how to play |
