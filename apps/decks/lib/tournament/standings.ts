@@ -170,9 +170,11 @@ export function computeSwissStandings(
  * Final placements: top cut players first, ordered by how deep they went (champion first)
  * and then by Swiss rank within the same elimination round; everyone else by Swiss rank.
  */
-export function computeFinalPlacements(
-  tournament: Pick<Tournament, "players" | "matches" | "topCutSize">,
-): Map<string, number> {
+export function computeFinalPlacements(tournament: {
+  players: ReadonlyArray<Pick<TournamentPlayer, "id" | "dropped">>;
+  matches: Tournament["matches"];
+  topCutSize: number;
+}): Map<string, number> {
   const swiss = computeSwissStandings(tournament.players, tournament.matches);
   const swissRank = new Map(swiss.map((row) => [row.playerId, row.rank]));
   const rankOf = (id: string) => swissRank.get(id) ?? Number.MAX_SAFE_INTEGER;
@@ -214,7 +216,7 @@ export function topCutRounds(topCutSize: number): number {
 /** Label for a final placement given the cut size, e.g. "Winner", "Top 4", "Top 8". */
 export function placementLabel(placement: number, topCutSize: number): string {
   if (placement === 1) return "Winner";
-  if (placement === 2) return "Finalist";
+  if (placement === 2 && topCutSize >= 2) return "Finalist";
   if (topCutSize > 0 && placement <= topCutSize) {
     let bracket = 4;
     while (bracket < placement) bracket *= 2;

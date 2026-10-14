@@ -1,0 +1,16 @@
+{
+  "name": "Example Store Championship — Riverbend",
+  "date": "2026-09-12",
+  "tier": "store-championship",
+  "location": {
+    "city": "Riverbend",
+    "region": "WA",
+    "country": "US",
+    "venue": "Paper Lantern Games"
+  },
+  "organizer": "Paper Lantern Games",
+  "swissRounds": 3,
+  "topCutSize": 4,
+  "bestOf": 3,
+  "notes": "Example data for the import templates. All players and results are fictional."
+}

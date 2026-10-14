@@ -1,0 +1,16 @@
+Round,Table,Player 1,Player 2,Result,Stage
+1,1,Juniper Aldana,Dmitri Halvorsen,2-0,Swiss
+1,2,Kenji Morrow,Bram Ohlsson,2-1,Swiss
+1,3,Priya Castellane,Zoe Marchetti,2-1,Swiss
+1,4,Odette Nwosu,Felix Arkwright,2-1,Swiss
+2,1,Juniper Aldana,Odette Nwosu,2-1,Swiss
+2,2,Priya Castellane,Kenji Morrow,2-1,Swiss
+2,3,Felix Arkwright,Dmitri Halvorsen,2-0,Swiss
+2,4,Bram Ohlsson,Zoe Marchetti,2-1,Swiss
+3,1,Juniper Aldana,Priya Castellane,ID,Swiss
+3,2,Kenji Morrow,Felix Arkwright,2-1,Swiss
+3,3,Odette Nwosu,Bram Ohlsson,1-1,Swiss
+3,,Zoe Marchetti,BYE,BYE,Swiss
+4,1,Priya Castellane,Odette Nwosu,2-0,Top Cut
+4,2,Juniper Aldana,Kenji Morrow,1-2,Top Cut
+5,1,Priya Castellane,Kenji Morrow,1-2,Top Cut

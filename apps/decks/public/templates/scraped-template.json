@@ -1,0 +1,121 @@
+{
+  "event": { "name": "Example Store Championship — Riverbend", "date": "September 12, 2026", "tier": "Store Champ", "format": "Standard (NT01–NT04)", "location": "Paper Lantern Games, Riverbend, WA, US", "organizer": "Paper Lantern Games", "swissRounds": 3, "topCutSize": "Top 4", "bestOf": "Bo3", "sourceUrl": "https://example.com/events/riverbend-sc-2026-09-12", "notes": "Example data for the import templates. All players and results are fictional." },
+  "standings": [
+    { "placement": 1, "player": "Kenji Morrow", "playerId": "kmorrow", "country": "US", "archetype": "Uzumaki Sage Mode", "record": "4-1", "points": 6, "dropped": false, "decklist": "Leader: Naruto Uzumaki — Sage of Mount Myoboku\n2 Iruka Umino\n3 Konohamaru Sarutobi\n2 Shikamaru Nara\n4 Substitution Jutsu\n4 Shadow Clone Jutsu\n2 Transformation Jutsu\n2 Escort the Bridge Builder\n4 Naruto Uzumaki — Shadow Clone Army\n4 Fukasaku & Shima\n3 Gamabunta\n3 Minato Namikaze\n3 Kushina Uzumaki\n4 Rasengan\n3 Sage Art: Massive Rasengan\n3 Train at Mount Myoboku\n2 Summoning Jutsu\n2 Kurama — Nine-Tails" },
+    {
+      "placement": 2,
+      "player": "Priya Castellane",
+      "playerId": "priya-c",
+      "country": "CA",
+      "archetype": "Uchiha Avenger",
+      "record": "3-1-1",
+      "points": 7,
+      "dropped": false,
+      "decklist": {
+        "leader": "Sasuke Uchiha — Avenger",
+        "cards": [
+          { "quantity": 2, "name": "Iruka Umino", "id": "NT01-035" },
+          { "quantity": 4, "name": "Substitution Jutsu", "id": "NT01-040" },
+          { "quantity": 4, "name": "Shadow Clone Jutsu", "id": "NT01-041" },
+          { "quantity": 2, "name": "Transformation Jutsu", "id": "NT01-042" },
+          { "quantity": 2, "name": "Chunin Exam Preliminaries", "id": "NT01-044" },
+          { "quantity": 4, "name": "Sasuke Uchiha — Taka Leader", "id": "NT02-001" },
+          { "quantity": 4, "name": "Suigetsu Hozuki", "id": "NT02-002" },
+          { "quantity": 4, "name": "Karin", "id": "NT02-003" },
+          { "quantity": 3, "name": "Jugo", "id": "NT02-004" },
+          { "quantity": 4, "name": "Hawk Summon", "id": "NT02-005" },
+          { "quantity": 4, "name": "Chidori", "id": "NT02-006" },
+          { "quantity": 2, "name": "Kirin", "id": "NT02-007" },
+          { "quantity": 3, "name": "Hunt for Itachi", "id": "NT02-008" },
+          { "quantity": 2, "name": "Zabuza Momochi", "id": "NT02-036" },
+          { "quantity": 2, "name": "Haku", "id": "NT02-037" },
+          { "quantity": 4, "name": "Fire Style: Fireball Jutsu", "id": "NT02-038" }
+        ]
+      }
+    },
+    {
+      "placement": 3,
+      "player": "Juniper Aldana",
+      "playerId": "junipera",
+      "country": "US",
+      "archetype": "Six Paths of Pain",
+      "record": "2-1-1",
+      "points": 7,
+      "dropped": false,
+      "decklist": {
+        "leader": "Pain — Deva Path",
+        "cards": [
+          { "quantity": 3, "name": "Shikamaru Nara", "id": "NT01-037" },
+          { "quantity": 4, "name": "Substitution Jutsu", "id": "NT01-040" },
+          { "quantity": 4, "name": "Shadow Clone Jutsu", "id": "NT01-041" },
+          { "quantity": 2, "name": "Transformation Jutsu", "id": "NT01-042" },
+          { "quantity": 2, "name": "Chunin Exam Preliminaries", "id": "NT01-044" },
+          { "quantity": 4, "name": "Konan", "id": "NT02-009" },
+          { "quantity": 4, "name": "Asura Path", "id": "NT02-010" },
+          { "quantity": 3, "name": "Preta Path", "id": "NT02-011" },
+          { "quantity": 4, "name": "Animal Path", "id": "NT02-012" },
+          { "quantity": 2, "name": "Nagato", "id": "NT02-013" },
+          { "quantity": 4, "name": "Almighty Push", "id": "NT02-014" },
+          { "quantity": 2, "name": "Planetary Devastation", "id": "NT02-015" },
+          { "quantity": 3, "name": "Invasion of Konoha", "id": "NT02-016" },
+          { "quantity": 2, "name": "Fire Style: Fireball Jutsu", "id": "NT02-038" },
+          { "quantity": 3, "name": "Water Prison Jutsu", "id": "NT02-039" },
+          { "quantity": 2, "name": "Retrieve the Forbidden Scroll", "id": "NT02-040" },
+          { "quantity": 2, "name": "Obito Uchiha — Masked Man", "id": "NT04-004" }
+        ]
+      }
+    },
+    {
+      "placement": 4,
+      "player": "Odette Nwosu",
+      "playerId": "odette",
+      "country": "US",
+      "archetype": "Sand Coffin Gaara",
+      "record": "1-2-1",
+      "points": 4,
+      "dropped": false,
+      "decklist": {
+        "leader": "Gaara — Fifth Kazekage",
+        "cards": [
+          { "quantity": 2, "name": "Choji Akimichi", "id": "NT01-038" },
+          { "quantity": 4, "name": "Substitution Jutsu", "id": "NT01-040" },
+          { "quantity": 4, "name": "Shadow Clone Jutsu", "id": "NT01-041" },
+          { "quantity": 2, "name": "Transformation Jutsu", "id": "NT01-042" },
+          { "quantity": 2, "name": "Water Prison Jutsu", "id": "NT02-039" },
+          { "quantity": 4, "name": "Temari", "id": "NT03-009" },
+          { "quantity": 4, "name": "Baki", "id": "NT03-010" },
+          { "quantity": 2, "name": "Shukaku", "id": "NT03-011" },
+          { "quantity": 4, "name": "Yashamaru", "id": "NT03-012" },
+          { "quantity": 4, "name": "Matsuri", "id": "NT03-013" },
+          { "quantity": 4, "name": "Sand Coffin", "id": "NT03-014" },
+          { "quantity": 4, "name": "Ultimate Absolute Defense: Shield of Shukaku", "id": "NT03-015" },
+          { "quantity": 3, "name": "Defend Sunagakure", "id": "NT03-016" },
+          { "quantity": 3, "name": "Rescue the Kazekage", "id": "NT03-035" },
+          { "quantity": 2, "name": "Mei Terumi — Fifth Mizukage", "id": "NT03-036" },
+          { "quantity": 2, "name": "Darui", "id": "NT03-037" }
+        ]
+      }
+    },
+    { "placement": 5, "player": "Bram Ohlsson", "playerId": "bram-o", "country": "SE", "archetype": "Itachi Tsukuyomi", "record": "1-1-1", "points": 4, "dropped": false, "decklist": null },
+    { "placement": 6, "player": "Zoë Marchetti", "playerId": "zoe-m", "country": "US", "archetype": "Medical Ninja Stall", "record": "1-2", "points": 3, "dropped": false, "decklist": null },
+    { "placement": 7, "player": "Felix Arkwright", "playerId": "farkwright", "country": "GB", "archetype": "Hyuga Gentle Fist", "record": "1-2", "points": 3, "dropped": false, "decklist": null },
+    { "placement": 8, "player": "Dmitri Halvorsen", "playerId": "dhalvorsen", "country": "US", "archetype": "Rogue / Other", "record": "0-2", "points": 0, "dropped": true, "decklist": null }
+  ],
+  "pairings": [
+    { "round": 1, "stage": "Swiss", "table": 1, "player1": "Juniper Aldana", "player2": "Dmitri Halvorsen", "result": "2-0", "winner": null },
+    { "round": 1, "stage": "Swiss", "table": 2, "player1": "Kenji Morrow", "player2": "Bram Ohlsson", "result": "2-1", "winner": null },
+    { "round": 1, "stage": "Swiss", "table": 3, "player1": "Priya Castellane", "player2": "Zoë Marchetti", "result": "2-1", "winner": null },
+    { "round": 1, "stage": "Swiss", "table": 4, "player1": "Odette Nwosu", "player2": "Felix Arkwright", "result": "2-1", "winner": null },
+    { "round": 2, "stage": "Swiss", "table": 1, "player1": "Juniper Aldana", "player2": "Odette Nwosu", "result": "2-1", "winner": null },
+    { "round": 2, "stage": "Swiss", "table": 2, "player1": "Priya Castellane", "player2": "Kenji Morrow", "result": "2-1", "winner": null },
+    { "round": 2, "stage": "Swiss", "table": 3, "player1": "Felix Arkwright", "player2": "Dmitri Halvorsen", "result": "2-0", "winner": null },
+    { "round": 2, "stage": "Swiss", "table": 4, "player1": "Bram Ohlsson", "player2": "Zoë Marchetti", "result": null, "winner": "Bram Ohlsson" },
+    { "round": 3, "stage": "Swiss", "table": 1, "player1": "Juniper Aldana", "player2": "Priya Castellane", "result": "ID", "winner": null },
+    { "round": 3, "stage": "Swiss", "table": 2, "player1": "Kenji Morrow", "player2": "Felix Arkwright", "result": "2-1", "winner": null },
+    { "round": 3, "stage": "Swiss", "table": 3, "player1": "Odette Nwosu", "player2": "Bram Ohlsson", "result": "1-1", "winner": null },
+    { "round": 3, "stage": "Swiss", "table": null, "player1": "Zoë Marchetti", "player2": null, "result": "BYE", "winner": null },
+    { "round": "Semifinals", "stage": "Top Cut", "table": 1, "player1": "Priya Castellane", "player2": "Odette Nwosu", "result": "2-0", "winner": null },
+    { "round": "Semifinals", "stage": "Top Cut", "table": 2, "player1": "Juniper Aldana", "player2": "Kenji Morrow", "result": "1-2", "winner": null },
+    { "round": "Finals", "stage": "Top Cut", "table": 1, "player1": "Priya Castellane", "player2": "Kenji Morrow", "result": "1-2", "winner": null }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "id": "local-example-store-championship-riverbend-2026-09-12",
+  "name": "Example Store Championship — Riverbend",
+  "tier": "store-championship",
+  "format": "Standard (NT01–NT04)",
+  "date": "2026-09-12",
+  "location": { "city": "Riverbend", "region": "WA", "country": "US", "venue": "Paper Lantern Games" },
+  "organizer": "Paper Lantern Games",
+  "swissRounds": 3,
+  "topCutSize": 4,
+  "bestOf": 3,
+  "source": "import",
+  "notes": "Example data for the import templates. All players and results are fictional.",
+  "players": [
+    {
+      "id": "kmorrow",
+      "name": "Kenji Morrow",
+      "country": "US",
+      "archetypeId": "uzumaki-sage",
+      "placement": 1,
+      "decklist": {
+        "leaderId": "NT03-L01",
+        "cards": [
+          { "cardId": "NT01-035", "quantity": 2 },
+          { "cardId": "NT01-036", "quantity": 3 },
+          { "cardId": "NT01-037", "quantity": 2 },
+          { "cardId": "NT01-040", "quantity": 4 },
+          { "cardId": "NT01-041", "quantity": 4 },
+          { "cardId": "NT01-042", "quantity": 2 },
+          { "cardId": "NT01-043", "quantity": 2 },
+          { "cardId": "NT03-001", "quantity": 4 },
+          { "cardId": "NT03-002", "quantity": 4 },
+          { "cardId": "NT03-003", "quantity": 3 },
+          { "cardId": "NT03-004", "quantity": 3 },
+          { "cardId": "NT03-005", "quantity": 3 },
+          { "cardId": "NT03-006", "quantity": 4 },
+          { "cardId": "NT03-007", "quantity": 3 },
+          { "cardId": "NT03-008", "quantity": 3 },
+          { "cardId": "NT03-034", "quantity": 2 },
+          { "cardId": "NT04-001", "quantity": 2 }
+        ]
+      }
+    },
+    {
+      "id": "priya-c",
+      "name": "Priya Castellane",
+      "country": "CA",
+      "archetypeId": "uchiha-avenger",
+      "placement": 2,
+      "decklist": {
+        "leaderId": "NT02-L01",
+        "cards": [
+          { "cardId": "NT01-035", "quantity": 2 },
+          { "cardId": "NT01-040", "quantity": 4 },
+          { "cardId": "NT01-041", "quantity": 4 },
+          { "cardId": "NT01-042", "quantity": 2 },
+          { "cardId": "NT01-044", "quantity": 2 },
+          { "cardId": "NT02-001", "quantity": 4 },
+          { "cardId": "NT02-002", "quantity": 4 },
+          { "cardId": "NT02-003", "quantity": 4 },
+          { "cardId": "NT02-004", "quantity": 3 },
+          { "cardId": "NT02-005", "quantity": 4 },
+          { "cardId": "NT02-006", "quantity": 4 },
+          { "cardId": "NT02-007", "quantity": 2 },
+          { "cardId": "NT02-008", "quantity": 3 },
+          { "cardId": "NT02-036", "quantity": 2 },
+          { "cardId": "NT02-037", "quantity": 2 },
+          { "cardId": "NT02-038", "quantity": 4 }
+        ]
+      }
+    },
+    {
+      "id": "junipera",
+      "name": "Juniper Aldana",
+      "country": "US",
+      "archetypeId": "akatsuki-pain",
+      "placement": 3,
+      "decklist": {
+        "leaderId": "NT02-L02",
+        "cards": [
+          { "cardId": "NT01-037", "quantity": 3 },
+          { "cardId": "NT01-040", "quantity": 4 },
+          { "cardId": "NT01-041", "quantity": 4 },
+          { "cardId": "NT01-042", "quantity": 2 },
+          { "cardId": "NT01-044", "quantity": 2 },
+          { "cardId": "NT02-009", "quantity": 4 },
+          { "cardId": "NT02-010", "quantity": 4 },
+          { "cardId": "NT02-011", "quantity": 3 },
+          { "cardId": "NT02-012", "quantity": 4 },
+          { "cardId": "NT02-013", "quantity": 2 },
+          { "cardId": "NT02-014", "quantity": 4 },
+          { "cardId": "NT02-015", "quantity": 2 },
+          { "cardId": "NT02-016", "quantity": 3 },
+          { "cardId": "NT02-038", "quantity": 2 },
+          { "cardId": "NT02-039", "quantity": 3 },
+          { "cardId": "NT02-040", "quantity": 2 },
+          { "cardId": "NT04-004", "quantity": 2 }
+        ]
+      }
+    },
+    {
+      "id": "odette",
+      "name": "Odette Nwosu",
+      "country": "US",
+      "archetypeId": "sand-gaara",
+      "placement": 4,
+      "decklist": {
+        "leaderId": "NT03-L02",
+        "cards": [
+          { "cardId": "NT01-038", "quantity": 2 },
+          { "cardId": "NT01-040", "quantity": 4 },
+          { "cardId": "NT01-041", "quantity": 4 },
+          { "cardId": "NT01-042", "quantity": 2 },
+          { "cardId": "NT02-039", "quantity": 2 },
+          { "cardId": "NT03-009", "quantity": 4 },
+          { "cardId": "NT03-010", "quantity": 4 },
+          { "cardId": "NT03-011", "quantity": 2 },
+          { "cardId": "NT03-012", "quantity": 4 },
+          { "cardId": "NT03-013", "quantity": 4 },
+          { "cardId": "NT03-014", "quantity": 4 },
+          { "cardId": "NT03-015", "quantity": 4 },
+          { "cardId": "NT03-016", "quantity": 3 },
+          { "cardId": "NT03-035", "quantity": 3 },
+          { "cardId": "NT03-036", "quantity": 2 },
+          { "cardId": "NT03-037", "quantity": 2 }
+        ]
+      }
+    },
+    { "id": "bram-o", "name": "Bram Ohlsson", "country": "SE", "archetypeId": "itachi-tsukuyomi", "placement": 5 },
+    { "id": "zoe-m", "name": "Zoë Marchetti", "country": "US", "archetypeId": "medical-ninja", "placement": 6 },
+    { "id": "farkwright", "name": "Felix Arkwright", "country": "GB", "archetypeId": "hyuga-gentle-fist", "placement": 7 },
+    { "id": "dhalvorsen", "name": "Dmitri Halvorsen", "country": "US", "archetypeId": "rogue", "placement": 8, "dropped": true }
+  ],
+  "matches": [
+    { "round": 1, "stage": "swiss", "table": 1, "player1Id": "junipera", "player2Id": "dhalvorsen", "outcome": "p1", "games": { "p1": 2, "p2": 0 } },
+    { "round": 1, "stage": "swiss", "table": 2, "player1Id": "kmorrow", "player2Id": "bram-o", "outcome": "p1", "games": { "p1": 2, "p2": 1 } },
+    { "round": 1, "stage": "swiss", "table": 3, "player1Id": "priya-c", "player2Id": "zoe-m", "outcome": "p1", "games": { "p1": 2, "p2": 1 } },
+    { "round": 1, "stage": "swiss", "table": 4, "player1Id": "odette", "player2Id": "farkwright", "outcome": "p1", "games": { "p1": 2, "p2": 1 } },
+    { "round": 2, "stage": "swiss", "table": 1, "player1Id": "junipera", "player2Id": "odette", "outcome": "p1", "games": { "p1": 2, "p2": 1 } },
+    { "round": 2, "stage": "swiss", "table": 2, "player1Id": "priya-c", "player2Id": "kmorrow", "outcome": "p1", "games": { "p1": 2, "p2": 1 } },
+    { "round": 2, "stage": "swiss", "table": 3, "player1Id": "farkwright", "player2Id": "dhalvorsen", "outcome": "p1", "games": { "p1": 2, "p2": 0 } },
+    { "round": 2, "stage": "swiss", "table": 4, "player1Id": "bram-o", "player2Id": "zoe-m", "outcome": "p1", "games": { "p1": 2, "p2": 1 } },
+    { "round": 3, "stage": "swiss", "table": 1, "player1Id": "junipera", "player2Id": "priya-c", "outcome": "draw", "intentionalDraw": true },
+    { "round": 3, "stage": "swiss", "table": 2, "player1Id": "kmorrow", "player2Id": "farkwright", "outcome": "p1", "games": { "p1": 2, "p2": 1 } },
+    { "round": 3, "stage": "swiss", "table": 3, "player1Id": "odette", "player2Id": "bram-o", "outcome": "draw", "games": { "p1": 1, "p2": 1 } },
+    { "round": 3, "stage": "swiss", "player1Id": "zoe-m", "player2Id": null, "outcome": "bye" },
+    { "round": 4, "stage": "top-cut", "table": 1, "player1Id": "priya-c", "player2Id": "odette", "outcome": "p1", "games": { "p1": 2, "p2": 0 } },
+    { "round": 4, "stage": "top-cut", "table": 2, "player1Id": "junipera", "player2Id": "kmorrow", "outcome": "p2", "games": { "p1": 1, "p2": 2 } },
+    { "round": 5, "stage": "top-cut", "table": 1, "player1Id": "priya-c", "player2Id": "kmorrow", "outcome": "p2", "games": { "p1": 1, "p2": 2 } }
+  ]
+}

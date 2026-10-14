@@ -130,6 +130,10 @@ describe("labels", () => {
     expect(placementLabel(7, 8)).toBe("Top 8");
     expect(placementLabel(12, 16)).toBe("Top 16");
     expect(placementLabel(9, 8)).toBe("9th");
+    // Without a cut there is no final, so 2nd place is just "2nd".
+    expect(placementLabel(1, 0)).toBe("Winner");
+    expect(placementLabel(2, 0)).toBe("2nd");
+    expect(placementLabel(3, 0)).toBe("3rd");
     expect(topCutRounds(8)).toBe(3);
     expect(topCutRounds(16)).toBe(4);
     expect(topCutRounds(0)).toBe(0);

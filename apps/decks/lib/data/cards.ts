@@ -57,7 +57,7 @@ export const CARDS: readonly NarutoCard[] = [
     ["L01", "Kakashi Hatake — Copy Ninja", L, null, 5000, "Leaf", "super-rare", ["Jonin", "Team 7", "Sharingan"], "Once per turn, when you play a Jutsu, you may pay 2 chakra to copy its effect."],
     ["L02", "Tsunade — Fifth Hokage", L, null, 5000, "Leaf", "super-rare", ["Sannin", "Hokage", "Medical"], "At the end of your turn, restore 1000 power to each of your Characters. If you control 3+ Medical Characters, draw 1 card."],
     ["L03", "Hinata Hyuga — Byakugan Heiress", L, null, 4000, "Leaf", "super-rare", ["Hyuga"], "Your opponent plays with the top card of their deck revealed. Your Hyuga Characters get +1000 power while attacking."],
-    ["L04", "Rock Lee — Splendid Taijutsu", L, null, 6000, "Leaf", "super-rare", ["Taijutsu", "Team Guy"], "You cannot play Jutsu that cost 3 or more. Your Characters can attack the turn they are played."],
+    ["L04", "Rock Lee — Splendid Taijutsu", L, null, 6000, "Leaf", "super-rare", ["Taijutsu", "Team Guy"], "You cannot play Jutsu that cost 3 or more unless they are Taijutsu. Your Characters can attack the turn they are played."],
     ["001", "Asuma Sarutobi", C, 4, 5000, "Leaf", "rare", ["Jonin"], "Trench Knives: When this attacks, deal 1000 damage to a Character."],
     ["002", "Kurenai Yuhi", C, 3, 3000, "Leaf", "uncommon", ["Jonin", "Genjutsu"], "When played, your opponent's highest-power Character cannot attack next turn."],
     ["003", "Yamato", C, 4, 4000, "Leaf", "rare", ["Jonin", "ANBU"], "Wood Release: When played, return a Character with cost 3 or less to its owner's hand."],

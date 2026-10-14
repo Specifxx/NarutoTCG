@@ -221,7 +221,7 @@ export const ARCHETYPES: readonly Archetype[] = [
     description: "Every Character attacks the turn it lands. Rock Lee races with cheap Taijutsu bodies and Gate of Death burst turns.",
     gamePlan: "Curve out with Weights Off and Ninja Tortoise, push damage with Leaf Hurricane, and close with a Gate of Death swing.",
     strengths: ["Fastest clock in the format", "Immune to cheap removal with Drunken Fist"],
-    weaknesses: ["Cannot play expensive Jutsu", "Collapses against Blockers and lifegain"],
+    weaknesses: ["No expensive removal: only Taijutsu Jutsu above 2 cost", "Collapses against Blockers and lifegain"],
     aliases: ["lee", "rock lee", "taijutsu", "lee rush", "taijutsu aggro", "team guy", "might guy"],
     mulliganTargets: ["NT01-028", "NT01-030", "NT01-029"],
     core: [["NT01-026", 4], ["NT01-027", 4], ["NT01-028", 4], ["NT01-029", 4], ["NT01-030", 4], ["NT01-031", 4], ["NT01-032", 4], ["NT01-033", 2], ["NT01-034", 3], ["NT01-040", 4], ["NT01-039", 3]],
