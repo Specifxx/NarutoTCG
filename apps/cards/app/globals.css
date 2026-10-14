@@ -1,6 +1,11 @@
 @import "@naruto-tcg/ui/theme.css";
 @source "../../../packages/ui/src";
 
+/* Height of the sticky SiteHeader (3.5rem) + CardsNav (2.75rem) + two 1px borders. */
+:root {
+  --cards-header-h: 6.375rem;
+}
+
 html {
   color-scheme: dark;
   -webkit-tap-highlight-color: transparent;

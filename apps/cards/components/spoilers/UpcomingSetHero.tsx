@@ -6,6 +6,7 @@ import { ProgressBar, percentLabel } from "@/components/sets/ProgressBar";
 import { SET_KIND_LABEL, daysBetween, formatDate, formatDateLong, setHref } from "@/lib/meta";
 import { formatMonthDay, pluralize, type SetEntryLike, type SetSummary } from "./reveals";
 import styles from "./spoilers.module.css";
+import { cardsHref } from "@/lib/search";
 
 /** Spoiler-season banner for one unreleased set. */
 export function UpcomingSetHero({
@@ -112,7 +113,7 @@ export function UpcomingSetHero({
               <ArrowRightIcon />
             </Link>
             <Link
-              href={`/cards?set=${encodeURIComponent(set.id)}`}
+              href={cardsHref({ sets: [set.id] })}
               className="inline-flex items-center gap-2 rounded-lg border border-shadow-500 px-4 py-2 text-sm font-semibold text-ash-200 transition hover:border-chakra-400 hover:text-chakra-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
             >
               Browse in database

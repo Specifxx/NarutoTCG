@@ -24,6 +24,7 @@ import {
   type BrowserState,
   type CardFilters,
   type SortKey,
+  cardsHref,
 } from "@/lib/search";
 
 // --- fixtures ---------------------------------------------------------------
@@ -480,5 +481,18 @@ describe("searchSuggestions", () => {
   it("handles an empty index", () => {
     expect(searchSuggestions(buildSearchIndex([]))).toEqual([]);
     expect(search(buildSearchIndex([]), EMPTY_FILTERS)).toEqual([]);
+  });
+});
+
+describe("cardsHref", () => {
+  it("links to the bare database when nothing is set", () => {
+    expect(cardsHref()).toBe("/cards");
+    expect(cardsHref({ query: "   " })).toBe("/cards");
+  });
+
+  it("encodes filters with the shared URL contract", () => {
+    expect(cardsHref({ elements: ["fire"] })).toBe("/cards?element=fire");
+    expect(cardsHref({ query: "team 7", sets: ["NR01"] }, { view: "list" })).toBe("/cards?q=team%207&set=NR01&view=list");
+    expect(cardsHref({ query: "a&b=c" })).toBe("/cards?q=a%26b%3Dc");
   });
 });

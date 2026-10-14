@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CardImage } from "@/components/CardImage";
 import { SearchIcon } from "./icons";
 import styles from "./home.module.css";
+import { cardsHref } from "@/lib/search";
 
 export interface HeroCard {
   card: NarutoCard;
@@ -71,7 +72,7 @@ export function HomeHero({
               {suggestions.map((term) => (
                 <Link
                   key={term}
-                  href={`/cards?q=${encodeURIComponent(term)}`}
+                  href={cardsHref({ query: term })}
                   className="rounded-full border border-shadow-700 bg-shadow-900/80 px-3 py-1 text-ash-200 transition hover:border-chakra-500/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
                 >
                   {term}

@@ -24,6 +24,7 @@ import {
   isReleased,
   todayIso,
 } from "@/lib/meta";
+import { cardsHref } from "@/lib/search";
 
 export const dynamicParams = false;
 
@@ -134,7 +135,7 @@ export default async function SetChecklistPage({ params }: Params) {
             </div>
             <div className={`${styles.noPrint} flex flex-wrap gap-2 lg:justify-end`}>
               <Link
-                href={`/cards?set=${encodeURIComponent(set.id)}`}
+                href={cardsHref({ sets: [set.id] })}
                 className={`${ACTION} bg-chakra-500 text-shadow-950 hover:bg-chakra-400 focus-visible:ring-offset-2 focus-visible:ring-offset-shadow-900`}
               >
                 Browse in database

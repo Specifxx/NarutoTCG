@@ -8,7 +8,7 @@
 // scraped sources, and a single unescaped character would break the document.
 import type { CardPrinting, CardSet, ChakraElement, NarutoCard, Rarity } from "@naruto-tcg/types";
 import { KEYWORD_GLOSSARY, TIMING_TAGS } from "./keywords";
-import { ELEMENT_META, RARITY_META, TYPE_META } from "./meta";
+import { ELEMENT_GLYPHS, ELEMENT_META, RARITY_META, TYPE_META } from "./meta";
 
 /** Card face size in SVG user units: 63 × 88 mm at 10 units per mm. */
 export const ART_WIDTH = 630;
@@ -489,14 +489,6 @@ const CJK =
 
 /** Serif italic advance relative to the sans estimates (between Times and Georgia). */
 const SERIF_FACTOR = 0.92;
-
-const ELEMENT_GLYPHS: Record<ChakraElement, { d: string; stroke: boolean }> = {
-  fire: { d: "M12 2.5c.9 3.2 5 5.4 5 10a5 5 0 0 1-10 0c0-2.3 1.1-4 2.6-5.3-.1 1.8.6 3.1 1.8 3.7-.3-3.2.1-5.9.6-8.4Z", stroke: false },
-  water: { d: "M12 2.8c2.9 4 5.5 7.2 5.5 10.7a5.5 5.5 0 0 1-11 0c0-3.5 2.6-6.7 5.5-10.7Z", stroke: false },
-  lightning: { d: "M13.5 2 5 13.2h5.6L9.4 22 19 9.8h-5.7L13.5 2Z", stroke: false },
-  earth: { d: "M2.5 19.5 9 8l3.3 5.6L15 9.5l6.5 10H2.5Z", stroke: false },
-  wind: { d: "M3 8h10.5A2.5 2.5 0 1 0 11 5.5M3 12h15a3 3 0 1 1-3 3M3 16h7", stroke: true },
-};
 
 /** Element glyph (24-unit icon) centered at (cx, cy) with the given size. */
 function glyph(element: ChakraElement, cx: number, cy: number, size: number, color: string, opacity = 1): string {

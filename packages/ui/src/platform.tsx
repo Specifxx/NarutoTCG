@@ -35,7 +35,7 @@ export function SiteHeader({ current, children }: { current: PlatformAppKey; chi
           </svg>
           <span className="hidden sm:inline">Naruto TCG</span>
         </a>
-        <nav aria-label="Platform" className="-mx-2 min-w-0 flex-1 overflow-x-auto [scrollbar-width:none]">
+        <nav aria-label="Platform" className="-mx-2 min-w-0 flex-1 overflow-x-auto [mask-image:linear-gradient(to_right,black_80%,transparent)] [scrollbar-width:none] md:[mask-image:none]">
           <ul className="flex items-center gap-1 px-2">
             {PLATFORM_APPS.map((app) => {
               const active = app.key === current;

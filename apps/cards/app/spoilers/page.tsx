@@ -182,7 +182,7 @@ export default function SpoilersPage() {
                       className="scroll-mt-32"
                     >
                       <div
-                        className={`${styles.dayHeader} sticky top-[6.375rem] z-20 -mx-4 mb-4 flex items-center gap-3 border-b border-shadow-800 px-4 py-3 sm:-mx-6 sm:px-6`}
+                        className={`${styles.dayHeader} sticky top-[var(--cards-header-h)] z-20 -mx-4 mb-4 flex items-center gap-3 border-b border-shadow-800 px-4 py-3 sm:-mx-6 sm:px-6`}
                       >
                         <h2 id={headingId} className="text-base font-bold text-white sm:text-lg">
                           <time dateTime={day.date} title={formatDateLong(day.date)}>

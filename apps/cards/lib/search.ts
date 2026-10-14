@@ -734,6 +734,18 @@ export function toQueryString(state: Partial<BrowserState>): string {
   return parts.length === 0 ? "" : `?${parts.join("&")}`;
 }
 
+/**
+ * Typed link into the card database for use by any page, e.g.
+ * `cardsHref({ elements: ["fire"] })` → "/cards?element=fire".
+ */
+export function cardsHref(
+  filters: Partial<CardFilters> = {},
+  options: { sort?: SortKey; view?: ViewMode } = {},
+): "/cards" | `/cards?${string}` {
+  const query = toQueryString({ filters: { ...EMPTY_FILTERS, ...filters }, ...options });
+  return query === "" ? "/cards" : `/cards?${query.slice(1)}`;
+}
+
 // ---------------------------------------------------------------------------
 // Highlighting and suggestions
 // ---------------------------------------------------------------------------

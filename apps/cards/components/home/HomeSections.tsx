@@ -21,6 +21,7 @@ import {
 } from "@/lib/meta";
 import { ArrowRightIcon, CardsIcon, DeckIcon, EyeIcon, LayersIcon } from "./icons";
 import styles from "./home.module.css";
+import { cardsHref } from "@/lib/search";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 focus-visible:ring-offset-2 focus-visible:ring-offset-shadow-950";
@@ -269,7 +270,7 @@ export function ElementTiles({ counts }: { counts: ReadonlyMap<ChakraElement, nu
           return (
             <li key={element} className={i === CHAKRA_ELEMENTS.length - 1 ? "col-span-2 sm:col-span-1" : undefined}>
               <Link
-                href={`/cards?element=${element}`}
+                href={cardsHref({ elements: [element] })}
                 className={`${styles.elementTile} group relative flex h-full min-h-32 flex-col justify-between overflow-hidden rounded-2xl border bg-gradient-to-br to-shadow-900 p-4 shadow-lg shadow-black/20 hover:shadow-xl ${ELEMENT_TILE[element]} ${FOCUS}`}
               >
                 <span
@@ -306,7 +307,7 @@ export function TypeLinks({ counts }: { counts: ReadonlyMap<CardType, number> })
           return (
             <li key={type}>
               <Link
-                href={`/cards?type=${type}`}
+                href={cardsHref({ types: [type] })}
                 className={`group flex h-full items-start gap-4 rounded-2xl border border-shadow-700 bg-shadow-900 p-4 transition hover:border-chakra-500/50 hover:bg-shadow-800/70 ${FOCUS}`}
               >
                 <span
