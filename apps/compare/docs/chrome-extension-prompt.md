@@ -56,7 +56,7 @@ IDENTIFYING THE CARD
 - If you cannot identify the exact printing, leave that item out. Never guess. The server rejects unknown or ambiguous cards rather than misfiling them.
 
 VENDOR AND CURRENCY
-- tcgplayer.com → "tcgplayer", "USD". ebay.com → "ebay", "USD". cardmarket.com → "cardmarket", "EUR".
+- tcgplayer.com → "tcgplayer", "USD". ebay.com → "ebay", "USD"; EU eBay sites (ebay.de, ebay.fr, ebay.it, ebay.es…) → "ebay", "EUR". cardmarket.com → "cardmarket", "EUR".
 - Only USD and EUR are accepted. Do not convert currencies. Leave out listings priced in any other currency.
 - Every "url" (the item's and each listing's) must be an https link on that marketplace's own domain (tcgplayer.com, ebay.com or an EU eBay site, cardmarket.com). Use null for anything else, such as a seller's own shop or a redirect link. An off-domain link makes the server reject the whole item.
 
