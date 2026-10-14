@@ -46,7 +46,7 @@ export function Badge({ className, ...props }: HTMLAttributes<HTMLSpanElement>) 
 
 export function PageShell({ title, tagline, children }: { title: string; tagline?: string; children?: ReactNode }) {
   return (
-    <main id="main" className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-4xl flex-col gap-6 px-6 py-16">
+    <main id="main-content" className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-4xl flex-col gap-6 px-6 py-16">
       <header>
         <Badge>Naruto TCG</Badge>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-white">{title}</h1>

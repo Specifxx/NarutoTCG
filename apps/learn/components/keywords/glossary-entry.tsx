@@ -166,8 +166,9 @@ export function GlossaryEntry({
             className="pointer-events-none absolute inset-0 z-10 rounded-2xl ring-2 ring-gold-300"
             style={{ boxShadow: "0 0 40px -4px rgba(245,197,66,0.75), inset 0 0 30px -10px rgba(245,197,66,0.5)" }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0.25, 1, 0] }}
-            transition={{ duration: 1.7, times: [0, 0.15, 0.45, 0.65, 1] }}
+            animate={{ opacity: [0, 1, 0.3, 1, 0.3, 1, 0] }}
+            // Starts a beat late and pulses three times so it is still visible after a long smooth scroll.
+            transition={{ duration: 2.4, delay: 0.2, times: [0, 0.1, 0.28, 0.46, 0.64, 0.8, 1] }}
           />
         )}
 

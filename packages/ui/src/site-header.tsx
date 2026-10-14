@@ -147,7 +147,7 @@ export function SiteHeader({ current, urls, children }: SiteHeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-shadow-950/75 backdrop-blur-xl supports-[backdrop-filter]:bg-shadow-950/60">
       <a
-        href="#main"
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-chakra-500 focus:px-3 focus:py-1.5 focus:text-sm focus:font-semibold focus:text-shadow-950"
       >
         Skip to content

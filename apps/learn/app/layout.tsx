@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <SiteHeader current="learn" urls={resolveSiteUrls(process.env)}>
             <LearnSubnav />
           </SiteHeader>
-          <main id="main" className="relative">
+          <main id="main-content" className="relative">
             {children}
           </main>
           <footer className="relative border-t border-white/5">

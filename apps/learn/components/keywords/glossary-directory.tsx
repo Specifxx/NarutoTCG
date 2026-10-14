@@ -338,7 +338,7 @@ export function GlossaryDirectory() {
       if (doFlash) {
         const n = ++seq.current;
         setFlash({ id, n });
-        later(() => setFlash((f) => (f && f.n === n ? null : f)), 1900);
+        later(() => setFlash((f) => (f && f.n === n ? null : f)), 2800);
       }
       if (mode) {
         pendingScroll.current = { id, mode };
@@ -441,7 +441,7 @@ export function GlossaryDirectory() {
       if (url.origin !== window.location.origin || url.pathname !== window.location.pathname || !url.hash) return;
       const glossaryLink = a.hasAttribute("data-glossary-link") || raw.includes("/keywords#");
       if (!glossaryLink) {
-        // Plain in-page anchors (e.g. "Skip to content" → #main) must not open the MAIN entry.
+        // Plain in-page anchors (e.g. "Skip to content" → #main-content) must not open an entry.
         ignoreHashUntil.current = Date.now() + 600;
         return;
       }
@@ -718,7 +718,7 @@ export function GlossaryDirectory() {
             <div className="sticky top-[120px]">
               <div
                 id={DETAIL_PANEL_ID}
-                className="panel relative max-h-[calc(100dvh-140px)] overflow-y-auto overscroll-contain p-5 [scrollbar-width:thin]"
+                className="panel relative max-h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden overscroll-contain p-5 [scrollbar-width:thin]"
               >
                 <span
                   aria-hidden="true"
