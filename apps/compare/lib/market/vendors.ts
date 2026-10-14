@@ -1,4 +1,4 @@
-import type { CurrencyCode, VendorId } from "./types";
+import type { CurrencyCode, MarketCard, VendorId } from "./types";
 
 export interface VendorConfig {
   id: VendorId;
@@ -38,6 +38,11 @@ export const VENDORS: Record<VendorId, VendorConfig> = {
     searchUrl: (q) => `https://www.cardmarket.com/en/Search?searchString=${encodeURIComponent(q)}`,
   },
 };
+
+/** The vendor's search page for a printing: the link whenever no product URL is known. */
+export function vendorSearchUrl(vendor: VendorId, card: Pick<MarketCard, "name" | "setCode" | "number">): string {
+  return VENDORS[vendor].searchUrl(`${card.name} ${card.setCode} ${card.number}`);
+}
 
 export function isVendorId(value: unknown): value is VendorId {
   return typeof value === "string" && (VENDOR_ORDER as string[]).includes(value);

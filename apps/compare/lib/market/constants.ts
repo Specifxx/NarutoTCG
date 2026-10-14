@@ -1,11 +1,19 @@
 import type { ChangeWindow } from "./types";
 
-/** Days of daily history shown on the card page chart (and returned by getCardDetail). */
+/** Longest range on the card page chart. */
 export const HISTORY_DAYS = 90;
+/** Daily points getCardDetail returns: HISTORY_DAYS plus the base day the 90-day change compares against. */
+export const HISTORY_POINTS = HISTORY_DAYS + 1;
 /** Days of aggregate prices behind each directory sparkline. */
 export const SPARKLINE_DAYS = 30;
 export const CHANGE_WINDOW_DAYS: Record<ChangeWindow, number> = { "7d": 7, "30d": 30, "90d": 90 };
 export const CHANGE_WINDOWS: ChangeWindow[] = ["7d", "30d", "90d"];
+
+/**
+ * Rollup carries a vendor's current snapshot into a day's history only if it was captured
+ * within this many days; an older quote is stale, so history shows a gap, not a flat line.
+ */
+export const CARRY_FORWARD_MAX_DAYS = 7;
 
 /** Cards below this USD market price are excluded from gainers / losers (penny noise). */
 export const MOVER_MIN_PRICE = 1;

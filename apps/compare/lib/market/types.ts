@@ -158,7 +158,7 @@ export interface CardMarketDetail {
   quotes: VendorQuote[];
   /** Live listings across vendors, cheapest totalUsd first. */
   listings: VendorListing[];
-  /** Daily history, oldest first, covering (asOf - HISTORY_DAYS, asOf]. */
+  /** HISTORY_POINTS daily points, oldest first, covering [asOf - HISTORY_DAYS, asOf]; [] when never priced. */
   history: PricePoint[];
   /** Other printings that share `character`, most valuable first. */
   variants: CardMarketSummary[];
@@ -217,6 +217,14 @@ export interface RollupResult {
 
 export type RepositoryMode = "seed" | "postgres";
 
+/** Catalog-wide figures for the directory header. */
+export interface MarketStats {
+  /** Printings in the catalog. */
+  cards: number;
+  /** Newest vendor quote update across the catalog, or null before any prices. */
+  lastUpdatedAt: string | null;
+}
+
 /**
  * Storage contract shared by the in-memory seed data and PostgreSQL / Supabase.
  * Both implementations must follow the semantics documented in `analytics.ts`
@@ -225,6 +233,7 @@ export type RepositoryMode = "seed" | "postgres";
 export interface MarketRepository {
   readonly mode: RepositoryMode;
   listSets(): Promise<CardSet[]>;
+  getStats(): Promise<MarketStats>;
   getFacets(): Promise<MarketFacets>;
   queryCards(query: MarketQuery): Promise<MarketPage>;
   getMovers(window: ChangeWindow, limit: number): Promise<MarketMovers>;

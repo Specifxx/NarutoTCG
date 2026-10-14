@@ -3,7 +3,8 @@ import { APP_LINKS, appHref, type AppKey } from "./nav";
 
 export { APP_LINKS, appHref, type AppKey, type AppLink } from "./nav";
 
-const cx = (...c: Array<string | false | undefined>) => c.filter(Boolean).join(" ");
+/** Joins truthy class names. */
+export const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
 
 export function Button({
   variant = "primary",

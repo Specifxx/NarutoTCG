@@ -56,8 +56,12 @@ export function toSearchParams(query: MarketQuery, extra: Record<string, string 
   return params;
 }
 
-/** `/` plus the serialized query, e.g. `/?set=NTG01&page=2`. */
+/** `/` plus the serialized query, e.g. `/?set=NTG01,NTG02&page=2` (commas kept readable; they are legal in a query). */
 export function directoryHref(query: MarketQuery, extra?: Record<string, string | undefined>): string {
-  const qs = toSearchParams(query, extra).toString();
+  const qs = toSearchParams(query, extra).toString().replace(/%2C/gi, ",");
   return qs ? `/?${qs}` : "/";
+}
+
+export function cardHref(cardId: string): string {
+  return `/card/${encodeURIComponent(cardId)}`;
 }

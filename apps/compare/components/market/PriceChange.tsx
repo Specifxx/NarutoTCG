@@ -1,7 +1,6 @@
+import { cx } from "@naruto-tcg/ui";
 import { formatPct, formatSignedUsd } from "@/lib/market/format";
 import type { PriceChange as Change } from "@/lib/market/types";
-
-const cx = (...c: Array<string | false | undefined>) => c.filter(Boolean).join(" ");
 
 /** Direction of a change after display rounding, so "+0.0%" never renders green. */
 export function changeDirection(change: Change | null): "up" | "down" | "flat" | "none" {

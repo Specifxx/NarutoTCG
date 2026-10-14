@@ -1,7 +1,6 @@
+import { cx } from "@naruto-tcg/ui";
 import { FINISH_LABEL, RARITY_LABEL } from "@/lib/market/labels";
 import type { CardFinish, Rarity } from "@/lib/market/types";
-
-const cx = (...c: Array<string | false | undefined>) => c.filter(Boolean).join(" ");
 
 const RARITY_TONE: Record<Rarity, string> = {
   common: "border-shadow-500 text-ash-400",

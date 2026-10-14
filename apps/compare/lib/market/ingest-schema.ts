@@ -3,8 +3,8 @@
  *
  * The envelope is validated strictly; each item is validated on its own so one
  * malformed row (common with scraped data) is reported without rejecting the batch.
- * Scraper-friendly coercions: "$1,234.56" / "12.50" → number, "Near Mint" → "NM",
- * "Foil" → "foil", "TCGplayer" → "tcgplayer".
+ * Scraper-friendly coercions: "$1,234.56" / "12,50 €" / "1.234,56" → number, "4" → 4,
+ * "Near Mint" → "NM", "Foil" → "foil", "TCGplayer" → "tcgplayer", number 7 → "7".
  */
 import { z } from "zod";
 import { MAX_INGEST_ITEMS, MAX_LISTINGS_PER_ITEM } from "./constants";
@@ -13,14 +13,30 @@ import type { CardCondition, CardFinish, Rarity, VendorId } from "./types";
 import { VENDOR_ORDER } from "./vendors";
 
 const MAX_PRICE = 1_000_000;
+const MIN_PRICE = 0.01;
 
-/** Accepts numbers and US-formatted price strings with an optional $ / € / USD / EUR marker. */
+const US_AMOUNT = /^\d{1,3}(,\d{3})*(\.\d+)?$|^\d+(\.\d+)?$/;
+/** Decimal comma, as Cardmarket prints it: "12,50", "1.234,56". Exactly 1-2 decimals, so "1,234" stays US thousands. */
+const EU_AMOUNT = /^\d{1,3}(\.\d{3})+,\d{1,2}$|^\d+,\d{1,2}$/;
+
+/** Accepts numbers and price strings in US or EU notation with an optional $ / € / USD / EUR marker. */
 function coerceMoney(value: unknown): unknown {
   if (typeof value !== "string") return value;
   const cleaned = value.replace(/\b(USD|EUR)\b/gi, "").replace(/[$€\s]/g, "");
   if (cleaned === "") return null;
-  if (!/^\d{1,3}(,\d{3})*(\.\d+)?$|^\d+(\.\d+)?$/.test(cleaned)) return value;
-  return Number(cleaned.replace(/,/g, ""));
+  if (US_AMOUNT.test(cleaned)) return Number(cleaned.replace(/,/g, ""));
+  if (EU_AMOUNT.test(cleaned)) return Number(cleaned.replace(/\./g, "").replace(",", "."));
+  return value;
+}
+
+/** "4" → 4, so counts scraped as page text still validate. */
+function coerceInteger(value: unknown): unknown {
+  return typeof value === "string" && /^\s*\d+\s*$/.test(value) ? Number(value) : value;
+}
+
+/** 7 → "7": collector numbers are text, but a scraper may emit a bare number. */
+function coerceText(value: unknown): unknown {
+  return typeof value === "number" && Number.isFinite(value) ? String(value) : value;
 }
 
 const slug = (value: unknown) =>
@@ -51,7 +67,10 @@ function coerceFinish(value: unknown): unknown {
 }
 
 const money = z.preprocess(coerceMoney, z.number().finite().nonnegative().max(MAX_PRICE));
-const positiveMoney = z.preprocess(coerceMoney, z.number().finite().positive().max(MAX_PRICE));
+const positiveMoney = z.preprocess(
+  coerceMoney,
+  z.number().finite().min(MIN_PRICE, "must be at least one cent").max(MAX_PRICE),
+);
 const httpUrl = z.url({ protocol: /^https?$/ }).max(2048);
 
 export const VendorSchema = z.preprocess(slug, z.enum(VENDOR_ORDER as [VendorId, ...VendorId[]]));
@@ -68,7 +87,7 @@ export const CardRefSchema = z
     id: z.string().trim().min(1).max(64).optional(),
     name: z.string().trim().min(1).max(200).optional(),
     setCode: z.string().trim().min(1).max(32).optional(),
-    number: z.string().trim().min(1).max(32).optional(),
+    number: z.preprocess(coerceText, z.string().trim().min(1).max(32)).optional(),
     finish: FinishSchema.optional(),
     /** Narrows ambiguous matches only, e.g. a foil vs a parallel sharing one collector number. */
     rarity: RaritySchema.optional(),
@@ -87,7 +106,7 @@ export const PriceValuesSchema = z.object({
 export const ListingSchema = z.object({
   seller: z.string().trim().min(1).max(120).catch("Unknown seller"),
   condition: ConditionSchema.default("NM"),
-  quantity: z.number().int().min(1).max(100_000).default(1),
+  quantity: z.preprocess(coerceInteger, z.number().int().min(1).max(100_000)).default(1),
   price: positiveMoney,
   /** Null or omitted = shipping not stated. 0 = free shipping. */
   shipping: money.nullable().default(null),
@@ -105,15 +124,15 @@ export const IngestItemSchema = z
     capturedAt: z.iso.datetime({ offset: true }).optional(),
     prices: PriceValuesSchema.optional(),
     /** Total listings on the vendor page when individual listings were not captured. */
-    listingsCount: z.number().int().nonnegative().max(1_000_000).optional(),
+    listingsCount: z.preprocess(coerceInteger, z.number().int().nonnegative().max(1_000_000)).optional(),
     /** Omit to leave stored listings unchanged; send [] to clear them. */
     listings: z.array(ListingSchema).max(MAX_LISTINGS_PER_ITEM).optional(),
   })
   .refine(
     (item) =>
-      Object.values(item.prices ?? {}).some((v) => typeof v === "number" && v > 0) ||
+      Object.values(item.prices ?? {}).some((v) => typeof v === "number" && v >= MIN_PRICE) ||
       (item.listings?.length ?? 0) > 0,
-    { message: "item needs at least one positive price in `prices` or at least one listing" },
+    { message: "item needs at least one price of one cent or more in `prices`, or at least one listing" },
   );
 
 export const IngestEnvelopeSchema = z.object({
@@ -147,7 +166,7 @@ export interface IngestAccepted {
   vendor: VendorId;
 }
 
-/** Response body of POST /api/prices/cron (and of GET when it runs the daily rollup). */
+/** Response body of POST /api/prices/cron. (GET, the daily rollup, returns ingest.ts `RollupResponse`.) */
 export interface IngestResponse {
   ok: boolean;
   /** "dry-run" when no database is configured: validated and normalized, nothing stored. */

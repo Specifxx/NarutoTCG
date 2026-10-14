@@ -21,7 +21,7 @@ import {
   CHANGE_WINDOW_DAYS,
   CHANGE_WINDOWS,
   DEFAULT_PAGE_SIZE,
-  HISTORY_DAYS,
+  HISTORY_POINTS,
   MAX_PAGE_SIZE,
   MOVER_MIN_PRICE,
   SPARKLINE_DAYS,
@@ -61,7 +61,8 @@ export function roundMoney(amount: number): number {
   return (sign * Math.round(Math.abs(amount) * 100 + 1e-7)) / 100;
 }
 
-function isPrice(value: number | null | undefined): value is number {
+/** A usable price: finite and positive. Zero and null mean "unknown". */
+export function isPrice(value: number | null | undefined): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
@@ -142,11 +143,14 @@ export function latestMarketDay(history: PricePoint[]): IsoDay | null {
   return null;
 }
 
-export function computeChange(history: PricePoint[], asOf: IsoDay, window: ChangeWindow): PriceChange | null {
-  const to = priceAtOrBefore(history, asOf);
-  const from = priceAtOrBefore(history, addDays(asOf, -CHANGE_WINDOW_DAYS[window]));
+/** Change from a base price to a current one; null when either is missing or the base is not positive. */
+export function priceChange(from: number | null, to: number | null): PriceChange | null {
   if (to == null || from == null || from <= 0) return null;
   return { from, to, abs: roundMoney(to - from), pct: ((to - from) / from) * 100 };
+}
+
+export function computeChange(history: PricePoint[], asOf: IsoDay, window: ChangeWindow): PriceChange | null {
+  return priceChange(priceAtOrBefore(history, addDays(asOf, -CHANGE_WINDOW_DAYS[window])), priceAtOrBefore(history, asOf));
 }
 
 /** Aggregate prices in (asOf - days, asOf], oldest first, nulls skipped. */
@@ -163,9 +167,10 @@ export function emptyPoint(date: IsoDay): PricePoint {
 
 /**
  * Exactly `days` consecutive daily points ending at `end`, oldest first.
+ * Card detail uses HISTORY_POINTS so the 90-day change's base day is on the chart.
  * Days without data become all-null points so charts keep a continuous axis.
  */
-export function densifyHistory(history: PricePoint[], end: IsoDay, days: number = HISTORY_DAYS): PricePoint[] {
+export function densifyHistory(history: PricePoint[], end: IsoDay, days: number = HISTORY_POINTS): PricePoint[] {
   const byDate = new Map(history.map((p) => [p.date, p]));
   const out: PricePoint[] = [];
   for (let offset = days - 1; offset >= 0; offset--) {
@@ -293,14 +298,24 @@ export function clampPageSize(pageSize: number | undefined): number {
   return Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(pageSize)));
 }
 
-/** Filter, sort and paginate in memory. A page past the end clamps to the last page. */
-export function paginate(items: CardMarketSummary[], query: MarketQuery): MarketPage {
+export interface PageBounds {
+  page: number;
+  pageSize: number;
+  pageCount: number;
+  offset: number;
+}
+
+/** Page arithmetic for `total` rows. A page past the end clamps to the last page; pageCount is at least 1. */
+export function pageBounds(total: number, query: Pick<MarketQuery, "page" | "pageSize">): PageBounds {
   const pageSize = clampPageSize(query.pageSize);
-  const total = items.length;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const page = Math.min(pageCount, Math.max(1, Math.floor(query.page ?? 1) || 1));
-  const start = (page - 1) * pageSize;
-  return { items: items.slice(start, start + pageSize), total, page, pageSize, pageCount };
+  return { page, pageSize, pageCount, offset: (page - 1) * pageSize };
+}
+
+export function paginate(items: CardMarketSummary[], query: MarketQuery): MarketPage {
+  const { page, pageSize, pageCount, offset } = pageBounds(items.length, query);
+  return { items: items.slice(offset, offset + pageSize), total: items.length, page, pageSize, pageCount };
 }
 
 export function queryInMemory(summaries: CardMarketSummary[], query: MarketQuery): MarketPage {
@@ -310,7 +325,9 @@ export function queryInMemory(summaries: CardMarketSummary[], query: MarketQuery
 
 // ---------------------------------------------------------------- rankings
 
+/** `limit` is clamped to a whole number >= 0; Infinity means no limit. */
 export function rankMovers(summaries: CardMarketSummary[], window: ChangeWindow, limit: number): MarketMovers {
+  const take = Number.isNaN(limit) ? 0 : Math.max(0, Math.trunc(limit));
   const pct = (s: CardMarketSummary) => s.changes[window]?.pct ?? 0;
   const eligible = summaries.filter(
     (s) => s.marketPrice != null && s.marketPrice >= MOVER_MIN_PRICE && s.changes[window] != null,
@@ -322,15 +339,15 @@ export function rankMovers(summaries: CardMarketSummary[], window: ChangeWindow,
     gainers: eligible
       .filter((s) => pct(s) > 0)
       .sort((a, b) => pct(b) - pct(a) || byPrice(a, b))
-      .slice(0, limit),
+      .slice(0, take),
     losers: eligible
       .filter((s) => pct(s) < 0)
       .sort((a, b) => pct(a) - pct(b) || byPrice(a, b))
-      .slice(0, limit),
+      .slice(0, take),
     mostValuable: summaries
       .filter((s) => s.marketPrice != null)
       .sort(byPrice)
-      .slice(0, limit),
+      .slice(0, take),
   };
 }
 
