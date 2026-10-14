@@ -26,8 +26,8 @@ export function DojoHub({ data }: { data: HubData }) {
           id="dojo-progress-title"
           eyebrow="Your progress"
           eyebrowClassName="text-gold-300"
-          title="From Academy Student to Kage"
-          description="Each lesson has three stars to earn: Learn, Train and Test. Stars, cleared puzzles and explored keywords all pay XP toward your next rank."
+          title="Climb from Academy Student to Kage"
+          description="Every lesson holds three stars: Learn, Train and Test. Stars, cleared Lethal Puzzles and explored keywords all pay XP toward your next rank."
         />
         <div className="mt-8 grid items-start gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
           <PlayerCard progress={progress} />

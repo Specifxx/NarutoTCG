@@ -96,7 +96,7 @@ export function LessonPath({ progress }: { progress: HubProgress }) {
         <div>
           <p className="eyebrow text-chakra-300">Your path</p>
           <h3 id="dojo-path-title" className="mt-1 text-2xl font-black tracking-tight text-white">
-            Five lessons to Kage
+            Five lessons, fifteen stars
           </h3>
         </div>
         <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ash-400">

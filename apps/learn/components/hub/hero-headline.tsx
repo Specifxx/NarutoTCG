@@ -32,7 +32,7 @@ export function HeroHeadline({ id }: { id?: string }) {
   const reduce = useCalmMotion();
   const words = LINE_ONE.split(" ");
   return (
-    <h1 id={id} className="mt-5 text-[2.65rem] font-black leading-[0.98] tracking-tight text-white min-[400px]:text-5xl sm:text-6xl lg:text-[4.1rem] xl:text-[4.6rem]">
+    <h1 id={id} className="mt-5 text-[2.65rem] font-black leading-[0.98] tracking-tight text-white min-[400px]:text-5xl sm:text-6xl lg:text-[3.9rem] xl:text-[4.25rem]">
       <span className="sr-only">
         {LINE_ONE} {LINE_TWO}
       </span>

@@ -202,10 +202,12 @@ export function PlayerCard({ progress }: { progress: HubProgress }) {
 
       <div className="relative mt-6 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
         <p className="text-3xl font-black leading-none tabular-nums text-white">
-          <span className={cn(!hydrated && "invisible")}>
-            <AnimatedNumber value={xp} />
+          <span className={cn("relative inline-block", !hydrated && "min-w-14")}>
+            <span className={cn(!hydrated && "invisible")}>
+              <AnimatedNumber value={xp} />
+            </span>
+            {!hydrated && <Skeleton className="absolute inset-0" />}
           </span>
-          {!hydrated && <Skeleton className="h-7 w-16" />}
           <span className="ml-1.5 text-sm font-bold text-gold-300">XP</span>
         </p>
         <p className="text-[12px] font-semibold text-ash-400">

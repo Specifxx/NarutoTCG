@@ -208,14 +208,14 @@ function LessonsArt({ rows }: { rows: readonly LessonProgress[] }) {
             vectorEffect="non-scaling-stroke"
           />
         </svg>
-        <ol className="relative flex items-start gap-2.5 sm:gap-3">
+        <ol className="relative flex items-start gap-2.5 sm:gap-3 md:gap-2 lg:gap-3">
           {rows.map((r, i) => {
             const accent = ACCENT_STYLES[r.lesson.accent];
             return (
               <li key={r.lesson.id} className={cn("flex flex-col items-center gap-1.5", ARC_OFFSETS[i] ?? "mt-0")}>
                 <span
                   className={cn(
-                    "relative flex h-11 w-11 items-center justify-center transition-transform duration-500 group-hover:-translate-y-1.5",
+                    "relative flex h-11 w-11 items-center justify-center transition-transform duration-500 group-hover:-translate-y-1.5 md:h-9 md:w-9 lg:h-11 lg:w-11",
                     r.complete ? "text-shadow-950" : accent.text,
                   )}
                   style={{ transitionDelay: `${i * 50}ms` }}

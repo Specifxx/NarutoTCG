@@ -38,11 +38,14 @@ export function SaveFooter({ progress }: { progress: HubProgress }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const noticeRef = useRef<HTMLParagraphElement>(null);
   const focusAfterClose = useRef<"trigger" | "notice">("trigger");
+  // Guards against a double click on "Reset progress" while the panel animates out.
+  const confirmed = useRef(false);
 
   const openDialog = () => {
     const dialog = dialogRef.current;
     if (!dialog || open) return;
     focusAfterClose.current = "trigger";
+    confirmed.current = false;
     setNotice("");
     if (!dialog.open) dialog.showModal();
     setOpen(true);
@@ -65,6 +68,8 @@ export function SaveFooter({ progress }: { progress: HubProgress }) {
   };
 
   const confirmReset = () => {
+    if (confirmed.current) return;
+    confirmed.current = true;
     reset();
     focusAfterClose.current = "notice";
     setNotice(`Progress reset. You are an ${FIRST_RANK} again: every lesson, puzzle and keyword is ready to earn XP.`);
