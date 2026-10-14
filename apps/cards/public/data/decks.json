@@ -7,23 +7,724 @@
     "leaderId": "ST01-001",
     "archetype": "Team 7 Midrange",
     "cards": [
-      { "cardId": "ST01-002", "quantity": 4 },
-      { "cardId": "ST01-003", "quantity": 4 },
-      { "cardId": "ST01-004", "quantity": 3 },
-      { "cardId": "ST01-005", "quantity": 4 },
-      { "cardId": "ST01-006", "quantity": 4 },
-      { "cardId": "ST01-007", "quantity": 4 },
-      { "cardId": "ST01-008", "quantity": 2 },
-      { "cardId": "ST01-009", "quantity": 3 },
-      { "cardId": "ST01-010", "quantity": 2 },
-      { "cardId": "ST01-011", "quantity": 4 },
-      { "cardId": "ST01-012", "quantity": 3 },
-      { "cardId": "ST01-013", "quantity": 4 },
-      { "cardId": "ST01-014", "quantity": 3 },
-      { "cardId": "ST01-015", "quantity": 3 },
-      { "cardId": "ST01-016", "quantity": 3 }
+      {
+        "cardId": "ST01-002",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-003",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-004",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-005",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-006",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-007",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-008",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST01-009",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-010",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST01-011",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-012",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-013",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-014",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-015",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-016",
+        "quantity": 3
+      }
     ],
     "createdAt": "2026-03-06",
     "updatedAt": "2026-03-06"
+  },
+  {
+    "id": "st02-sand-siblings-precon",
+    "name": "Sand Siblings (Out of the Box)",
+    "owner": "Starter Deck 02",
+    "description": "The Starter Deck 02 decklist exactly as it comes in the box: Blockers and puppets hold the line while rest effects set up Sand Coffin and Baki to clear the board.",
+    "leaderId": "ST02-001",
+    "archetype": "Sand Siblings Control",
+    "cards": [
+      {
+        "cardId": "ST02-002",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-003",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-004",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-005",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-006",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-007",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST02-008",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST02-009",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-010",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST02-011",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-012",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST02-013",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-014",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST02-015",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST02-016",
+        "quantity": 3
+      }
+    ],
+    "createdAt": "2026-03-06",
+    "updatedAt": "2026-03-06"
+  },
+  {
+    "id": "jiraiya-toad-sage-summons",
+    "name": "Toad Sage Summons",
+    "owner": "toad_sage_scrolls",
+    "description": "Jiraiya's Sage Mode attacks dig for Gamabunta and the Sannin while Kakashi and the Anbu hold the early board and Minato cleans up the midgame. Blood Pact Summoning and Tracking the Slug Princess keep the hand full until the toads land.",
+    "leaderId": "NR01-002",
+    "archetype": "Sannin Summons Midrange",
+    "cards": [
+      {
+        "cardId": "ST01-009",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-026",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-005",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-008",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-007",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-025",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-009",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST01-004",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-006",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-039",
+        "quantity": 1
+      },
+      {
+        "cardId": "NR01-012",
+        "quantity": 4
+      },
+      {
+        "cardId": "PR01-004",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-033",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-011",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-013",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST01-014",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-034",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-035",
+        "quantity": 2
+      },
+      {
+        "cardId": "PR01-006",
+        "quantity": 2
+      }
+    ],
+    "createdAt": "2026-05-22",
+    "updatedAt": "2026-06-30"
+  },
+  {
+    "id": "might-guy-springtime-of-youth",
+    "name": "Springtime of Youth",
+    "owner": "springtime_of_youth",
+    "description": "The first Taijutsu Jutsu each turn also gives the leader or a Team Guy attacker +2000, so Eight Gates Release and Thousand Years of Death hit twice as hard. A Team 8 splash adds Fang Over Fang and Hinata to turn on Sixty-Four Palms.",
+    "leaderId": "NR01-003",
+    "archetype": "Leaf Taijutsu Aggro",
+    "cards": [
+      {
+        "cardId": "ST01-007",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-019",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-015",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-017",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-018",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-016",
+        "quantity": 2
+      },
+      {
+        "cardId": "PR01-002",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-013",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-014",
+        "quantity": 4
+      },
+      {
+        "cardId": "PR01-001",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-027",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-028",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-032",
+        "quantity": 3
+      },
+      {
+        "cardId": "PR01-005",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-036",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-014",
+        "quantity": 2
+      }
+    ],
+    "createdAt": "2026-05-31",
+    "updatedAt": "2026-07-08"
+  },
+  {
+    "id": "orochimaru-sound-sacrifice",
+    "name": "Cursed Seal Sound Sacrifice",
+    "owner": "white_snake_shuffle",
+    "description": "Orochimaru feeds Kin, Zaku and Dosu to his leader ability for cards, and every Sound genin leaves an On K.O. effect behind. Operation Destroy Leaf cashes in the bodies for a late K.O., backed by Cursed Seal Sasuke and the Reanimated Second Hokage.",
+    "leaderId": "NR02-001",
+    "archetype": "Sound Village Sacrifice",
+    "cards": [
+      {
+        "cardId": "NR02-020",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-019",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-018",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-017",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-016",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-010",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-025",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-009",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-003",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-032",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-023",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-026",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-024",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-030",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-028",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-027",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST01-012",
+        "quantity": 2
+      }
+    ],
+    "createdAt": "2026-07-21",
+    "updatedAt": "2026-09-03"
+  },
+  {
+    "id": "rock-lee-eight-gates-genin",
+    "name": "Eight Gates Genin Rush",
+    "owner": "lotus_unlocked",
+    "description": "Cheap Genin and Chunin Exam missions empty the hand so the Rock Lee leader draws off its first Taijutsu Jutsu each turn. Hidden Lotus stacks with the leader's +2000 for 10000-power swings, while Gentle Fist and Neji lock down the opponent's chakra.",
+    "leaderId": "NR02-002",
+    "archetype": "Taijutsu Genin Aggro",
+    "cards": [
+      {
+        "cardId": "NR02-005",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-008",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-012",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-015",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-006",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-004",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-013",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-011",
+        "quantity": 2
+      },
+      {
+        "cardId": "PR01-001",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-021",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-022",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-027",
+        "quantity": 2
+      },
+      {
+        "cardId": "PR01-005",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-027",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-029",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-028",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-036",
+        "quantity": 2
+      }
+    ],
+    "createdAt": "2026-07-24",
+    "updatedAt": "2026-09-12"
+  },
+  {
+    "id": "sand-coffin-ultimate-defense",
+    "name": "Ultimate Sand Defense",
+    "owner": "sand_coffin_sam",
+    "description": "The Starter Deck 02 shell upgraded with Chunin Exams Gaara, Temari and Kankuro: block everything with a +2000 leader buff, rest the board with Temari and Wind Scythe, then Sand Coffin the rested threats. Shukaku Unleashed closes games with Rush and Banish.",
+    "leaderId": "ST02-001",
+    "archetype": "Sand Village Blocker Control",
+    "cards": [
+      {
+        "cardId": "ST02-011",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-009",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST02-004",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST02-003",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-015",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST02-005",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST02-002",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-014",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST02-006",
+        "quantity": 2
+      },
+      {
+        "cardId": "ST02-007",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR02-013",
+        "quantity": 3
+      },
+      {
+        "cardId": "PR01-003",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-031",
+        "quantity": 1
+      },
+      {
+        "cardId": "ST02-012",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-013",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST02-015",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST02-014",
+        "quantity": 3
+      },
+      {
+        "cardId": "ST02-008",
+        "quantity": 2
+      }
+    ],
+    "createdAt": "2026-07-26",
+    "updatedAt": "2026-10-02"
+  },
+  {
+    "id": "tsunade-slug-princess-control",
+    "name": "Slug Princess Leaf Control",
+    "owner": "slug_princess_bets",
+    "description": "Shikamaru, Shadow Possession and a wall of Leaf Blockers buy time under Katsuyu while Tsunade refills life at 2 or less. Hashirama, Tobirama and Hiruzen take over the late game, with God of Shinobi as a one-of finisher.",
+    "leaderId": "NR01-001",
+    "archetype": "Leaf Village Control",
+    "cards": [
+      {
+        "cardId": "NR01-010",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-020",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-023",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-022",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR02-007",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-024",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-011",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-021",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-005",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-009",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-004",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-040",
+        "quantity": 1
+      },
+      {
+        "cardId": "NR01-029",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR01-031",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-026",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR01-030",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR02-025",
+        "quantity": 1
+      },
+      {
+        "cardId": "NR01-034",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-037",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR01-038",
+        "quantity": 2
+      }
+    ],
+    "createdAt": "2026-07-28",
+    "updatedAt": "2026-08-30"
+  },
+  {
+    "id": "nr03-pain-akatsuki-theorycraft",
+    "name": "NR03 Pain Akatsuki Control (Spoiler Theorycraft)",
+    "owner": "rinnegan_rumors",
+    "description": "A first pass at Pain using every Akatsuki member revealed so far: eight different names keep the leader's draw online while Konan and Recruit for the Akatsuki find them. Pain's rest effect sets up Lord of Tsukuyomi, with Shinra Tensei to reset wide boards.",
+    "leaderId": "NR03-004",
+    "archetype": "Akatsuki Control",
+    "cards": [
+      {
+        "cardId": "NR03-011",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR03-010",
+        "quantity": 4
+      },
+      {
+        "cardId": "PR02-001",
+        "quantity": 3
+      },
+      {
+        "cardId": "PR02-003",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR03-005",
+        "quantity": 4
+      },
+      {
+        "cardId": "NR03-008",
+        "quantity": 2
+      },
+      {
+        "cardId": "PR02-002",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR03-002",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR03-006",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR03-009",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR03-024",
+        "quantity": 1
+      },
+      {
+        "cardId": "NR03-018",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR03-020",
+        "quantity": 3
+      },
+      {
+        "cardId": "NR03-003",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR03-022",
+        "quantity": 2
+      },
+      {
+        "cardId": "NR03-021",
+        "quantity": 2
+      },
+      {
+        "cardId": "PR02-004",
+        "quantity": 4
+      },
+      {
+        "cardId": "ST01-014",
+        "quantity": 4
+      }
+    ],
+    "createdAt": "2026-10-13",
+    "updatedAt": "2026-10-14"
   }
 ]
