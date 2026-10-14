@@ -92,7 +92,8 @@ export function ActiveFilters({
               pendingFocus.current = i;
               chip.remove();
             }}
-            aria-label={`Remove ${chip.label.toLowerCase()} filter: ${chip.value}`}
+            // Starts with the visible text so voice users can say what they see.
+            aria-label={`${chip.label} ${chip.value}, remove filter`}
             className="group inline-flex max-w-full items-center gap-1.5 rounded-full border border-shadow-700 bg-shadow-900 py-1 pl-3 pr-1.5 text-xs transition hover:border-chakra-500/60 hover:bg-shadow-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
           >
             <span className="text-ash-400">{chip.label}</span>
