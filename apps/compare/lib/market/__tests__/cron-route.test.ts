@@ -23,6 +23,7 @@ function fakeRepo() {
     mode: "seed",
     listSets: unused,
     getStats: unused,
+    listCardIds: unused,
     getFacets: unused,
     queryCards: unused,
     getMovers: unused,

@@ -39,6 +39,7 @@ function fakeRepo(mode: RepositoryMode = "seed") {
     mode,
     listSets: unused,
     getStats: unused,
+    listCardIds: unused,
     getFacets: unused,
     queryCards: unused,
     getMovers: unused,

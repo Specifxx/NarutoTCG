@@ -153,7 +153,11 @@ export class SeedMarketRepository implements MarketRepository {
 
   async getStats(): Promise<MarketStats> {
     const { cards, lastUpdatedAt } = this.state();
-    return { cards: cards.length, lastUpdatedAt };
+    return { cards: cards.length, lastUpdatedAt, demoData: true };
+  }
+
+  async listCardIds(): Promise<string[]> {
+    return this.state().cards.map((card) => card.id);
   }
 
   async getFacets(): Promise<MarketFacets> {

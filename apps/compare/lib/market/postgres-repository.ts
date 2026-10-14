@@ -353,7 +353,12 @@ export class PostgresMarketRepository implements MarketRepository {
       select
         (select count(*)::int from market_cards) as cards,
         (select ${this.isoTimestamp(this.sql`max(updated_at)`)} from vendor_quotes) as last_updated_at`;
-    return { cards: row?.cards ?? 0, lastUpdatedAt: row?.last_updated_at ?? null };
+    return { cards: row?.cards ?? 0, lastUpdatedAt: row?.last_updated_at ?? null, demoData: false };
+  }
+
+  async listCardIds(): Promise<string[]> {
+    const rows = await this.sql<{ id: string }[]>`select id from market_cards order by id collate "C"`;
+    return rows.map((row) => row.id);
   }
 
   async getFacets(): Promise<MarketFacets> {
@@ -724,7 +729,7 @@ function snapshotQuoteRow(snapshot: NormalizedVendorSnapshot): QuoteRow {
     vendor: snapshot.vendor,
     currency: snapshot.currency,
     ...priceColumns(snapshot.native, snapshot.usd),
-    listings_count: snapshot.listingsCount,
+    listings_count: snapshot.listingsCount ?? 0,
     url: snapshot.url,
     updated_at: snapshot.capturedAt,
   };
@@ -757,7 +762,7 @@ function snapshotHistoryRow(snapshot: NormalizedVendorSnapshot): HistoryRow {
     day: snapshot.day,
     currency: snapshot.currency,
     ...priceColumns(snapshot.native, snapshot.usd),
-    listings_count: snapshot.listingsCount,
+    listings_count: snapshot.listingsCount ?? 0,
     captured_at: snapshot.capturedAt,
   };
 }

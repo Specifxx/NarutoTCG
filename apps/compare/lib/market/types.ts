@@ -193,8 +193,8 @@ export interface NormalizedVendorSnapshot {
   url: string | null;
   /** Undefined leaves stored listings untouched; an array (even empty) replaces them. */
   listings?: Omit<VendorListing, "id" | "cardId" | "vendor" | "updatedAt">[];
-  /** Listing count when no listing rows were captured. */
-  listingsCount: number;
+  /** Total listings the vendor reports; null = unknown, which keeps the stored count when `listings` is omitted. */
+  listingsCount: number | null;
 }
 
 export interface IngestWriteResult {
@@ -223,6 +223,8 @@ export interface MarketStats {
   cards: number;
   /** Newest vendor quote update across the catalog, or null before any prices. */
   lastUpdatedAt: string | null;
+  /** True when the prices are simulated sample data: the seed repository, or a database loaded by db:seed. */
+  demoData: boolean;
 }
 
 /**
@@ -234,6 +236,8 @@ export interface MarketRepository {
   readonly mode: RepositoryMode;
   listSets(): Promise<CardSet[]>;
   getStats(): Promise<MarketStats>;
+  /** Every card id, for the sitemap. */
+  listCardIds(): Promise<string[]>;
   getFacets(): Promise<MarketFacets>;
   queryCards(query: MarketQuery): Promise<MarketPage>;
   getMovers(window: ChangeWindow, limit: number): Promise<MarketMovers>;
