@@ -65,3 +65,45 @@ export {
   type ReleasePhase,
   type ReleaseStatus,
 } from "./release-schedule";
+
+export interface NavLink {
+  key: string;
+  label: string;
+  href: string;
+}
+
+export const DEFAULT_NAV: NavLink[] = [
+  { key: "learn", label: "Learn", href: "/learn" },
+  { key: "events", label: "Events", href: "/events" },
+  { key: "cards", label: "Cards", href: "/cards" },
+  { key: "decks", label: "Decks", href: "/decks" },
+  { key: "simulator", label: "Simulator", href: "/simulator" },
+  { key: "compare", label: "Compare", href: "/compare" },
+];
+
+export function SiteHeader({ current, links = DEFAULT_NAV }: { current?: string; links?: NavLink[] }) {
+  return (
+    <header className="sticky top-0 z-[1000] border-b border-shadow-700 bg-shadow-950/90 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
+        <a href="/" className="text-lg font-bold tracking-tight text-white">
+          <span className="text-chakra-400">忍</span> Naruto TCG
+        </a>
+        <nav className="flex flex-wrap gap-1 text-sm">
+          {links.map((l) => (
+            <a
+              key={l.key}
+              href={l.href}
+              aria-current={l.key === current ? "page" : undefined}
+              className={cx(
+                "rounded-md px-3 py-1.5 transition hover:text-chakra-400",
+                l.key === current ? "bg-shadow-800 text-chakra-400" : "text-ash-400",
+              )}
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </header>
+  );
+}

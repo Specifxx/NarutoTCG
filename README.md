@@ -10,6 +10,7 @@ Release phases and target dates for each app are in [SCHEDULE.md](SCHEDULE.md).
 | `apps/decks` | 3001 | Build and share decks |
 | `apps/compare` | 3002 | Compare card prices |
 | `apps/learn` | 3003 | Learn how to play |
+| `apps/events` | 3004 | Event calendar, store locator, tournaments |
 
 | Package | Purpose |
 | --- | --- |
