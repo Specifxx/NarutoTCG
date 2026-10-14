@@ -51,13 +51,14 @@ ITEM
 }
 
 IDENTIFYING THE CARD
-- Each finish and parallel version is a separate product. Always set "finish". Set "rarity" to "parallel" for parallel, alternate-art or manga-style versions, and to "promo" for promotional cards.
+- Each finish and parallel version is a separate product. Always set "finish". Set "rarity" to "parallel" for parallel, alternate-art or manga-style versions, and to "promo" for promotional cards. These two must be right: the server only matches a "parallel" or "promo" item to a printing with that exact rarity.
 - Prefer setCode + number + finish (+ rarity). Include the name as well.
 - If you cannot identify the exact printing, leave that item out. Never guess. The server rejects unknown or ambiguous cards rather than misfiling them.
 
 VENDOR AND CURRENCY
 - tcgplayer.com → "tcgplayer", "USD". ebay.com → "ebay", "USD". cardmarket.com → "cardmarket", "EUR".
 - Only USD and EUR are accepted. Do not convert currencies. Leave out listings priced in any other currency.
+- Every "url" (the item's and each listing's) must be an https link on that marketplace's own domain (tcgplayer.com, ebay.com or an EU eBay site, cardmarket.com). Use null for anything else, such as a seller's own shop or a redirect link. An off-domain link makes the server reject the whole item.
 
 PRICES
 All money values are plain JSON numbers with a dot decimal: no currency symbols and no thousands separators (12.5, not "12,50 €"). Use null for anything the page does not show. Never estimate or invent a value.
