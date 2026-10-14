@@ -81,7 +81,7 @@ export function SocialIcon({ network, className }: { network: SocialNetwork; cla
   );
 }
 
-/** Short visible handle for a profile URL: "@hiddenleafgames", "discord.gg/hiddenleaf". */
+/** Short visible handle for a profile URL: "@hiddenleafgames", "discord.example/hiddenleaf". */
 export function socialHandle(network: SocialNetwork, url: string): string {
   try {
     const { hostname, pathname } = new URL(url);

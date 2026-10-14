@@ -3,7 +3,7 @@
 import type { Region, StoreFeature } from "@naruto-tcg/types";
 import { ArrowRight, CalendarDays, RotateCcw, Search, SlidersHorizontal, Store as StoreIcon } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { REGIONS, STORE_FEATURES } from "@/lib/event-meta";
 import { DEFAULT_FILTERS, serializeEventFilters } from "@/lib/filters";
@@ -26,6 +26,9 @@ import {
   type StoreSort,
 } from "./store-filters";
 import { useStoreFilters } from "./use-store-filters";
+
+/** Quiet period before the result count is announced, so typing isn't talked over. */
+const ANNOUNCE_DELAY_MS = 600;
 
 /**
  * Interactive store locator: text, region, country, feature, verification and
@@ -69,6 +72,17 @@ export function StoreDirectory({ stores }: { stores: StoreSummary[] }) {
   const activeCount = countStoreFilters(filters);
   const panelCount = (filters.region ? 1 : 0) + (filters.country ? 1 : 0) + filters.features.length + (filters.verifiedOnly ? 0 : 1);
   const totalInScope = filters.verifiedOnly ? stores.filter((s) => s.verified).length : stores.length;
+  const scopeLabel = pluralize(totalInScope, filters.verifiedOnly ? "verified store" : "store");
+  const summary = `Showing ${results.length} of ${scopeLabel}${
+    located ? `${filters.radius > 0 ? ` within ${filters.radius} ${filters.unit} of` : " near"} ${filters.near ?? "the selected place"}` : ""
+  }`;
+
+  // Results filter on every keystroke; the live region only speaks once the count settles.
+  const [announced, setAnnounced] = useState(summary);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAnnounced(summary), ANNOUNCE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [summary]);
 
   function reset() {
     setText("");
@@ -204,6 +218,7 @@ export function StoreDirectory({ stores }: { stores: StoreSummary[] }) {
           {panelCount > 0 && (
             <span className="rounded-full bg-chakra-500 px-1.5 text-[11px] font-bold text-shadow-950 tabular-nums">
               {panelCount}
+              <span className="sr-only"> active</span>
             </span>
           )}
         </button>
@@ -224,18 +239,24 @@ export function StoreDirectory({ stores }: { stores: StoreSummary[] }) {
                 >
                   All regions
                 </button>
-                {regionsInData.map(({ region, label }) => (
-                  <button
-                    key={region}
-                    type="button"
-                    aria-pressed={filters.region === region}
-                    onClick={() => selectRegion(region)}
-                    className={chip(filters.region === region)}
-                  >
-                    {label}
-                    <span className="tabular-nums opacity-70">{regionCounts.get(region) ?? 0}</span>
-                  </button>
-                ))}
+                {regionsInData.map(({ region, label }) => {
+                  const count = regionCounts.get(region) ?? 0;
+                  return (
+                    <button
+                      key={region}
+                      type="button"
+                      aria-pressed={filters.region === region}
+                      onClick={() => selectRegion(region)}
+                      className={chip(filters.region === region)}
+                    >
+                      {label}
+                      <span className="tabular-nums">
+                        {count}
+                        <span className="sr-only">{count === 1 ? " store" : " stores"}</span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </fieldset>
 
@@ -321,9 +342,9 @@ export function StoreDirectory({ stores }: { stores: StoreSummary[] }) {
       </section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-ash-400" aria-live="polite" aria-atomic="true">
+        <p className="text-sm text-ash-400">
           Showing <span className="font-semibold text-white tabular-nums">{results.length}</span> of{" "}
-          <span className="tabular-nums">{pluralize(totalInScope, filters.verifiedOnly ? "verified store" : "store")}</span>
+          <span className="tabular-nums">{scopeLabel}</span>
           {located && (
             <>
               {" "}
@@ -331,6 +352,9 @@ export function StoreDirectory({ stores }: { stores: StoreSummary[] }) {
               <span className="text-ash-200">{filters.near}</span>
             </>
           )}
+        </p>
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {announced}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {activeCount > 0 && (
@@ -392,6 +416,7 @@ export function StoreDirectory({ stores }: { stores: StoreSummary[] }) {
         </ul>
       ) : (
         <EmptyState
+          // Default h3 is right here: app/stores/page.tsx titles the directory with an sr-only h2 ("Find a store").
           icon={StoreIcon}
           title="No stores match your filters"
           description={

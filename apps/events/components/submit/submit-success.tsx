@@ -75,7 +75,7 @@ export function SubmitSuccess({
           id="submit-success-title"
           ref={headingRef}
           tabIndex={-1}
-          className="mt-4 scroll-mt-28 text-2xl font-bold tracking-tight text-white outline-none"
+          className="mt-4 scroll-mt-10 text-2xl font-bold tracking-tight text-white outline-none"
         >
           Thanks! Your event is in the review queue
         </h2>

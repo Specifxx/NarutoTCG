@@ -41,8 +41,9 @@ export function ScheduleStep({
   const { schedule, capacity, fee } = draft;
   const dateOk = isLocalDate(schedule.date);
   const store = draft.venue.mode === "store" ? stores.find((s) => s.slug === draft.venue.storeSlug) : undefined;
-  const zoneFromStore = store && store.timeZone === schedule.timeZone;
-  const unlistedZone = schedule.timeZone && !isListedTimeZone(schedule.timeZone) ? schedule.timeZone : null;
+  // A directory store's events always use the store's zone (the importer ignores any other).
+  const shownZone = store ? store.timeZone : schedule.timeZone;
+  const unlistedZone = shownZone && !isListedTimeZone(shownZone) ? shownZone : null;
   const occurrences =
     schedule.recurrence === "weekly" && dateOk && isLocalDate(schedule.repeatUntil)
       ? weeklyOccurrences(schedule.date, schedule.repeatUntil)
@@ -109,12 +110,13 @@ export function ScheduleStep({
           path="schedule.timeZone"
           label="Time zone"
           className="sm:max-w-md"
-          value={schedule.timeZone}
+          value={shownZone}
+          disabled={!!store}
           onChange={(e) => patch("schedule", { timeZone: e.target.value })}
           error={errors["schedule.timeZone"]}
           hint={
-            zoneFromStore
-              ? `Set from ${store.name}. Change it only if the event runs somewhere else.`
+            store
+              ? `Set from ${store.name}. Players elsewhere see times converted for them.`
               : "The zone the venue is in. Players elsewhere see times converted for them."
           }
         >

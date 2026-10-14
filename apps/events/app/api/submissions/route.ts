@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getStores } from "@/lib/data";
+import { clientIp, isJsonRequest, readBodyText } from "@/lib/http";
+import { createRateLimiter } from "@/lib/rate-limit";
 import {
   serverValidationContext,
   suggestSeedId,
@@ -25,7 +27,7 @@ import {
  *
  * Other methods get Next's automatic 405.
  *
- * STORAGE CAVEAT — `queue` and `hits` are module-level, in-memory placeholders for a
+ * STORAGE CAVEAT — `queue` and `limiter` are module-level, in-memory placeholders for a
  * database-backed moderation queue and a shared rate limiter (e.g. Redis). They reset
  * on every restart or deploy and are per instance, so nothing here is durable.
  */
@@ -47,7 +49,11 @@ interface QueuedSubmission {
 }
 
 const queue: QueuedSubmission[] = [];
-const hits = new Map<string, number[]>();
+const limiter = createRateLimiter({
+  max: RATE_LIMIT_MAX,
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  maxKeys: MAX_TRACKED_CLIENTS,
+});
 
 // 32 symbols without 0/O/1/I; 256 is a multiple of 32, so `byte % 32` has no modulo bias.
 const ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -60,30 +66,6 @@ function generateId(): string {
   }
 }
 
-function clientKey(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip")?.trim() || "unknown";
-}
-
-function recentHits(key: string, now: number): number[] {
-  const recent = (hits.get(key) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  if (recent.length) hits.set(key, recent);
-  else hits.delete(key);
-  return recent;
-}
-
-function recordHit(key: string, now: number) {
-  if (hits.size >= MAX_TRACKED_CLIENTS && !hits.has(key)) {
-    for (const [k, times] of hits) {
-      if (times.every((t) => now - t >= RATE_LIMIT_WINDOW_MS)) hits.delete(k);
-    }
-    // Still full of active clients: forget the longest-tracked one.
-    const oldest = hits.keys().next();
-    if (hits.size >= MAX_TRACKED_CLIENTS && !oldest.done) hits.delete(oldest.value);
-  }
-  hits.set(key, [...recentHits(key, now), now]);
-}
-
 function fail(
   status: number,
   code: SubmissionErrorCode,
@@ -94,30 +76,26 @@ function fail(
   return NextResponse.json(body, { status, headers: { ...NO_STORE, ...extra.headers } });
 }
 
+function rateLimited(client: string, at: number) {
+  return fail(
+    429,
+    "rate-limited",
+    `You've sent ${RATE_LIMIT_MAX} submissions in the last 10 minutes. Please wait a few minutes and try again.`,
+    { headers: { "Retry-After": String(limiter.retryAfterSeconds(client, at)) } },
+  );
+}
+
 export async function POST(request: NextRequest) {
   const now = new Date();
-  const client = clientKey(request);
+  const client = clientIp(request.headers);
+  // Cheap early rejection; the binding check sits next to the write below.
+  if (limiter.isLimited(client, now.getTime())) return rateLimited(client, now.getTime());
 
-  const recent = recentHits(client, now.getTime());
-  if (recent.length >= RATE_LIMIT_MAX) {
-    const retryAfter = Math.max(1, Math.ceil((recent[0] + RATE_LIMIT_WINDOW_MS - now.getTime()) / 1000));
-    return fail(
-      429,
-      "rate-limited",
-      `You've sent ${RATE_LIMIT_MAX} submissions in the last 10 minutes. Please wait a few minutes and try again.`,
-      { headers: { "Retry-After": String(retryAfter) } },
-    );
-  }
-
-  if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
+  if (!isJsonRequest(request)) {
     return fail(415, "unsupported-media-type", "Send the submission as JSON.");
   }
-  const declaredLength = Number(request.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
-    return fail(413, "too-large", "That submission is too large. Shorten the description and try again.");
-  }
-  const raw = await request.text();
-  if (new TextEncoder().encode(raw).length > MAX_BODY_BYTES) {
+  const raw = await readBodyText(request, MAX_BODY_BYTES);
+  if (raw === null) {
     return fail(413, "too-large", "That submission is too large. Shorten the description and try again.");
   }
 
@@ -134,7 +112,7 @@ export async function POST(request: NextRequest) {
   // like a success (minus the seed) so the bot has no signal to adapt to, and store nothing.
   const website = typeof body === "object" && body !== null ? (body as Record<string, unknown>).website : undefined;
   if (typeof website === "string" && website.trim() !== "") {
-    recordHit(client, now.getTime());
+    limiter.record(client, Date.now());
     const decoy: SubmissionResponse = { id: generateId(), status: "pending_review", receivedAt };
     return NextResponse.json(decoy, { status: 200, headers: NO_STORE });
   }
@@ -145,11 +123,15 @@ export async function POST(request: NextRequest) {
     return fail(422, "invalid", "Some answers need attention.", { errors: result.errors });
   }
 
+  // Check and record with no await in between, timed after the body arrived: otherwise a
+  // burst of concurrent (or slow-bodied) requests all pass the early check unrecorded.
+  const settledAt = Date.now();
+  if (limiter.isLimited(client, settledAt)) return rateLimited(client, settledAt);
   const id = generateId();
   const seed = toEventSeed(result.value, suggestSeedId(result.value));
   queue.push({ id, receivedAt, status: "pending_review", submission: result.value, seed });
   if (queue.length > MAX_QUEUE) queue.splice(0, queue.length - MAX_QUEUE);
-  recordHit(client, now.getTime());
+  limiter.record(client, settledAt);
 
   const response: SubmissionResponse = { id, status: "pending_review", receivedAt, seed };
   return NextResponse.json(response, { status: 201, headers: NO_STORE });

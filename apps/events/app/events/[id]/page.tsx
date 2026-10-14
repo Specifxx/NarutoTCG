@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AboutSection } from "@/components/event-detail/about-section";
-import { eventCalendarEntry } from "@/components/event-detail/calendar";
+import { eventCalendarEntry } from "@/lib/event-calendar";
 import { eventDateLabels } from "@/components/event-detail/event-dates";
 import { EventHero } from "@/components/event-detail/event-hero";
 import { EventJsonLd } from "@/components/event-detail/event-json-ld";
@@ -16,7 +16,7 @@ import { PrizesSection } from "@/components/event-detail/prizes-section";
 import { RegisterPanel } from "@/components/event-detail/register-panel";
 import { ScheduleCard } from "@/components/event-detail/schedule-card";
 import { SeriesDates } from "@/components/event-detail/series-dates";
-import { absoluteUrl, eventPath } from "@/components/event-detail/site-url";
+import { absoluteUrl, eventPath } from "@/lib/site";
 import { StatusBanner } from "@/components/event-detail/status-banner";
 import { Container } from "@/components/page-header";
 import {

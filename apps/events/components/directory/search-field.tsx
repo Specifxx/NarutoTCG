@@ -4,7 +4,7 @@ import { Search, X } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { cx } from "@/lib/format";
 import { field } from "@/lib/styles";
-import type { FilterControlProps } from "./shared";
+import { groupLabel, type FilterControlProps } from "./shared";
 
 const DEBOUNCE_MS = 250;
 const MAX_LENGTH = 100;
@@ -15,6 +15,7 @@ const canonical = (value: string) => value.trim().slice(0, MAX_LENGTH);
 /** Free-text search over title, venue, city and organiser. Debounced into the URL; Escape clears. */
 export function SearchField({ filters, setFilters }: FilterControlProps) {
   const inputId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState(filters.q);
   // Last value written to (or read from) the URL.
   const committed = useRef(canonical(filters.q));
@@ -60,7 +61,7 @@ export function SearchField({ filters, setFilters }: FilterControlProps) {
 
   return (
     <form onSubmit={onSubmit} noValidate>
-      <label htmlFor={inputId} className="sr-only">
+      <label htmlFor={inputId} className={cx(groupLabel, "mb-2 block")}>
         Search events
       </label>
       <div className="relative">
@@ -69,6 +70,7 @@ export function SearchField({ filters, setFilters }: FilterControlProps) {
           aria-hidden="true"
         />
         <input
+          ref={inputRef}
           id={inputId}
           type="search"
           enterKeyHint="search"
@@ -84,7 +86,11 @@ export function SearchField({ filters, setFilters }: FilterControlProps) {
         {text && (
           <button
             type="button"
-            onClick={() => commitNow("")}
+            onClick={() => {
+              commitNow("");
+              // This button unmounts once the box is empty; keep focus in the field.
+              inputRef.current?.focus();
+            }}
             aria-label="Clear search"
             className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded text-ash-400 transition-colors hover:text-ash-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
           >

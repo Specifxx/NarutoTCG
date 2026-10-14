@@ -9,6 +9,7 @@ export default function EventNotFound() {
     <Container className="py-20">
       <EmptyState
         icon={CalendarX}
+        headingLevel={1}
         title="We couldn't find that event"
         description="It may have been removed by the organiser, or the link may be mistyped. Browse upcoming events or find a store near you instead."
         action={

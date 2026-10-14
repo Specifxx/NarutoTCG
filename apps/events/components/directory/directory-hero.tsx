@@ -1,16 +1,15 @@
 import { CalendarDays, Globe, Store } from "lucide-react";
-import type { DirectoryStats } from "@/lib/data";
 
-/** Page intro with headline stats. Server component. */
-export function DirectoryHero({ stats }: { stats: Pick<DirectoryStats, "upcomingEvents" | "stores" | "countries"> }) {
+/**
+ * Page intro with headline stats. Server component. `listed` is the size of the
+ * unfiltered list (upcoming events, cancelled ones included), so it matches the
+ * directory's own result count; "listings" keeps that honest when some are cancelled.
+ */
+export function DirectoryHero({ listed, stores, countries }: { listed: number; stores: number; countries: number }) {
   const items = [
-    {
-      label: stats.upcomingEvents === 1 ? "upcoming event" : "upcoming events",
-      value: stats.upcomingEvents,
-      icon: CalendarDays,
-    },
-    { label: stats.stores === 1 ? "store" : "stores", value: stats.stores, icon: Store },
-    { label: stats.countries === 1 ? "country" : "countries", value: stats.countries, icon: Globe },
+    { label: listed === 1 ? "upcoming listing" : "upcoming listings", value: listed, icon: CalendarDays },
+    { label: stores === 1 ? "store" : "stores", value: stores, icon: Store },
+    { label: countries === 1 ? "country" : "countries", value: countries, icon: Globe },
   ];
 
   return (

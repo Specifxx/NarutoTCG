@@ -54,12 +54,20 @@ export function EventList({ results, filters, now }: { results: FilteredEvent[];
         },
       ];
     }
+    // Results are in UTC start order but grouped by venue-local month, so near a month boundary
+    // events in far-apart time zones can interleave (Oct, Nov, Oct…). Key groups by month in
+    // first-seen order so each month gets exactly one section; `index` keeps the result order.
     const out: Group[] = [];
+    const byMonth = new Map<string, Group>();
     visible.forEach((result, index) => {
       const key = monthKeyOf(result.event.display.localDate);
-      const last = out[out.length - 1];
-      if (last?.key === key) last.items.push({ result, index });
-      else out.push({ key, label: monthLabel(key), total: monthTotals.get(key) ?? 0, items: [{ result, index }] });
+      let group = byMonth.get(key);
+      if (!group) {
+        group = { key, label: monthLabel(key), total: monthTotals.get(key) ?? 0, items: [] };
+        byMonth.set(key, group);
+        out.push(group);
+      }
+      group.items.push({ result, index });
     });
     return out;
   }, [results, limit, byDistance, monthTotals]);

@@ -128,6 +128,13 @@ export function EventCalendar({
     if (month !== monthKey) setFilters({ month });
   }
 
+  /** Earliest day with events in `month` (one exists for every month in `months`). */
+  function firstBusyDayIn(month: string): string {
+    let first: string | null = null;
+    for (const day of byDay.keys()) if (monthKeyOf(day) === month && (!first || day < first)) first = day;
+    return first ?? firstDayOfMonth(month);
+  }
+
   function goToToday() {
     const key = localTodayKey(new Date());
     goToMonth(monthKeyOf(key), key);
@@ -296,16 +303,25 @@ export function EventCalendar({
                 ? "Nothing on this day. Pick a highlighted day to see its events."
                 : `No matching events in ${monthLabel(monthKey)}.`}
             </p>
+            {/* These buttons unmount once the target month shows events, so they move focus onto its first busy day. */}
             {!monthHasEvents && (prevBusyMonth || nextBusyMonth) && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {prevBusyMonth && (
-                  <button type="button" onClick={() => goToMonth(prevBusyMonth)} className={button.secondary}>
+                  <button
+                    type="button"
+                    onClick={() => focusDay(firstBusyDayIn(prevBusyMonth))}
+                    className={button.secondary}
+                  >
                     <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                     {monthLabel(prevBusyMonth)}
                   </button>
                 )}
                 {nextBusyMonth && (
-                  <button type="button" onClick={() => goToMonth(nextBusyMonth)} className={button.secondary}>
+                  <button
+                    type="button"
+                    onClick={() => focusDay(firstBusyDayIn(nextBusyMonth))}
+                    className={button.secondary}
+                  >
                     {monthLabel(nextBusyMonth)}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -339,12 +355,15 @@ function DayCell({
   const overflow = count - shown.length;
 
   return (
-    <td role="gridcell" className="border-t border-shadow-700/70 p-0 align-top [&:not(:first-child)]:border-l">
+    <td
+      role="gridcell"
+      aria-selected={isSelected}
+      className="border-t border-shadow-700/70 p-0 align-top [&:not(:first-child)]:border-l"
+    >
       <button
         type="button"
         data-day={day}
         tabIndex={isSelected ? 0 : -1}
-        aria-pressed={isSelected}
         aria-current={isToday ? "date" : undefined}
         aria-label={`${longDayLabel(day)}, ${count === 0 ? "no events" : pluralize(count, "event")}`}
         onClick={onSelect}
@@ -360,14 +379,16 @@ function DayCell({
       >
         <span
           className={cx(
-            "inline-flex h-6 min-w-6 items-center justify-center self-center rounded-full px-1 text-xs font-semibold tabular-nums sm:self-start",
+            "inline-flex h-6 min-w-6 items-center justify-center self-center rounded-full px-1 text-xs tabular-nums sm:self-start",
+            // Adjacent-month days are still buttons, so they keep text contrast (≥4.5:1, also on hover)
+            // and are told apart by weight and the darker cell instead.
             isToday
-              ? "bg-chakra-500 text-shadow-950"
+              ? "bg-chakra-500 font-semibold text-shadow-950"
               : !inMonth
-                ? "text-ash-400/50"
+                ? "font-normal text-ash-400/90"
                 : count > 0
-                  ? "text-white"
-                  : "text-ash-400",
+                  ? "font-semibold text-white"
+                  : "font-semibold text-ash-400",
           )}
         >
           {Number(day.slice(8, 10))}
@@ -388,7 +409,7 @@ function DayCell({
 
             {/* Larger screens: titled pills. */}
             <span
-              className={cx("hidden min-w-0 flex-col gap-0.5 sm:flex", !inMonth && "opacity-50")}
+              className={cx("hidden min-w-0 flex-col gap-0.5 sm:flex", !inMonth && "opacity-80")}
               aria-hidden="true"
             >
               {shown.map((event) => {
@@ -400,7 +421,7 @@ function DayCell({
                       "block truncate rounded px-1.5 py-px text-[11px] leading-4",
                       meta.classes.bg,
                       meta.classes.text,
-                      event.status === "cancelled" && "line-through opacity-70",
+                      event.status === "cancelled" && "line-through grayscale",
                     )}
                   >
                     {event.title}

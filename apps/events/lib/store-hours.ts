@@ -6,8 +6,8 @@ import { getZonedParts } from "./time";
  *
  * Hours are authored as venue-local "HH:mm" windows per weekday ("24:00" may close
  * a day). Clock labels are built by hand rather than with Intl so server and
- * browser output is byte-identical, and so 24-hour locales stay 24-hour
- * (Intl's en-AU default is a 12-hour clock).
+ * browser output is byte-identical, while following the style Intl uses for event
+ * times in the same locale: "6:30 PM" (en-US), "6:30 pm" (en-AU, en-NZ), "18:30" (en-GB).
  */
 
 /** Display order for tables: Monday first. */
@@ -35,17 +35,24 @@ export function toMinutes(hhmm: string): number {
 }
 
 /** Locales that conventionally read a 12-hour clock; everything else gets 24-hour. */
-const TWELVE_HOUR_REGIONS = new Set(["US", "CA", "PH", "IN", "PK", "EG", "SA"]);
+const TWELVE_HOUR_REGIONS = new Set(["US", "CA", "AU", "NZ", "PH", "IN", "PK", "EG", "SA"]);
+/** 12-hour regions whose Intl English output writes a lowercase "am"/"pm" (en-AU: "6:30 pm"). */
+const LOWERCASE_MERIDIEM_REGIONS = new Set(["AU", "NZ"]);
+
+function localeRegion(locale: string): string {
+  const parts = locale.split("-");
+  return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "";
+}
 
 export function uses12HourClock(locale: string): boolean {
-  const parts = locale.split("-");
-  const region = parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "";
+  const region = localeRegion(locale);
   return region === "" ? locale.toLowerCase() === "en" : TWELVE_HOUR_REGIONS.has(region);
 }
 
 /**
- * Format a local "HH:mm" clock time: "9:00 PM" (12h) or "21:00" (24h).
- * "24:00" renders as "midnight" on 12-hour clocks and stays "24:00" on 24-hour ones.
+ * Format a local "HH:mm" clock time: "9:00 PM" (en-US), "9:00 pm" (en-AU, en-NZ) or
+ * "21:00" (24h). "24:00" renders as "midnight" on 12-hour clocks and stays "24:00" on
+ * 24-hour ones.
  */
 export function formatClock(hhmm: string, locale: string): string {
   const total = toMinutes(hhmm);
@@ -56,12 +63,14 @@ export function formatClock(hhmm: string, locale: string): string {
   if (total === DAY_MINUTES) return "midnight";
   const hour = Math.floor(total / 60) % 24;
   const suffix = hour < 12 ? "AM" : "PM";
-  return `${hour % 12 === 0 ? 12 : hour % 12}:${minute} ${suffix}`;
+  return `${hour % 12 === 0 ? 12 : hour % 12}:${minute} ${
+    LOWERCASE_MERIDIEM_REGIONS.has(localeRegion(locale)) ? suffix.toLowerCase() : suffix
+  }`;
 }
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
-/** "12:00 PM – 9:00 PM" (en-US) or "12:00–21:00" (en-GB, en-AU). */
+/** "12:00 PM – 9:00 PM" (en-US), "12:00 pm – 9:00 pm" (en-AU, en-NZ) or "12:00–21:00" (en-GB). */
 export function formatHoursWindow([open, close]: OpeningWindow, locale: string): string {
   const from = capitalize(formatClock(open, locale));
   const to = capitalize(formatClock(close, locale));
@@ -164,6 +173,16 @@ function status(
   };
 }
 
+/**
+ * "" for today, "Wed " later this week, "next Wed " for the same weekday a week ahead
+ * (a store open one day a week, checked after that day's close).
+ */
+function dayPrefix(dayIndex: number, todayIndex: number): string {
+  if (dayIndex === todayIndex) return "";
+  const name = WEEKDAY_LABEL[WEEK_ORDER[((dayIndex % 7) + 7) % 7]].short;
+  return `${dayIndex - todayIndex >= 7 ? "next " : ""}${name} `;
+}
+
 /** Day index (Mon = 0) and "HH:mm" for a minute-of-week; midnight ends the previous day as "24:00". */
 function clockAt(minuteOfWeek: number, asClosing: boolean): { dayIndex: number; time: string } {
   let dayIndex = Math.floor(minuteOfWeek / DAY_MINUTES);
@@ -179,7 +198,7 @@ function clockAt(minuteOfWeek: number, asClosing: boolean): { dayIndex: number; 
 /**
  * Current open/closed state and the next change, phrased for a status line:
  * "Open now · closes 9:00 PM", "Closed · opens Tue 12:00 PM",
- * "Closed today · opens Wed 11:00" or "Hours not listed".
+ * "Closed today · opens Wed 11:00", "Closed · opens next Wed 12:00 pm" or "Hours not listed".
  */
 export function nextOpeningChange(hours: WeeklyHours, timeZone: string, date: Date, locale: string): OpenStatus {
   const parts = getZonedParts(date, timeZone);
@@ -193,7 +212,7 @@ export function nextOpeningChange(hours: WeeklyHours, timeZone: string, date: Da
   if (current) {
     if (current[1] - current[0] >= 2 * WEEK_MINUTES) return status("open", "Open 24 hours", undefined, null);
     const close = clockAt(current[1], true);
-    const day = close.dayIndex === todayIndex ? "" : `${WEEKDAY_LABEL[WEEK_ORDER[(close.dayIndex + 7) % 7]].short} `;
+    const day = dayPrefix(close.dayIndex, todayIndex);
     const time = close.time === "24:00" ? "midnight" : formatClock(close.time, locale);
     return status("open", "Open now", `closes ${day}${time}`, current[1] - nowMinute);
   }
@@ -203,7 +222,7 @@ export function nextOpeningChange(hours: WeeklyHours, timeZone: string, date: Da
   if (!next) return status("closed", closedAllDay ? "Closed today" : "Closed", undefined, null);
 
   const open = clockAt(next[0], false);
-  const day = open.dayIndex === todayIndex ? "" : `${WEEKDAY_LABEL[WEEK_ORDER[(open.dayIndex + 7) % 7]].short} `;
+  const day = dayPrefix(open.dayIndex, todayIndex);
   return status(
     "closed",
     closedAllDay ? "Closed today" : "Closed",

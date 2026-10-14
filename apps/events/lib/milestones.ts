@@ -1,8 +1,8 @@
 import "server-only";
 
 import type { EventStatus, EventType, TcgEvent } from "@naruto-tcg/types";
-import { eventCalendarEntry } from "@/components/event-detail/calendar";
-import { absoluteUrl, eventPath } from "@/components/event-detail/site-url";
+import { eventCalendarEntry } from "@/lib/event-calendar";
+import { absoluteUrl, eventPath } from "@/lib/site";
 import { getEvents, getMilestoneSeeds } from "./data";
 import type { MilestoneKind, MilestoneSeed } from "./data/schema";
 import { placeLabel } from "./format";
@@ -218,7 +218,7 @@ function fromEvent(rule: (typeof DERIVED)[number], event: TcgEvent, now: Date): 
     timeZone: event.timeZone,
     announcedAt,
     location: venueLabel(event),
-    href: eventPath(event.id),
+    // No `href`: `eventId` already links the event page, and a second link would duplicate it.
     eventId: event.id,
     highlight: false,
     derived: true,
@@ -229,8 +229,9 @@ function fromEvent(rule: (typeof DERIVED)[number], event: TcgEvent, now: Date): 
 
 /**
  * Milestones that have not yet ended at `now`, soonest first. Curated milestones
- * linked to a cancelled event are dropped, and a derived "next X" milestone is
- * skipped when a curated one already counts down to the same event.
+ * linked to a cancelled event are dropped. When a curated milestone already counts
+ * down to a rule's "next X" event, it takes the rule's title (e.g. "Next Regional
+ * Championship") instead of a duplicate derived card being added.
  */
 export async function getMilestones(now: Date = new Date()): Promise<Milestone[]> {
   const [seeds, events] = await Promise.all([getMilestoneSeeds(), getEvents()]);
@@ -241,12 +242,14 @@ export async function getMilestones(now: Date = new Date()): Promise<Milestone[]
     .filter((seed) => !seed.eventId || eventsById.get(seed.eventId)?.status !== "cancelled")
     .map((seed) => fromSeed(seed, seed.eventId ? eventsById.get(seed.eventId) : undefined));
 
-  const linkedEventIds = new Set(seeds.flatMap((s) => (s.eventId ? [s.eventId] : [])));
   const derived: Milestone[] = [];
   for (const rule of DERIVED) {
     // `getEvents()` is sorted by start time, so the first match is the soonest.
     const next = events.find((e) => e.type === rule.type && e.status === "scheduled" && Date.parse(e.startsAt) > t);
-    if (next && !linkedEventIds.has(next.id)) derived.push(fromEvent(rule, next, now));
+    if (!next) continue;
+    const linked = curated.findIndex((m) => m.eventId === next.id);
+    if (linked === -1) derived.push(fromEvent(rule, next, now));
+    else curated[linked] = { ...curated[linked], title: rule.title, shortTitle: shortTitle(rule.title) };
   }
 
   return [...curated, ...derived]

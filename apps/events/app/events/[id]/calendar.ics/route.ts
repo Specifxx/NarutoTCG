@@ -1,17 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { eventCalendarEntry } from "@/components/event-detail/calendar";
+import { eventCalendarEntry } from "@/lib/event-calendar";
 import { getEvent } from "@/lib/data";
 import { buildIcs, icsFileName } from "@/lib/ics";
+import { absoluteUrl, eventPath } from "@/lib/site";
 
 /**
  * GET /events/:id/calendar.ics — single-event iCalendar download (Apple Calendar,
- * Outlook, Google import). Built per request so the event URL uses the origin the
- * visitor actually reached.
+ * Outlook, Google import). The event URL uses the canonical origin (lib/site.ts),
+ * never the internal origin the request reached the server on.
  */
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   const event = await getEvent(id);
   if (!event) {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     });
   }
 
-  const url = new URL(`/events/${encodeURIComponent(event.id)}`, request.nextUrl.origin).toString();
+  const url = absoluteUrl(eventPath(event.id));
   const ics = buildIcs([eventCalendarEntry(event, url)], { calendarName: event.title });
 
   return new NextResponse(ics, {

@@ -5,8 +5,8 @@ import { TypeTileLink } from "./type-tile-link";
 
 /**
  * "Browse by type" quick filters (see `TypeTileLink`). Swipeable row on small
- * screens, five columns on desktop. Server component; counts are upcoming,
- * non-cancelled events of each type.
+ * screens, five columns on desktop. Server component; counts match what each
+ * tile's filter lists (upcoming events of that type, cancelled ones included).
  */
 export function TypeTiles({ counts }: { counts: Record<EventType, number> }) {
   return (
@@ -14,7 +14,7 @@ export function TypeTiles({ counts }: { counts: Record<EventType, number> }) {
       <h2 id="browse-by-type" className="text-xs font-semibold uppercase tracking-[0.14em] text-ash-400">
         Browse by type
       </h2>
-      <ul className="-mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 pt-1 [scrollbar-width:thin] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-0">
+      <ul className="relative -mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 pt-1 [scrollbar-width:thin] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-0">
         {EVENT_TYPES.map((meta) => {
           const Icon = meta.icon;
           const count = counts[meta.type];

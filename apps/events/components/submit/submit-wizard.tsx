@@ -6,6 +6,7 @@ import { cx } from "@/lib/format";
 import { button, surface } from "@/lib/styles";
 import {
   createEmptyDraft,
+  currencyForCountry,
   firstStepWithErrors,
   localDateKeyOf,
   previewSubmission,
@@ -165,13 +166,20 @@ export function SubmitWizard({
     const stored = readStoredDraft();
     if (stored) {
       // An explicit ?store= link wins over the venue in an older draft.
-      const restored: SubmissionDraft = preselected
+      const base: SubmissionDraft = preselected
         ? {
             ...stored.draft,
             venue: { ...stored.draft.venue, mode: "store", storeSlug: preselected.slug },
             schedule: { ...stored.draft.schedule, timeZone: preselected.timeZone },
+            fee: { ...stored.draft.fee, currency: currencyForCountry(preselected.country) },
           }
         : stored.draft;
+      // A store venue always uses the store's zone; older drafts could override it.
+      const venueStore = base.venue.mode === "store" ? stores.find((s) => s.slug === base.venue.storeSlug) : undefined;
+      const restored: SubmissionDraft =
+        venueStore && base.schedule.timeZone !== venueStore.timeZone
+          ? { ...base, schedule: { ...base.schedule, timeZone: venueStore.timeZone } }
+          : base;
       // Resume where they left off, unless an earlier step no longer validates (e.g. its date has passed).
       const context: ValidationContext = { today: localDateKeyOf(new Date()), storeSlugs };
       const firstInvalid = STEPS.slice(0, stored.step).findIndex((s) => hasErrors(validateStep(s.id, restored, context)));
@@ -188,7 +196,7 @@ export function SubmitWizard({
     if (zone) {
       setDraft((prev) => (prev.schedule.timeZone ? prev : { ...prev, schedule: { ...prev.schedule, timeZone: zone } }));
     }
-  }, [preselected, storeSlugs, markAttempted]);
+  }, [preselected, stores, storeSlugs, markAttempted]);
 
   // Debounced autosave.
   useEffect(() => {
@@ -514,7 +522,10 @@ export function SubmitWizard({
             </button>
           ) : (
             <button type="submit" className={cx(button.primary, "w-full sm:w-auto")}>
-              Next<span className="hidden sm:inline">: {STEPS[stepIndex + 1]?.title}</span>
+              {/* One flex item, so the button's gap doesn't split "Next" from ": Event details". */}
+              <span>
+                Next<span className="hidden sm:inline">: {STEPS[stepIndex + 1]?.title}</span>
+              </span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           )}

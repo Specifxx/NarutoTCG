@@ -96,8 +96,12 @@ export function shortDayLabel(dayKey: string, withYear = false): string {
   return withYear ? `${base}, ${year}` : base;
 }
 
-/** Human label for an inclusive venue-local date range. */
+/**
+ * Human label for an inclusive venue-local date range. An inverted range (transient
+ * while one bound is being edited) is labelled swapped, the way filtering treats it.
+ */
 export function rangeLabel(from: string | null, to: string | null): string {
+  if (from && to && from > to) [from, to] = [to, from];
   if (from && to) {
     if (from === to) return shortDayLabel(from, true);
     const sameYear = from.slice(0, 4) === to.slice(0, 4);

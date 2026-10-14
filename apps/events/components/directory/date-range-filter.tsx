@@ -1,15 +1,19 @@
 "use client";
 
 import { CalendarRange, X } from "lucide-react";
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { cx } from "@/lib/format";
 import { chip, field } from "@/lib/styles";
+import { isLocalDate } from "@/lib/time";
 import { useNow } from "@/lib/use-now";
 import { localTodayKey, rangeLabel } from "./date-keys";
 import { DATE_PRESETS, matchPreset, presetRange, type DatePresetId } from "./date-presets";
 import { groupLabel, type FilterControlProps } from "./shared";
 
 const VENUE_LOCAL_HINT = "Dates are in each venue's local time.";
+
+/** Typing a year segment by keyboard passes through 0002, 0020, 0202…; don't filter on those. */
+const MIN_TYPED_DATE = "1900-01-01";
 
 /**
  * Date range presets plus custom From/To inputs. Presets are resolved from the
@@ -33,20 +37,21 @@ export function DateRangeFilter({ filters, setFilters }: FilterControlProps) {
     setFilters({ ...presetRange(id, localTodayKey(new Date())), month: null });
   }
 
-  function changeFrom(value: string) {
-    setFilters((current) => {
-      const from = value || null;
-      const to = from && current.to && current.to < from ? from : current.to;
-      return { from, to, month: null };
-    });
+  // Never touch the other bound here: browsers fire change for every segment typed into a
+  // date input (month 01, year 0002…), so clamping would overwrite it with transient values.
+  // An inverted range is tolerated (filtering and the label treat it as swapped).
+  function changeFrom(value: string | null) {
+    setFilters({ from: value, month: null });
   }
 
-  function changeTo(value: string) {
-    setFilters((current) => {
-      const to = value || null;
-      const from = to && current.from && current.from > to ? to : current.from;
-      return { from, to, month: null };
-    });
+  function changeTo(value: string | null) {
+    setFilters({ to: value, month: null });
+  }
+
+  function clearRange() {
+    setFilters({ from: null, to: null, month: null });
+    // The chip (and this button) unmounts; keep keyboard focus in the date group.
+    document.getElementById(fromId)?.focus();
   }
 
   return (
@@ -73,29 +78,13 @@ export function DateRangeFilter({ filters, setFilters }: FilterControlProps) {
           <label htmlFor={fromId} className="block text-xs font-medium text-ash-400">
             From
           </label>
-          <input
-            id={fromId}
-            type="date"
-            value={filters.from ?? ""}
-            max={filters.to ?? undefined}
-            onChange={(e) => changeFrom(e.target.value)}
-            title={VENUE_LOCAL_HINT}
-            className={cx(field.input, "mt-1 tabular-nums")}
-          />
+          <DateBoundInput id={fromId} value={filters.from} max={filters.to} onCommit={changeFrom} />
         </div>
         <div className="min-w-0">
           <label htmlFor={toId} className="block text-xs font-medium text-ash-400">
             To
           </label>
-          <input
-            id={toId}
-            type="date"
-            value={filters.to ?? ""}
-            min={filters.from ?? undefined}
-            onChange={(e) => changeTo(e.target.value)}
-            title={VENUE_LOCAL_HINT}
-            className={cx(field.input, "mt-1 tabular-nums")}
-          />
+          <DateBoundInput id={toId} value={filters.to} min={filters.from} onCommit={changeTo} />
         </div>
       </div>
 
@@ -112,7 +101,7 @@ export function DateRangeFilter({ filters, setFilters }: FilterControlProps) {
             </span>
             <button
               type="button"
-              onClick={() => setFilters({ from: null, to: null, month: null })}
+              onClick={clearRange}
               aria-label={`Remove date range: ${rangeLabel(range.from, range.to)}`}
               className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-chakra-400 transition-colors hover:bg-chakra-500/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
             >
@@ -122,5 +111,62 @@ export function DateRangeFilter({ filters, setFilters }: FilterControlProps) {
         </div>
       )}
     </fieldset>
+  );
+}
+
+/**
+ * A date input with a local draft. Browsers fire change for every segment typed by
+ * keyboard, and the URL-backed filters re-render in a transition, so binding the input
+ * straight to them makes React restore the stale value mid-typing (and a transient
+ * year like 0002 is rejected, clearing the field). The draft keeps typing intact; only
+ * complete, plausible dates (or an emptied field) are committed.
+ */
+function DateBoundInput({
+  id,
+  value,
+  min,
+  max,
+  onCommit,
+}: {
+  id: string;
+  value: string | null;
+  min?: string | null;
+  max?: string | null;
+  onCommit: (value: string | null) => void;
+}) {
+  const [draft, setDraft] = useState(value ?? "");
+  // Last value written to (or read from) the filters.
+  const committed = useRef(value ?? "");
+
+  // Mirror external changes (presets, chip removal, Clear all, back/forward) into the field.
+  useEffect(() => {
+    const next = value ?? "";
+    if (next !== committed.current) {
+      committed.current = next;
+      setDraft(next);
+    }
+  }, [value]);
+
+  function onChange(next: string) {
+    setDraft(next);
+    if (next === "" || (isLocalDate(next) && next >= MIN_TYPED_DATE)) {
+      committed.current = next;
+      onCommit(next || null);
+    }
+  }
+
+  return (
+    <input
+      id={id}
+      type="date"
+      value={draft}
+      min={min ?? undefined}
+      max={max ?? undefined}
+      onChange={(e) => onChange(e.target.value)}
+      // Drop an uncommitted partial year rather than leave it showing a date that isn't applied.
+      onBlur={() => setDraft(committed.current)}
+      title={VENUE_LOCAL_HINT}
+      className={cx(field.input, "mt-1 tabular-nums")}
+    />
   );
 }

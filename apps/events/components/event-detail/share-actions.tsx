@@ -55,11 +55,11 @@ export function ShareActions({ path, title, text }: { path: string; title: strin
   return (
     <div>
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={share} className={cx(button.secondary, "px-3")}>
+        <button type="button" onClick={share} className={button.secondarySm}>
           <Share2 className="h-4 w-4" aria-hidden="true" />
           Share
         </button>
-        <button type="button" onClick={copyLink} className={cx(button.secondary, "px-3")}>
+        <button type="button" onClick={copyLink} className={button.secondarySm}>
           {copied ? (
             <Check className="h-4 w-4 text-emerald-300" aria-hidden="true" />
           ) : (

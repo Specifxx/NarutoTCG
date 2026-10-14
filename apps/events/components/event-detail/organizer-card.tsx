@@ -19,7 +19,7 @@ export function OrganizerCard({ organizer }: { organizer: Organizer }) {
   const hasContact = organizer.email || organizer.phone || organizer.website;
 
   return (
-    <section aria-labelledby="organiser-heading" id="organiser" className="scroll-mt-24">
+    <section aria-labelledby="organiser-heading" id="organiser" className="scroll-mt-6">
       <SectionHeading id="organiser-heading" title="Organiser" />
       <div className={cx(surface.panel, "mt-4")}>
         <div className="flex items-start gap-4">

@@ -20,7 +20,7 @@ export function EventsSubnav() {
   return (
     <div className="border-b border-shadow-700/80 bg-shadow-900/60">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 sm:px-6">
-        <nav aria-label="Events" className="-mb-px flex min-w-0 flex-1 overflow-x-auto">
+        <nav aria-label="Events" className="relative -mb-px flex min-w-0 flex-1 overflow-x-auto">
           <ul className="flex items-center sm:gap-1">
             {TABS.map(({ href, label, icon: Icon, match }) => {
               const active = match(pathname);

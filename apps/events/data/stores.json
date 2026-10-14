@@ -11,9 +11,9 @@
     "timeZone": "America/Los_Angeles",
     "contact": { "phone": "+1 (213) 555-0142", "email": "events@hiddenleafgames.example", "website": "https://hiddenleafgames.example" },
     "social": {
-      "instagram": "https://instagram.com/hiddenleafgames.example",
-      "discord": "https://discord.gg/hiddenleaf-example",
-      "youtube": "https://youtube.com/@hiddenleafgames-example"
+      "instagram": "https://instagram.example/hiddenleafgames",
+      "discord": "https://discord.example/hiddenleaf",
+      "youtube": "https://youtube.example/@hiddenleafgames"
     },
     "hours": {
       "mon": [],
@@ -39,7 +39,7 @@
     "location": { "lat": 37.783, "lng": -122.4648 },
     "timeZone": "America/Los_Angeles",
     "contact": { "phone": "+1 (415) 555-0137", "email": "hello@cloudgategames.example", "website": "https://cloudgategames.example" },
-    "social": { "instagram": "https://instagram.com/cloudgategames.example", "discord": "https://discord.gg/cloudgate-example" },
+    "social": { "instagram": "https://instagram.example/cloudgategames", "discord": "https://discord.example/cloudgate" },
     "hours": {
       "mon": [],
       "tue": [["12:00", "20:00"]],
@@ -65,9 +65,9 @@
     "timeZone": "America/Los_Angeles",
     "contact": { "phone": "+1 (206) 555-0118", "email": "play@rainvillagehobbies.example", "website": "https://rainvillagehobbies.example" },
     "social": {
-      "instagram": "https://instagram.com/rainvillagehobbies.example",
-      "discord": "https://discord.gg/rainvillage-example",
-      "twitch": "https://twitch.tv/rainvillage-example"
+      "instagram": "https://instagram.example/rainvillagehobbies",
+      "discord": "https://discord.example/rainvillage",
+      "twitch": "https://twitch.example/rainvillage"
     },
     "hours": {
       "mon": [["12:00", "20:00"]],
@@ -94,9 +94,9 @@
     "timeZone": "America/Denver",
     "contact": { "phone": "+1 (303) 555-0164", "email": "crew@stonesummitgames.example", "website": "https://stonesummitgames.example" },
     "social": {
-      "instagram": "https://instagram.com/stonesummitgames.example",
-      "facebook": "https://facebook.com/stonesummitgames.example",
-      "discord": "https://discord.gg/stonesummit-example"
+      "instagram": "https://instagram.example/stonesummitgames",
+      "facebook": "https://facebook.example/stonesummitgames",
+      "discord": "https://discord.example/stonesummit"
     },
     "hours": {
       "mon": [],
@@ -121,7 +121,7 @@
     "location": { "lat": 30.2861, "lng": -97.7421 },
     "timeZone": "America/Chicago",
     "contact": { "phone": "+1 (512) 555-0193", "email": "hi@sandwaterfallcomics.example", "website": "https://sandwaterfallcomics.example" },
-    "social": { "instagram": "https://instagram.com/sandwaterfallcomics.example", "tiktok": "https://tiktok.com/@sandwaterfall.example" },
+    "social": { "instagram": "https://instagram.example/sandwaterfallcomics", "tiktok": "https://tiktok.example/@sandwaterfall" },
     "hours": {
       "mon": [["11:00", "20:00"]],
       "tue": [["11:00", "21:00"]],
@@ -147,10 +147,10 @@
     "timeZone": "America/Chicago",
     "contact": { "phone": "+1 (773) 555-0129", "email": "events@windyshuriken.example", "website": "https://windyshuriken.example" },
     "social": {
-      "instagram": "https://instagram.com/windyshuriken.example",
-      "x": "https://x.com/windyshuriken-example",
-      "twitch": "https://twitch.tv/windyshuriken-example",
-      "discord": "https://discord.gg/windyshuriken-example"
+      "instagram": "https://instagram.example/windyshuriken",
+      "x": "https://x.example/windyshuriken",
+      "twitch": "https://twitch.example/windyshuriken",
+      "discord": "https://discord.example/windyshuriken"
     },
     "hours": {
       "mon": [["14:00", "22:00"]],
@@ -176,7 +176,7 @@
     "location": { "lat": 39.9822, "lng": -83.0046 },
     "timeZone": "America/New_York",
     "contact": { "phone": "+1 (614) 555-0155", "email": "info@scrollandkunai.example", "website": "https://scrollandkunai.example" },
-    "social": { "instagram": "https://instagram.com/scrollandkunai.example", "facebook": "https://facebook.com/scrollandkunai.example" },
+    "social": { "instagram": "https://instagram.example/scrollandkunai", "facebook": "https://facebook.example/scrollandkunai" },
     "hours": {
       "mon": [],
       "tue": [["12:00", "21:00"]],
@@ -202,9 +202,9 @@
     "timeZone": "America/New_York",
     "contact": { "phone": "+1 (404) 555-0108", "email": "dojo@fivepointsdojo.example", "website": "https://fivepointsdojo.example" },
     "social": {
-      "instagram": "https://instagram.com/fivepointsdojo.example",
-      "tiktok": "https://tiktok.com/@fivepointsdojo.example",
-      "discord": "https://discord.gg/fivepoints-example"
+      "instagram": "https://instagram.example/fivepointsdojo",
+      "tiktok": "https://tiktok.example/@fivepointsdojo",
+      "discord": "https://discord.example/fivepoints"
     },
     "hours": {
       "mon": [["12:00", "20:00"]],
@@ -230,7 +230,7 @@
     "location": { "lat": 28.5606, "lng": -81.3644 },
     "timeZone": "America/New_York",
     "contact": { "phone": "+1 (407) 555-0172", "email": "hello@lanternlakegames.example", "website": "https://lanternlakegames.example" },
-    "social": { "instagram": "https://instagram.com/lanternlakegames.example", "facebook": "https://facebook.com/lanternlakegames.example" },
+    "social": { "instagram": "https://instagram.example/lanternlakegames", "facebook": "https://facebook.example/lanternlakegames" },
     "hours": {
       "mon": [["12:00", "21:00"]],
       "tue": [["12:00", "21:00"]],
@@ -256,9 +256,9 @@
     "timeZone": "America/New_York",
     "contact": { "phone": "+1 (212) 555-0186", "email": "desk@eightgatesgaming.example", "website": "https://eightgatesgaming.example" },
     "social": {
-      "instagram": "https://instagram.com/eightgatesgaming.example",
-      "x": "https://x.com/eightgates-example",
-      "youtube": "https://youtube.com/@eightgatesgaming-example"
+      "instagram": "https://instagram.example/eightgatesgaming",
+      "x": "https://x.example/eightgates",
+      "youtube": "https://youtube.example/@eightgatesgaming"
     },
     "hours": {
       "mon": [["13:00", "23:00"]],
@@ -283,7 +283,7 @@
     "location": { "lat": 42.3518, "lng": -71.1316 },
     "timeZone": "America/New_York",
     "contact": { "phone": "+1 (617) 555-0141", "email": "brew@kunaiandkettle.example", "website": "https://kunaiandkettle.example" },
-    "social": { "instagram": "https://instagram.com/kunaiandkettle.example" },
+    "social": { "instagram": "https://instagram.example/kunaiandkettle" },
     "hours": {
       "mon": [["16:00", "23:00"]],
       "tue": [["16:00", "23:00"]],
@@ -308,7 +308,7 @@
     "location": { "lat": 39.9416, "lng": -75.1508 },
     "timeZone": "America/New_York",
     "contact": { "phone": "+1 (215) 555-0124", "email": "play@libertyscroll.example", "website": "https://libertyscroll.example" },
-    "social": { "instagram": "https://instagram.com/libertyscroll.example", "discord": "https://discord.gg/libertyscroll-example" },
+    "social": { "instagram": "https://instagram.example/libertyscroll", "discord": "https://discord.example/libertyscroll" },
     "hours": {
       "mon": [],
       "tue": [["12:00", "21:00"]],
@@ -334,9 +334,9 @@
     "timeZone": "America/Toronto",
     "contact": { "phone": "+1 (416) 555-0177", "email": "bonjour@mapleshadowgames.example", "website": "https://mapleshadowgames.example" },
     "social": {
-      "instagram": "https://instagram.com/mapleshadowgames.example",
-      "discord": "https://discord.gg/mapleshadow-example",
-      "youtube": "https://youtube.com/@mapleshadowgames-example"
+      "instagram": "https://instagram.example/mapleshadowgames",
+      "discord": "https://discord.example/mapleshadow",
+      "youtube": "https://youtube.example/@mapleshadowgames"
     },
     "hours": {
       "mon": [["12:00", "20:00"]],
@@ -362,7 +362,7 @@
     "location": { "lat": 49.2624, "lng": -123.1008 },
     "timeZone": "America/Vancouver",
     "contact": { "phone": "+1 (604) 555-0159", "email": "hello@cascademistcards.example", "website": "https://cascademistcards.example" },
-    "social": { "instagram": "https://instagram.com/cascademistcards.example", "tiktok": "https://tiktok.com/@cascademist.example" },
+    "social": { "instagram": "https://instagram.example/cascademistcards", "tiktok": "https://tiktok.example/@cascademist" },
     "hours": {
       "mon": [["11:00", "19:00"]],
       "tue": [["11:00", "21:00"]],
@@ -388,9 +388,9 @@
     "timeZone": "Europe/London",
     "contact": { "phone": "+44 20 7946 0482", "email": "cards@shadowclonecomics.example", "website": "https://shadowclonecomics.example" },
     "social": {
-      "instagram": "https://instagram.com/shadowclonecomics.example",
-      "x": "https://x.com/shadowclone-example",
-      "discord": "https://discord.gg/shadowclone-example"
+      "instagram": "https://instagram.example/shadowclonecomics",
+      "x": "https://x.example/shadowclone",
+      "discord": "https://discord.example/shadowclone"
     },
     "hours": {
       "mon": [["10:00", "19:00"]],
@@ -416,7 +416,7 @@
     "location": { "lat": 53.4831, "lng": -2.2346 },
     "timeZone": "Europe/London",
     "contact": { "phone": "+44 161 496 0321", "email": "hello@mistharbourcards.example", "website": "https://mistharbourcards.example" },
-    "social": { "instagram": "https://instagram.com/mistharbourcards.example", "discord": "https://discord.gg/mistharbour-example" },
+    "social": { "instagram": "https://instagram.example/mistharbourcards", "discord": "https://discord.example/mistharbour" },
     "hours": {
       "mon": [["11:00", "18:00"]],
       "tue": [["11:00", "18:00"]],
@@ -447,8 +447,8 @@
     },
     "location": { "lat": 53.3419, "lng": -6.2629 },
     "timeZone": "Europe/Dublin",
-    "contact": { "phone": "+353 1 555 0047", "email": "dia.duit@emeraldscroll.example", "website": "https://emeraldscroll.example" },
-    "social": { "instagram": "https://instagram.com/emeraldscroll.example", "facebook": "https://facebook.com/emeraldscroll.example" },
+    "contact": { "email": "dia.duit@emeraldscroll.example", "website": "https://emeraldscroll.example" },
+    "social": { "instagram": "https://instagram.example/emeraldscroll", "facebook": "https://facebook.example/emeraldscroll" },
     "hours": {
       "mon": [["11:00", "18:00"]],
       "tue": [["11:00", "18:00"]],
@@ -473,7 +473,7 @@
     "location": { "lat": 48.8546, "lng": 2.3759 },
     "timeZone": "Europe/Paris",
     "contact": { "phone": "+33 1 99 00 00 42", "email": "salut@repaireshinobi.example", "website": "https://repaireshinobi.example" },
-    "social": { "instagram": "https://instagram.com/repaireshinobi.example", "discord": "https://discord.gg/repaire-example" },
+    "social": { "instagram": "https://instagram.example/repaireshinobi", "discord": "https://discord.example/repaire" },
     "hours": {
       "mon": [],
       "tue": [["11:00", "13:00"], ["14:00", "19:30"]],
@@ -498,7 +498,7 @@
     "location": { "lat": 45.755, "lng": 4.832 },
     "timeZone": "Europe/Paris",
     "contact": { "phone": "+33 4 65 71 00 18", "email": "contact@dojodeuxrives.example", "website": "https://dojodeuxrives.example" },
-    "social": { "instagram": "https://instagram.com/dojodeuxrives.example", "facebook": "https://facebook.com/dojodeuxrives.example" },
+    "social": { "instagram": "https://instagram.example/dojodeuxrives", "facebook": "https://facebook.example/dojodeuxrives" },
     "hours": {
       "mon": [],
       "tue": [["10:30", "12:30"], ["14:00", "19:00"]],
@@ -522,11 +522,11 @@
     "address": { "line1": "Oranienstraße 185", "city": "Berlin", "region": "Berlin", "postalCode": "10999", "country": "DE" },
     "location": { "lat": 52.5008, "lng": 13.419 },
     "timeZone": "Europe/Berlin",
-    "contact": { "phone": "+49 30 5550 0042", "email": "hallo@schattenfuchs.example", "website": "https://schattenfuchs.example" },
+    "contact": { "phone": "+49 30 23125 042", "email": "hallo@schattenfuchs.example", "website": "https://schattenfuchs.example" },
     "social": {
-      "instagram": "https://instagram.com/schattenfuchs.example",
-      "discord": "https://discord.gg/schattenfuchs-example",
-      "twitch": "https://twitch.tv/schattenfuchs-example"
+      "instagram": "https://instagram.example/schattenfuchs",
+      "discord": "https://discord.example/schattenfuchs",
+      "twitch": "https://twitch.example/schattenfuchs"
     },
     "hours": {
       "mon": [["12:00", "20:00"]],
@@ -551,8 +551,8 @@
     "address": { "line1": "Amalienstraße 46", "city": "Munich", "region": "Bavaria", "postalCode": "80799", "country": "DE" },
     "location": { "lat": 48.1495, "lng": 11.5791 },
     "timeZone": "Europe/Berlin",
-    "contact": { "phone": "+49 89 5550 0061", "email": "servus@wolkenturm.example", "website": "https://wolkenturm.example" },
-    "social": { "instagram": "https://instagram.com/wolkenturm.example", "youtube": "https://youtube.com/@wolkenturm-example" },
+    "contact": { "phone": "+49 89 99998 061", "email": "servus@wolkenturm.example", "website": "https://wolkenturm.example" },
+    "social": { "instagram": "https://instagram.example/wolkenturm", "youtube": "https://youtube.example/@wolkenturm" },
     "hours": {
       "mon": [["10:00", "20:00"]],
       "tue": [["10:00", "20:00"]],
@@ -576,8 +576,8 @@
     "address": { "line1": "Kinkerstraat 92", "city": "Amsterdam", "region": "North Holland", "postalCode": "1053 ED", "country": "NL" },
     "location": { "lat": 52.3672, "lng": 4.8717 },
     "timeZone": "Europe/Amsterdam",
-    "contact": { "phone": "+31 20 555 0074", "email": "hoi@canalshinobi.example", "website": "https://canalshinobi.example" },
-    "social": { "instagram": "https://instagram.com/canalshinobi.example", "discord": "https://discord.gg/canalshinobi-example" },
+    "contact": { "email": "hoi@canalshinobi.example", "website": "https://canalshinobi.example" },
+    "social": { "instagram": "https://instagram.example/canalshinobi", "discord": "https://discord.example/canalshinobi" },
     "hours": {
       "mon": [["13:00", "18:00"]],
       "tue": [["11:00", "18:00"]],
@@ -601,11 +601,11 @@
     "address": { "line1": "Calle del Pez 21", "city": "Madrid", "region": "Community of Madrid", "postalCode": "28004", "country": "ES" },
     "location": { "lat": 40.4236, "lng": -3.7058 },
     "timeZone": "Europe/Madrid",
-    "contact": { "phone": "+34 91 555 00 33", "email": "hola@aldeaoculta.example", "website": "https://aldeaoculta.example" },
+    "contact": { "email": "hola@aldeaoculta.example", "website": "https://aldeaoculta.example" },
     "social": {
-      "instagram": "https://instagram.com/aldeaoculta.example",
-      "tiktok": "https://tiktok.com/@aldeaoculta.example",
-      "x": "https://x.com/aldeaoculta-example"
+      "instagram": "https://instagram.example/aldeaoculta",
+      "tiktok": "https://tiktok.example/@aldeaoculta",
+      "x": "https://x.example/aldeaoculta"
     },
     "hours": {
       "mon": [["17:00", "21:00"]],
@@ -630,8 +630,8 @@
     "address": { "line1": "Via Paolo Sarpi 38", "city": "Milan", "region": "Lombardy", "postalCode": "20154", "country": "IT" },
     "location": { "lat": 45.4814, "lng": 9.1751 },
     "timeZone": "Europe/Rome",
-    "contact": { "phone": "+39 02 5550 0052", "email": "ciao@covodeikunai.example", "website": "https://covodeikunai.example" },
-    "social": { "instagram": "https://instagram.com/covodeikunai.example", "facebook": "https://facebook.com/covodeikunai.example" },
+    "contact": { "email": "ciao@covodeikunai.example", "website": "https://covodeikunai.example" },
+    "social": { "instagram": "https://instagram.example/covodeikunai", "facebook": "https://facebook.example/covodeikunai" },
     "hours": {
       "mon": [["15:00", "19:30"]],
       "tue": [["10:00", "13:00"], ["15:00", "19:30"]],
@@ -655,8 +655,8 @@
     "address": { "line1": "Götgatan 46", "city": "Stockholm", "region": "Stockholm County", "postalCode": "118 26", "country": "SE" },
     "location": { "lat": 59.3159, "lng": 18.0723 },
     "timeZone": "Europe/Stockholm",
-    "contact": { "phone": "+46 8 555 000 29", "email": "hej@snostormspel.example", "website": "https://snostormspel.example" },
-    "social": { "instagram": "https://instagram.com/snostormspel.example", "discord": "https://discord.gg/snostorm-example" },
+    "contact": { "phone": "+46 8 465 004 29", "email": "hej@snostormspel.example", "website": "https://snostormspel.example" },
+    "social": { "instagram": "https://instagram.example/snostormspel", "discord": "https://discord.example/snostorm" },
     "hours": {
       "mon": [["11:00", "19:00"]],
       "tue": [["11:00", "19:00"]],
@@ -682,9 +682,9 @@
     "timeZone": "Australia/Sydney",
     "contact": { "phone": "+61 2 5550 1842", "email": "g-day@southerncrossshinobi.example", "website": "https://southerncrossshinobi.example" },
     "social": {
-      "instagram": "https://instagram.com/southerncrossshinobi.example",
-      "facebook": "https://facebook.com/southerncrossshinobi.example",
-      "youtube": "https://youtube.com/@southerncrossshinobi-example"
+      "instagram": "https://instagram.example/southerncrossshinobi",
+      "facebook": "https://facebook.example/southerncrossshinobi",
+      "youtube": "https://youtube.example/@southerncrossshinobi"
     },
     "hours": {
       "mon": [["10:00", "18:00"]],
@@ -710,7 +710,7 @@
     "location": { "lat": -37.8127, "lng": 144.9625 },
     "timeZone": "Australia/Melbourne",
     "contact": { "phone": "+61 3 7010 4417", "email": "hello@lanewayninja.example", "website": "https://lanewayninja.example" },
-    "social": { "instagram": "https://instagram.com/lanewayninja.example", "discord": "https://discord.gg/lanewayninja-example" },
+    "social": { "instagram": "https://instagram.example/lanewayninja", "discord": "https://discord.example/lanewayninja" },
     "hours": {
       "mon": [["11:00", "18:00"]],
       "tue": [["11:00", "18:00"]],
@@ -735,7 +735,7 @@
     "location": { "lat": -27.4697, "lng": 153.025 },
     "timeZone": "Australia/Brisbane",
     "contact": { "phone": "+61 7 5550 2290", "email": "crew@riverfirecards.example", "website": "https://riverfirecards.example" },
-    "social": { "instagram": "https://instagram.com/riverfirecards.example", "facebook": "https://facebook.com/riverfirecards.example" },
+    "social": { "instagram": "https://instagram.example/riverfirecards", "facebook": "https://facebook.example/riverfirecards" },
     "hours": {
       "mon": [["10:00", "18:00"]],
       "tue": [["10:00", "18:00"]],
@@ -784,7 +784,7 @@
     "location": { "lat": -34.9241, "lng": 138.604 },
     "timeZone": "Australia/Adelaide",
     "contact": { "phone": "+61 8 7010 5528", "email": "hello@redgumgames.example", "website": "https://redgumgames.example" },
-    "social": { "instagram": "https://instagram.com/redgumgames.example", "facebook": "https://facebook.com/redgumgames.example" },
+    "social": { "instagram": "https://instagram.example/redgumgames", "facebook": "https://facebook.example/redgumgames" },
     "hours": {
       "mon": [],
       "tue": [["10:00", "18:00"]],
@@ -808,8 +808,8 @@
     "address": { "line1": "Shop 3, 280 Queen Street", "city": "Auckland", "region": "Auckland", "postalCode": "1010", "country": "NZ" },
     "location": { "lat": -36.8503, "lng": 174.7651 },
     "timeZone": "Pacific/Auckland",
-    "contact": { "phone": "+64 9 555 0063", "email": "kiaora@volcanovillage.example", "website": "https://volcanovillage.example" },
-    "social": { "instagram": "https://instagram.com/volcanovillage.example", "discord": "https://discord.gg/volcanovillage-example" },
+    "contact": { "email": "kiaora@volcanovillage.example", "website": "https://volcanovillage.example" },
+    "social": { "instagram": "https://instagram.example/volcanovillage", "discord": "https://discord.example/volcanovillage" },
     "hours": {
       "mon": [["10:00", "18:00"]],
       "tue": [["10:00", "18:00"]],

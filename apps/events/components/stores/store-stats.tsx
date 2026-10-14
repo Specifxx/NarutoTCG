@@ -32,7 +32,7 @@ export function StoreStats({ stats, className }: { stats: StoreStat[]; className
               <span className="text-xl font-bold leading-tight text-white tabular-nums">
                 {value.toLocaleString("en-US")}
               </span>
-              <span className="truncate text-xs text-ash-400">{label}</span>
+              <span className="text-xs leading-tight text-ash-400">{label}</span>
             </p>
           </li>
         );

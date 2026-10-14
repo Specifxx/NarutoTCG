@@ -179,7 +179,9 @@ function RegistrationForm({
         failure?.error ??
           (res.status >= 500
             ? "Something went wrong on our side. Please try again in a moment."
-            : `We couldn't complete your registration (error ${res.status}).`),
+            : res.status === 429
+              ? "Too many registration attempts. Please wait a few minutes and try again."
+              : `We couldn't complete your registration (error ${res.status}).`),
       );
     } catch {
       setFormError("We couldn't reach the server. Check your connection and try again.");

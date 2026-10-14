@@ -75,6 +75,7 @@ export default async function CountdownsPage() {
       ) : (
         <EmptyState
           className="mt-8"
+          headingLevel={2}
           icon={Hourglass}
           title="No countdowns right now"
           description="Every announced milestone has wrapped up. New Bandai Card Games Fest stops, releases and championships appear here as soon as they're announced."

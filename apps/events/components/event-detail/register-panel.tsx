@@ -247,13 +247,13 @@ function RegistrationAction({
           {(inStore.storeHref || inStore.phone) && (
             <div className="mt-3 flex flex-wrap gap-2">
               {inStore.storeHref && (
-                <Link href={inStore.storeHref} className={cx(button.secondary, "px-3 py-1.5")}>
+                <Link href={inStore.storeHref} className={button.secondarySm}>
                   <Store className="h-4 w-4" aria-hidden="true" />
                   Store details
                 </Link>
               )}
               {inStore.phone && (
-                <a href={telHref(inStore.phone)} className={cx(button.secondary, "px-3 py-1.5")}>
+                <a href={telHref(inStore.phone)} className={button.secondarySm}>
                   <Phone className="h-4 w-4" aria-hidden="true" />
                   <span className="sr-only">Call </span>
                   {inStore.phone}
@@ -288,10 +288,15 @@ function RegistrationAction({
 function Unavailable({ icon: Icon, note, children }: { icon: LucideIcon; note?: string; children: ReactNode }) {
   return (
     <>
-      <button type="button" disabled className={cx(button.secondary, "w-full py-2.5")}>
-        <Icon className="h-4 w-4" aria-hidden="true" />
+      <p
+        className={cx(
+          surface.inset,
+          "flex w-full items-center justify-center gap-2 px-4 py-2.5 text-center text-sm font-semibold text-ash-200",
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0 text-ash-400" aria-hidden="true" />
         {children}
-      </button>
+      </p>
       {note && <Note>{note}</Note>}
     </>
   );

@@ -1,8 +1,8 @@
 import { BadgeCheck, Building2, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { REGIONS } from "@/lib/event-meta";
 import { cx, flagEmoji } from "@/lib/format";
-import { normalizeQuery } from "@/lib/places";
+import { normalizeQuery, searchTerms } from "@/lib/places";
 import { button, field } from "@/lib/styles";
 import { timeZoneLabel, type SubmissionStoreOption } from "@/lib/submission";
 import { controlProps, FieldError, FieldHint } from "./fields";
@@ -33,7 +33,7 @@ export function StorePicker({
 }) {
   const [query, setQuery] = useState("");
   const selected = stores.find((s) => s.slug === value);
-  const terms = useMemo(() => normalizeQuery(query).replace(/,/g, " ").split(" ").filter(Boolean), [query]);
+  const terms = useMemo(() => searchTerms(query), [query]);
 
   const groups = useMemo(() => {
     const visible = terms.length ? stores.filter((s) => matches(s, terms)) : stores;
@@ -44,6 +44,14 @@ export function StorePicker({
     })).filter((g) => g.stores.length > 0);
   }, [stores, terms]);
   const resultCount = groups.reduce((n, g) => n + g.stores.length, 0);
+
+  // Announce the match count once typing pauses rather than on every keystroke.
+  const summary = terms.length ? `${resultCount} ${resultCount === 1 ? "store matches" : "stores match"}` : "";
+  const [announced, setAnnounced] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAnnounced(summary), 600);
+    return () => window.clearTimeout(timer);
+  }, [summary]);
 
   const labelId = "submit-store-label";
   const searchId = "submit-store-search";
@@ -77,7 +85,7 @@ export function StorePicker({
           />
         </div>
         <p className="sr-only" aria-live="polite">
-          {terms.length ? `${resultCount} ${resultCount === 1 ? "store matches" : "stores match"}` : ""}
+          {announced}
         </p>
       </div>
 

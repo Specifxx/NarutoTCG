@@ -29,6 +29,26 @@ In production they are served from one origin, so `SiteHeader` links are plain p
 In local dev each zone runs on its own port; `apps/events/.env.development` maps the
 sibling zones (`NEXT_PUBLIC_ZONE_URL_<ZONE>`) so header links reach them.
 
+The shared-origin proxy routes these paths to the events zone (port 3004):
+
+| Paths | Purpose |
+| --- | --- |
+| `/events`, `/events/*`, `/stores`, `/store/*`, `/countdowns` | Pages |
+| `/api/geocode`, `/api/submissions`, `/api/events/*` | Route handlers |
+| `/events-static/*` | Built assets (`assetPrefix`) |
+
+### Events zone environment
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Canonical origin for metadata, JSON-LD and calendar links (required in production) |
+| `NEXT_PUBLIC_ZONE_URL_<ZONE>` | Origin of a sibling zone when it runs separately (dev) |
+| `NEXT_PUBLIC_MAP_TILE_URL` (+ `_ATTRIBUTION`, `_SUBDOMAINS`, `_MAX_NATIVE_ZOOM`) | Replace the default keyless Esri dark basemap on `/events/map` |
+| `GEOCODER=off` | Disable the Nominatim fallback for location search (gazetteer only) |
+| `TRUSTED_PROXY_HOPS` | Proxies in front of the app, for rate-limit client IPs (default 1) |
+
+Registrations and submissions are stored in memory (per instance, reset on restart) until a database is connected.
+
 ## Events data
 
 `apps/events/data/*.json` holds the sample stores, events, gazetteer places and

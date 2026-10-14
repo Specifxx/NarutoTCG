@@ -15,7 +15,7 @@ export function ScheduleCard({
   shareText,
 }: {
   event: TcgEvent;
-  /** Calendar entry with an absolute URL (see components/event-detail/calendar.ts). */
+  /** Calendar entry with an absolute URL (see lib/event-calendar.ts). */
   entry: CalendarEntry;
   /** Canonical page path, e.g. "/events/abc". */
   path: string;
@@ -41,7 +41,7 @@ export function ScheduleCard({
             Add to calendar
           </h3>
           <div className="mt-2 grid grid-cols-2 gap-2">
-            <a href={`${path}/calendar.ics`} download={icsFileName(event.title)} className={cx(button.secondary, "px-3")}>
+            <a href={`${path}/calendar.ics`} download={icsFileName(event.title)} className={button.secondarySm}>
               <Download className="h-4 w-4" aria-hidden="true" />
               .ics file
               <span className="sr-only"> for Apple Calendar or Outlook</span>
@@ -50,7 +50,7 @@ export function ScheduleCard({
               href={googleCalendarUrl(entry)}
               target="_blank"
               rel="noopener noreferrer"
-              className={cx(button.secondary, "px-3")}
+              className={button.secondarySm}
             >
               Google
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />

@@ -1064,12 +1064,18 @@ function slugify(value: string, maxLength = 60): string {
 }
 
 /**
- * Proposed seed id: the title slug, plus the date for one-off events. Weekly series
- * omit it because the importer appends "-YYYY-MM-DD" to every occurrence.
+ * Proposed seed id: the store slug (or the new venue's city) and the title slug —
+ * the event type when the title has no Latin characters — plus the date for one-off
+ * events. Weekly series omit the date because the importer appends "-YYYY-MM-DD" to
+ * every occurrence. The scope keeps two stores' "Friday Night Naruto" apart.
  */
 export function suggestSeedId(submission: EventSubmission): string {
-  const base = slugify(submission.event.title) || "event";
-  return submission.schedule.recurrence === "weekly" ? base : `${base}-${submission.schedule.date}`;
+  const { event, venue, schedule } = submission;
+  const base = slugify(event.title) || event.type;
+  const scope = slugify(venue.mode === "store" ? venue.storeSlug : venue.city, 30);
+  const scoped = base === scope || base.startsWith(`${scope}-`);
+  const stem = scope && !scoped ? `${scope}-${base}` : base;
+  return schedule.recurrence === "weekly" ? stem : `${stem}-${schedule.date}`;
 }
 
 const ORGANIZER_KIND: Record<OrganiserRole, OrganizerKind> = {
@@ -1079,26 +1085,34 @@ const ORGANIZER_KIND: Record<OrganiserRole, OrganizerKind> = {
 };
 
 /**
+ * True when the organiser's email and phone are published as the event's contact:
+ * everyone except store staff listing at their own directory store.
+ */
+export function organiserContactIsPublic(submission: Pick<EventSubmission, "organiser" | "venue">): boolean {
+  return !(submission.organiser.role === "store-owner" && submission.venue.mode === "store");
+}
+
+/**
  * The `data/events.json` record this submission becomes once approved.
  *
  * - Store staff listing at their own directory store get the default organiser
  *   (the store); everyone else is listed as an unverified organiser with the
  *   contact details they gave.
+ * - Store venues omit `timeZone`, so the importer uses the store's own zone.
  * - A public player list is represented by an empty `participants` roster.
  * - `registeredCount` starts at 0; the registration window opens at local midnight.
  */
 export function toEventSeed(submission: EventSubmission, id: string): SubmissionSeed {
   const { organiser, venue, event, schedule, capacity, fee, registration } = submission;
-  const organizer: Organizer | undefined =
-    organiser.role === "store-owner" && venue.mode === "store"
-      ? undefined
-      : {
-          name: organiser.name,
-          kind: ORGANIZER_KIND[organiser.role],
-          verified: false,
-          email: organiser.email,
-          ...(organiser.phone ? { phone: organiser.phone } : {}),
-        };
+  const organizer: Organizer | undefined = organiserContactIsPublic(submission)
+    ? {
+        name: organiser.name,
+        kind: ORGANIZER_KIND[organiser.role],
+        verified: false,
+        email: organiser.email,
+        ...(organiser.phone ? { phone: organiser.phone } : {}),
+      }
+    : undefined;
 
   return {
     id,
@@ -1125,7 +1139,8 @@ export function toEventSeed(submission: EventSubmission, id: string): Submission
         }),
     start: `${schedule.date}T${schedule.startTime}`,
     end: `${schedule.endDate ?? schedule.date}T${schedule.endTime}`,
-    timeZone: schedule.timeZone,
+    // A store venue is at the store: let the importer use the store's own zone.
+    ...(venue.mode === "store" ? {} : { timeZone: schedule.timeZone }),
     entryFee: { amount: fee.amount, currency: fee.currency },
     capacity: capacity.uncapped ? null : (capacity.max ?? null),
     registeredCount: 0,

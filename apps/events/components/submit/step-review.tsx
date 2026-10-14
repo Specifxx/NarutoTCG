@@ -7,6 +7,7 @@ import {
   describeDateKey,
   isImportReady,
   ORGANISER_ROLES,
+  organiserContactIsPublic,
   REGISTRATION_METHODS,
   STEPS,
   suggestSeedId,
@@ -124,7 +125,7 @@ function SeedPreview({ submission }: { submission: EventSubmission }) {
         <pre
           tabIndex={0}
           aria-label="Event record JSON"
-          className="max-h-80 overflow-auto rounded-md border border-shadow-700 bg-shadow-950 p-3 font-mono text-xs leading-relaxed text-ash-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+          className="relative max-h-80 overflow-auto rounded-md border border-shadow-700 bg-shadow-950 p-3 font-mono text-xs leading-relaxed text-ash-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
         >
           <code>{json}</code>
         </pre>
@@ -180,6 +181,11 @@ export function ReviewStep({
           <Row label="Contact">
             {organiser.email}
             {organiser.phone && <span className="text-ash-400"> · {organiser.phone}</span>}
+            <span className="block text-xs text-ash-400">
+              {organiserContactIsPublic(submission)
+                ? "Shown to players as the organiser contact."
+                : "Private: players contact the store."}
+            </span>
           </Row>
           <Row label="Venue">
             {venue.mode === "store" ? (

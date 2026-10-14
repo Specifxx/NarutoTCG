@@ -63,7 +63,7 @@ export function Stepper({
                 aria-hidden="true"
                 className={cx(
                   "mt-2 hidden text-xs font-medium sm:block",
-                  state === "current" ? "text-white" : state === "upcoming" ? "text-ash-400/70" : "text-ash-400",
+                  state === "current" ? "text-white" : "text-ash-400",
                   clickable && "group-hover:text-ash-200",
                 )}
               >
@@ -81,10 +81,13 @@ export function Stepper({
               className="relative flex min-w-0 flex-1 flex-col items-center"
             >
               {i > 0 && (
+                // Runs from just past the previous circle (and the current step's 4px ring) to just
+                // before this one, so it never crosses a circle: every <li> is the same width, so its
+                // centre is 50% in and the previous centre 50% before it.
                 <span
                   aria-hidden="true"
                   className={cx(
-                    "absolute right-1/2 top-4 h-0.5 w-full -translate-y-1/2",
+                    "absolute left-[calc(-50%_+_1.5rem)] right-[calc(50%_+_1.5rem)] top-4 h-0.5 -translate-y-1/2 rounded-full",
                     states[i - 1] === "complete" ? "bg-chakra-500/50" : "bg-shadow-700",
                   )}
                 />

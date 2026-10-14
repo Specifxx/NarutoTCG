@@ -350,7 +350,7 @@ export function StepFrame({
         <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-chakra-400">
           Step {index + 1} of {total}
         </span>
-        <h2 ref={headingRef} tabIndex={-1} className="mt-1 scroll-mt-28 text-xl font-semibold text-white outline-none">
+        <h2 ref={headingRef} tabIndex={-1} className="mt-1 scroll-mt-10 text-xl font-semibold text-white outline-none">
           {step.title}
         </h2>
         <span className="mt-1 block text-sm text-ash-400">{step.description}</span>

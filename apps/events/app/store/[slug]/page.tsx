@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/empty-state";
 import { EventCard } from "@/components/event-card";
-import { absoluteUrl } from "@/components/event-detail/site-url";
 import { GoogleMapEmbed } from "@/components/google-map-embed";
 import { Container, SectionHeading } from "@/components/page-header";
 import { OpeningHoursTable } from "@/components/stores/opening-hours-table";
@@ -15,6 +14,7 @@ import { StoreJsonLd } from "@/components/stores/store-json-ld";
 import { getEventSummariesForStore, getStore, getStores } from "@/lib/data";
 import type { EventSummary } from "@/lib/event-summary";
 import { addressLines, cx, placeLabel, pluralize } from "@/lib/format";
+import { absoluteUrl } from "@/lib/site";
 import { weeklyHoursRows } from "@/lib/store-hours";
 import { button, surface } from "@/lib/styles";
 import { localeForRegion, zoneAbbreviation } from "@/lib/time";
@@ -74,7 +74,9 @@ export default async function StorePage({ params }: PageProps) {
   const hoursRows = weeklyHoursRows(store.hours, locale);
   const zone = zoneAbbreviation(now, store.timeZone, locale);
   const directoryHref = `/events?${new URLSearchParams({ q: store.name }).toString()}`;
-  const submitHref = `/events/submit?${new URLSearchParams({ store: store.slug }).toString()}`;
+  // The submit wizard (and API) only accept verified stores as host venues, so the
+  // "submit an event here" calls to action are offered on verified store pages only.
+  const submitHref = store.verified ? `/events/submit?${new URLSearchParams({ store: store.slug }).toString()}` : null;
   const hiddenCount = upcomingAll.length - upcoming.length;
 
   return (
@@ -165,10 +167,12 @@ export default async function StorePage({ params }: PageProps) {
                 title="No upcoming events listed"
                 description={`${store.name} hasn't published its next demo day or tournament yet. Follow the store or check back soon.`}
                 action={
-                  <Link href={submitHref} className={button.secondary}>
-                    <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                    Submit an event here
-                  </Link>
+                  submitHref ? (
+                    <Link href={submitHref} className={button.secondary}>
+                      <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+                      Submit an event here
+                    </Link>
+                  ) : undefined
                 }
               />
             )}
@@ -215,26 +219,28 @@ export default async function StorePage({ params }: PageProps) {
             </div>
           </section>
 
-          <section
-            aria-labelledby="store-cta-heading"
-            className="relative overflow-hidden rounded-xl border border-chakra-500/40 bg-gradient-to-br from-chakra-500/15 via-shadow-900 to-shadow-900 p-6"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="max-w-xl">
-                <h2 id="store-cta-heading" className="text-lg font-semibold text-white">
-                  Hosting a demo day here?
-                </h2>
-                <p className="mt-1 text-sm text-ash-200">
-                  Store owners and organisers can list demo days, weekly nights and tournaments at {store.name}. New
-                  listings are reviewed before they go live.
-                </p>
+          {submitHref && (
+            <section
+              aria-labelledby="store-cta-heading"
+              className="relative overflow-hidden rounded-xl border border-chakra-500/40 bg-gradient-to-br from-chakra-500/15 via-shadow-900 to-shadow-900 p-6"
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="max-w-xl">
+                  <h2 id="store-cta-heading" className="text-lg font-semibold text-white">
+                    Hosting a demo day here?
+                  </h2>
+                  <p className="mt-1 text-sm text-ash-200">
+                    Store owners and organisers can list demo days, weekly nights and tournaments at {store.name}. New
+                    listings are reviewed before they go live.
+                  </p>
+                </div>
+                <Link href={submitHref} className={cx(button.primary, "shrink-0")}>
+                  <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+                  Submit an event
+                </Link>
               </div>
-              <Link href={submitHref} className={cx(button.primary, "shrink-0")}>
-                <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                Submit an event
-              </Link>
-            </div>
-          </section>
+            </section>
+          )}
         </div>
       </div>
     </Container>

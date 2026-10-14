@@ -85,7 +85,7 @@ export function EmbedPreview({ milestones, className }: { milestones: Milestone[
           <pre
             tabIndex={0}
             aria-label="Example code for the countdown badge"
-            className="mt-3 overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-950 p-4 text-xs leading-relaxed text-ash-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
+            className="relative mt-3 overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-950 p-4 text-xs leading-relaxed text-ash-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
           >
             <code>{usageSnippet(sample)}</code>
           </pre>

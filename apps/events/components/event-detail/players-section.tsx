@@ -55,7 +55,7 @@ export function PlayersSection({
             tabIndex={0}
             className={cx(
               surface.card,
-              "mt-4 max-h-[28rem] overflow-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
+              "relative mt-4 max-h-[28rem] overflow-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
             )}
           >
             <table className="w-full min-w-[20rem] border-collapse text-left text-sm">

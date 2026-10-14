@@ -104,19 +104,14 @@ export async function getMilestoneSeeds(): Promise<MilestoneSeed[]> {
 }
 
 export interface DirectoryStats {
-  upcomingEvents: number;
   stores: number;
+  /** Countries with a store or an upcoming, non-cancelled event. */
   countries: number;
-  cities: number;
 }
 
 export async function getDirectoryStats(now = new Date()): Promise<DirectoryStats> {
   const { summaries, stores } = load();
   const upcoming = summaries.filter((s) => new Date(s.endsAt) > now && s.status !== "cancelled");
   const countries = new Set([...stores.map((s) => s.address.country), ...upcoming.map((s) => s.venue.country)]);
-  const cities = new Set([
-    ...stores.map((s) => `${s.address.city}|${s.address.country}`),
-    ...upcoming.map((s) => `${s.venue.city}|${s.venue.country}`),
-  ]);
-  return { upcomingEvents: upcoming.length, stores: stores.length, countries: countries.size, cities: cities.size };
+  return { stores: stores.length, countries: countries.size };
 }

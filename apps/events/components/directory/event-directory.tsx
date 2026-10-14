@@ -35,7 +35,7 @@ export function EventDirectory({ events, nowIso }: { events: EventSummary[]; now
         id={DIRECTORY_RESULTS_ID}
         aria-label="Event results"
         tabIndex={-1}
-        className="min-w-0 scroll-mt-20 focus:outline-none"
+        className="min-w-0 focus:outline-none"
       >
         <ResultsToolbar
           count={results.length}

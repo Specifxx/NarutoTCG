@@ -52,7 +52,8 @@ export function OrganiserStep({
 }: StepProps & { stores: readonly SubmissionStoreOption[] }) {
   const { organiser, venue } = draft;
 
-  // A venue fixes the local time zone and the usual currency; later steps let the organiser override both.
+  // A venue fixes the local time zone and the usual currency. Later steps let the organiser override the
+  // currency, and the zone for a new venue only (a directory store's events always use the store's zone).
   function selectStore(store: SubmissionStoreOption) {
     patch("venue", { storeSlug: store.slug });
     patch("schedule", { timeZone: store.timeZone });
@@ -76,7 +77,10 @@ export function OrganiserStep({
 
   return (
     <>
-      <FieldSection title="About you" description="We use these details to contact you about this listing.">
+      <FieldSection
+        title="About you"
+        description="We use these details to contact you about this listing. They may also be shown as the organiser contact (see below)."
+      >
         <RadioCardGroup
           path="organiser.role"
           label="Which best describes you?"
@@ -106,7 +110,7 @@ export function OrganiserStep({
             value={organiser.email}
             onChange={(e) => patch("organiser", { email: e.target.value })}
             error={errors["organiser.email"]}
-            hint="Review updates go here. Unless you're listing your own store, players also see it as the organiser contact."
+            hint="Review updates go here. Players also see it as the organiser contact, unless you're the store owner and pick your verified store as the venue."
           />
         </div>
         <TextField
@@ -119,7 +123,7 @@ export function OrganiserStep({
           value={organiser.phone}
           onChange={(e) => patch("organiser", { phone: e.target.value })}
           error={errors["organiser.phone"]}
-          hint="Include the country code, e.g. +44."
+          hint="Shown to players with your email under the same rule. Include the country code, e.g. +44."
         />
       </FieldSection>
 

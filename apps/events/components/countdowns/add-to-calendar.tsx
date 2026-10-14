@@ -103,7 +103,7 @@ export function AddToCalendar({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
-        className={cx(compact ? cx(button.ghost, "px-2.5") : button.secondary, buttonClassName)}
+        className={cx(compact ? button.ghostSm : button.secondary, buttonClassName)}
       >
         <CalendarPlus className="h-4 w-4" aria-hidden="true" />
         {compact ? (

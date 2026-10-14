@@ -65,6 +65,7 @@ export type RegistrationErrorCode =
   | "duplicate"
   | "full"
   | "invalid"
+  | "rate-limited"
   | "bad-request";
 
 export interface RegistrationErrorResponse {

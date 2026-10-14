@@ -2,7 +2,7 @@ import type { Region, StoreFeature } from "@naruto-tcg/types";
 import { isRegion, isStoreFeature } from "@/lib/event-meta";
 import { RADIUS_OPTIONS } from "@/lib/filters";
 import { distanceIn, type DistanceUnit } from "@/lib/geo";
-import { normalizeQuery } from "@/lib/places";
+import { normalizeQuery, searchTerms } from "@/lib/places";
 import type { StoreSummary } from "@/lib/store-summary";
 
 /**
@@ -144,7 +144,8 @@ export function applyStoreFilters(
   filters: StoreFilters,
   searchIndex?: ReadonlyMap<string, string>,
 ): FilteredStore[] {
-  const terms = normalizeQuery(filters.q).split(" ").filter(Boolean);
+  // Commas separate terms too, so "London, United Kingdom" matches like "London United Kingdom".
+  const terms = searchTerms(filters.q);
   const origin = hasStoreLocation(filters) ? { lat: filters.lat, lng: filters.lng } : null;
 
   const out: FilteredStore[] = [];

@@ -27,7 +27,10 @@ export function DirectorySkeleton() {
     <div className="grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-8" aria-hidden="true">
       <div className="space-y-4 rounded-xl border border-shadow-700 bg-shadow-900/80 p-4 sm:p-5">
         <Bone className="h-5 w-24" />
-        <Bone className="h-[38px] w-full" />
+        <div>
+          <Bone className="h-3 w-24" />
+          <Bone className="mt-3 h-[38px] w-full" />
+        </div>
         <Bone className="h-[38px] w-full lg:hidden" />
         <div className="hidden space-y-5 lg:block">
           <div className="flex flex-wrap gap-1.5">
@@ -74,7 +77,7 @@ export function DirectoryPageSkeleton() {
             <Bone className="h-5 w-[28rem] max-w-full" />
           </div>
           <div className="flex flex-wrap gap-2">
-            <Bone className="h-8 w-40 rounded-full" />
+            <Bone className="h-8 w-48 rounded-full" />
             <Bone className="h-8 w-24 rounded-full" />
             <Bone className="h-8 w-28 rounded-full" />
           </div>

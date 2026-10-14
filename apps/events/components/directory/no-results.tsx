@@ -5,7 +5,12 @@ import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { RADIUS_OPTIONS, countActiveFilters, hasLocation, type EventFilters } from "@/lib/filters";
 import { button } from "@/lib/styles";
-import type { SetFilters } from "./shared";
+import { DIRECTORY_RESULTS_ID, type SetFilters } from "./shared";
+
+/** These buttons usually unmount themselves (results appear); hand focus to the persistent results region. */
+function focusResults() {
+  document.getElementById(DIRECTORY_RESULTS_ID)?.focus();
+}
 
 /** Empty results, with the most useful recovery actions for the current filters. */
 export function NoResults({
@@ -52,12 +57,26 @@ export function NoResults({
       action={
         <div className="flex flex-wrap justify-center gap-2">
           {widerRadius !== undefined && (
-            <button type="button" onClick={() => setFilters({ radius: widerRadius })} className={button.secondary}>
+            <button
+              type="button"
+              onClick={() => {
+                setFilters({ radius: widerRadius });
+                focusResults();
+              }}
+              className={button.secondary}
+            >
               <Expand className="h-4 w-4" aria-hidden="true" />
               Search within {widerRadius.toLocaleString("en-US")} {filters.unit}
             </button>
           )}
-          <button type="button" onClick={resetFilters} className={button.primary}>
+          <button
+            type="button"
+            onClick={() => {
+              resetFilters();
+              focusResults();
+            }}
+            className={button.primary}
+          >
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Clear filters
           </button>

@@ -44,6 +44,8 @@ export function LocationSearch({
   const [active, setActive] = useState(-1);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const requestRef = useRef<AbortController | null>(null);
+  // Bumped by every lookup, locate, choice and clear, so a late geocode or geolocation result can't undo a newer action.
+  const requestSeq = useRef(0);
 
   // Mirror external changes (selection, reset) into the text box.
   useEffect(() => {
@@ -78,6 +80,7 @@ export function LocationSearch({
   useEffect(() => () => requestRef.current?.abort(), []);
 
   function choose(place: ResolvedPlace) {
+    requestSeq.current += 1;
     requestRef.current?.abort();
     setOpen(false);
     setSuggestions([]);
@@ -97,12 +100,14 @@ export function LocationSearch({
     requestRef.current?.abort();
     const controller = new AbortController();
     requestRef.current = controller;
+    const seq = ++requestSeq.current;
     setOpen(false);
     setStatus({ kind: "busy", message: `Finding “${trimmed}”…`, locating: false });
     try {
-      choose(await geocode(trimmed, controller.signal));
+      const place = await geocode(trimmed, controller.signal);
+      if (seq === requestSeq.current) choose(place);
     } catch (error) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || seq !== requestSeq.current) return;
       setStatus({
         kind: "error",
         message: error instanceof GeocodeError ? error.message : "Location lookup failed. Check your connection and try again.",
@@ -112,11 +117,15 @@ export function LocationSearch({
 
   async function locate() {
     requestRef.current?.abort();
+    const seq = ++requestSeq.current;
     setOpen(false);
     setStatus({ kind: "busy", message: "Getting your location…", locating: true });
     try {
-      choose(await getDeviceLocation());
+      const place = await getDeviceLocation();
+      if (seq === requestSeq.current) choose(place);
     } catch (error) {
+      // A newer lookup, choice or clear owns the status now.
+      if (seq !== requestSeq.current) return;
       setStatus({
         kind: "error",
         message: error instanceof GeocodeError ? error.message : "We couldn't get your location.",
@@ -154,6 +163,7 @@ export function LocationSearch({
   }
 
   function clear() {
+    requestSeq.current += 1;
     requestRef.current?.abort();
     setQuery("");
     setDirty(false);

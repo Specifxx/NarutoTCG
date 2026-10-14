@@ -47,7 +47,7 @@ export function FeaturedEvents({ events }: { events: EventSummary[] }) {
           Countdowns
         </Link>
       </div>
-      <ul className="-mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 pt-1 [scrollbar-width:thin] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0">
+      <ul className="relative -mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 pt-1 [scrollbar-width:thin] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0">
         {events.map((event) => (
           <li key={event.id} className="w-[19.5rem] shrink-0 snap-start sm:w-[22rem] lg:w-auto">
             <EventCard event={event} className="h-full" />
