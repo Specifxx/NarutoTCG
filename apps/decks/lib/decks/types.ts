@@ -33,6 +33,8 @@ export interface DeckSummary {
   votes: number;
   /** Up to three highlight cards for the directory card preview. */
   keyCardIds: string[];
+  /** Unique main-deck card ids plus the Leader, so the directory can search by card. */
+  cardIds: string[];
   tags: string[];
 }
 

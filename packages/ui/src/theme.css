@@ -5,13 +5,34 @@
   --color-shadow-900: #0d0d14;
   --color-shadow-800: #151521;
   --color-shadow-700: #1f1f2e;
+  --color-shadow-600: #2a2a3d;
   --color-shadow-500: #4a4a63;
+  --color-ash-100: #ececf3;
   --color-ash-200: #d4d4e0;
+  --color-ash-300: #b3b3c4;
   --color-ash-400: #8d8da3;
+  --color-ash-500: #6e6e85;
+  --color-chakra-300: #ff9a52;
   --color-chakra-400: #ff7a1a;
   --color-chakra-500: #f25c00;
   --color-chakra-600: #c44700;
   --color-blood-500: #c0182d;
+
+  /* Tier ladder: one hue, stepped light → dark so the order reads in the color (ordinal). */
+  --color-tier-s: #ff8a3d;
+  --color-tier-a: #e06a1f;
+  --color-tier-b: #a9521d;
+  --color-tier-c: #6e3a1d;
+
+  /* Diverging poles for win rates and matchups (blue = favored, red = unfavored, gray = even). */
+  --color-favored: #3987e5;
+  --color-unfavored: #e66767;
+  --color-even: #383835;
+
+  /* Reserved status colors; always paired with an icon or label. */
+  --color-status-good: #0ca30c;
+  --color-status-warning: #fab219;
+  --color-status-critical: #d03b3b;
 }
 
 body {
