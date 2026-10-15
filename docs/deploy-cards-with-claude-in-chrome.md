@@ -50,7 +50,14 @@ PART 4: Check the live site (desktop width, then narrow the window to phone widt
 4. Open /spoilers (reveals grouped by date with "Revealed" badges and source links) and /sets/ST01 (tick two checkboxes, reload, and confirm they stay ticked).
 5. Open a card art URL such as https://narutomythoscards.vercel.app/art/ST01-002/PR01/P-007/promo — it should be an SVG card image.
 6. Confirm the header shows "NARUTO TCG" plus the Cards tabs (Overview, Card Database, Spoilers, Set Checklists) and no links to apps that aren't deployed.
+7. On /card/ST01-002, find "Where to buy": each printing has TCGplayer and eBay buttons with a "Paid link" tag, and the affiliate disclosure sits right under the heading. Click one TCGplayer and one eBay button: they should open TCGplayer / eBay search results in a new tab (via partner.tcgplayer.com and an ebay.com URL containing campid=5339155912). The footer on every page has the same disclosure, and /disclosure loads.
+8. View source of https://narutomythoscards.vercel.app and confirm og:image starts with https://narutomythoscards.vercel.app/opengraph-image. Open that image URL: it should be a 1200×630 banner reading "Every Naruto TCG card, one search away". Paste the site URL into a link-preview checker (e.g. opengraph.xyz) and confirm the title, description and image appear.
+9. Open https://narutomythoscards.vercel.app/sitemap.xml and confirm the URLs use narutomythoscards.vercel.app.
 Report anything that errors, shows a broken image, or looks broken.
+
+PART 4b (optional; ask me first): affiliate dashboards
+1. impact.com (TCGplayer program): if the account asks to add or verify the new site, add https://narutomythoscards.vercel.app. The site already serves the <meta name="impact-site-verification"> tag.
+2. eBay Partner Network (partner.ebay.com): if the account lists approved traffic sources, add https://narutomythoscards.vercel.app. Clicks from this site report under custom ids starting with "nt-".
 
 PART 5 (optional — ask me first): link Cards and Learn in the shared header
 Only if a Vercel project for Learn exists (e.g. learnnarutomythos):

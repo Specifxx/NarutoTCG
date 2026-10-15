@@ -25,6 +25,7 @@ import {
   todayIso,
 } from "@/lib/meta";
 import { cardsHref } from "@/lib/search";
+import { SetShopStrip } from "@/components/affiliate/SetShopStrip";
 
 export const dynamicParams = false;
 
@@ -151,6 +152,8 @@ export default async function SetChecklistPage({ params }: Params) {
           </div>
         </div>
       </header>
+
+      <SetShopStrip set={set} released={released} placement="set-checklist" className={`${styles.noPrint} mt-6`} />
 
       <div className="mt-6 sm:mt-8">
         {entries.length === 0 ? (

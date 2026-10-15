@@ -7,6 +7,7 @@ import { SET_KIND_LABEL, daysBetween, formatDate, formatDateLong, setHref } from
 import { formatMonthDay, pluralize, type SetEntryLike, type SetSummary } from "./reveals";
 import styles from "./spoilers.module.css";
 import { cardsHref } from "@/lib/search";
+import { SetShopStrip } from "@/components/affiliate/SetShopStrip";
 
 /** Spoiler-season banner for one unreleased set. */
 export function UpcomingSetHero({
@@ -119,6 +120,7 @@ export function UpcomingSetHero({
               Browse in database
             </Link>
           </div>
+          <SetShopStrip set={set} released={false} placement="spoilers-preorder" className="mt-4" />
         </div>
 
         {showcase.length > 0 && (

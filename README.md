@@ -39,6 +39,9 @@ Links default to the local dev ports; override them at build time for deployment
 | `NEXT_PUBLIC_EVENTS_URL` | `http://localhost:3004` |
 | `NEXT_PUBLIC_CARDS_URL` | `http://localhost:3005` |
 
+The Cards app's TCGplayer (Impact) and eBay Partner Network affiliate ids default to the shared TCGEmpire
+accounts and can be overridden with `TCGPLAYER_IMPACT_LINK`, `EBAY_AFFILIATE_CAMPAIGN` and `IMPACT_SITE_VERIFICATION`.
+
 In production the header only lists apps whose URL variable is set, so a single-app deploy shows no dead links.
 To deploy the Learn site on Vercel, see [docs/deploy-with-claude-in-chrome.md](docs/deploy-with-claude-in-chrome.md); for the Cards site, see [docs/deploy-cards-with-claude-in-chrome.md](docs/deploy-cards-with-claude-in-chrome.md).
 

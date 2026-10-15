@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
+import { CardShopPanel } from "@/components/affiliate/CardShopPanel";
 import { ElementBadge, RarityBadge, TypeBadge } from "@/components/badges";
 import { CardFacts, CardRules, CardStats } from "@/components/detail/CardData";
 import { Breadcrumbs, CardPager } from "@/components/detail/DetailNav";
@@ -200,6 +201,8 @@ export default async function CardDetailPage({ params }: { params: Params }) {
                 effectKeywords={keywords}
               />
             </section>
+
+            <CardShopPanel card={card} />
 
             <PrintingsSection cardName={card.name} rows={rows} />
           </div>
