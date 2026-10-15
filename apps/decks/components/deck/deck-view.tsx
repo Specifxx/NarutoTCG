@@ -1,7 +1,7 @@
 "use client";
 
 import { cx } from "@naruto-tcg/ui";
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState, type FocusEvent } from "react";
 import { getArchetype } from "@/lib/data/archetypes";
 import type { DeckDetail } from "@/lib/decks/types";
 import { CommentThread } from "./comment-thread";
@@ -20,6 +20,23 @@ const JUMP_LINK = cx(
   "shrink-0 rounded-md border border-shadow-600 bg-shadow-800 px-2.5 py-1 text-xs font-medium text-ash-300 hover:border-shadow-500 hover:text-white",
   FOCUS_RING,
 );
+
+/**
+ * Scrolls a sideways scroller just enough to show `item`, keeping `margin` px clear of its edges.
+ * Chrome leaves a partly visible item where it is when it takes focus, so keyboard users would
+ * see a sliver of it. Only the row scrolls, never the page.
+ */
+function revealInRow(row: HTMLElement, item: Element, margin: number) {
+  const bounds = row.getBoundingClientRect();
+  const rect = item.getBoundingClientRect();
+  if (rect.left < bounds.left + margin) row.scrollLeft -= bounds.left + margin - rect.left;
+  else if (rect.right > bounds.right - margin) row.scrollLeft += rect.right - (bounds.right - margin);
+}
+
+/** Focus handler for a sideways row: reveals the focused descendant. */
+function revealFocused(event: FocusEvent<HTMLElement>) {
+  if (event.target !== event.currentTarget) revealInRow(event.currentTarget, event.target, 4);
+}
 
 /**
  * The deck page body: header and actions, the decklist and stats, the author's write-up, the
@@ -63,7 +80,7 @@ export function DeckView({ deck, context }: { deck: DeckDetail; context: DeckCon
         }
       />
 
-      <nav aria-label="On this page" className="-mt-4 flex gap-2 relative overflow-x-auto pb-1">
+      <nav aria-label="On this page" onFocus={revealFocused} className="-mt-4 flex gap-2 relative overflow-x-auto pb-1">
         {jumpLinks.map((link) => (
           <a key={link.href} href={link.href} className={JUMP_LINK}>
             {link.label}

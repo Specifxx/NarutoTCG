@@ -101,7 +101,10 @@ function VisualList({ decklist, archetypeId, targets }: { decklist: Decklist; ar
       {unknownInDeck.length > 0 && (
         <section aria-label="Cards missing from the card pool">
           <h3 className="mb-1 text-base font-bold text-white">Unrecognized cards</h3>
-          <p className="mb-3 text-sm text-ash-400">These ids are not in the card pool, so they are left out of the stats and odds.</p>
+          <p className="mb-3 text-sm text-ash-400">
+            These ids are not in the card pool. They still count toward the deck size and show up by id in the odds and sample
+            hands, but are left out of the type counts, average cost and cost curve.
+          </p>
           <ul className="grid grid-cols-2 gap-3 @sm:grid-cols-3 @xl:grid-cols-4 @3xl:grid-cols-5 @5xl:grid-cols-6">
             {unknownInDeck.map((id) => (
               <li key={id}>

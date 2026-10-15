@@ -1,6 +1,6 @@
 import type { CardType, NarutoCard } from "@naruto-tcg/types";
 import { CARD_INDEX, CARDS } from "@/lib/data/cards";
-import { normalizeName, similarity } from "./text";
+import { normalizeName, similarity, similarityBound } from "./text";
 
 export type CardMatchMethod = "id" | "exact" | "normalized" | "fuzzy" | "none";
 
@@ -50,19 +50,42 @@ const INDEX: ReadonlyArray<{ card: NarutoCard; forms: NameForm[] }> = CARDS.map(
   return { card, forms };
 });
 
-const ID_PATTERN = /^nt\s*(\d{1,2})\s*[-_./ ]?\s*(l)?\s*[-_ ]?\s*(\d{1,3})$/i;
-const EMBEDDED_ID = /\bnt\s*\d{2}\s*[-_ ]?\s*l?\d{1,3}\b/i;
+/**
+ * Longest text read as a card: the longest card name is 54 characters, so anything much longer is
+ * not a card and is rejected before any pattern runs.
+ */
+export const MAX_CARD_TEXT_LENGTH = 200;
+/** Longest text read as a bare id ("NT02 - L 002" and the like are well under it). */
+const MAX_ID_LENGTH = 24;
+
+/** An id once its separators are collapsed to single dashes: "nt-02-l-2", "nt02001". */
+const ID_PATTERN = /^nt-?(\d{1,2})-?(l)?-?(\d{1,3})$/i;
+/**
+ * An id inside longer text whose whitespace is already collapsed to single spaces. Every
+ * quantifier is bounded, so the scan stays linear.
+ */
+const EMBEDDED_ID = /\bnt ?\d{2} ?[-_ ]? ?l?\d{1,3}\b/i;
+/** A trailing "(…)" or "[…]" group, checked from the last opening bracket. */
+const TRAILING_GROUP = /^[([][^()[\]]*[)\]]\s*$/;
 
 /**
  * Canonical id for any common spelling ("NT02-001", "nt02 001", "NT02001", "NT02-L2"), or null
  * when `input` is not shaped like an id. Does not check that the card exists.
  */
 export function parseCardId(input: string): string | null {
-  const match = input.trim().match(ID_PATTERN);
+  const text = input.trim();
+  if (text.length > MAX_ID_LENGTH) return null;
+  const match = text.replace(/[\s._/-]+/g, "-").match(ID_PATTERN);
   if (!match) return null;
   const set = `NT${match[1]!.padStart(2, "0")}`;
   const number = Number(match[3]);
   return match[2] ? `${set}-L${String(number).padStart(2, "0")}` : `${set}-${String(number).padStart(3, "0")}`;
+}
+
+/** `text` without a trailing "(…)" or "[…]" group, e.g. "Konan (NT02-009)" → "Konan". */
+function stripTrailingGroup(text: string): string {
+  const open = Math.max(text.lastIndexOf("("), text.lastIndexOf("["));
+  return open >= 0 && TRAILING_GROUP.test(text.slice(open)) ? text.slice(0, open).trim() : text;
 }
 
 /** "Konan (NT02-009)", or the bare id for unknown cards. */
@@ -86,12 +109,14 @@ const suggestion = (card: NarutoCard, score: number): CardSuggestion => ({
  * Resolves free text to a card. Tries, in order: an id (alone, or embedded as in
  * "Konan (NT02-009)"); the full name or a short form, ignoring case, diacritics and
  * punctuation; then fuzzy matching for typos. Names shared by several cards ("Sasuke Uchiha"
- * is a Leader and a Character) resolve to `preferType` first, then to a non-Leader.
+ * is a Leader and a Character) resolve to `preferType` first, then to a non-Leader. Text longer
+ * than {@link MAX_CARD_TEXT_LENGTH} resolves to nothing.
  */
 export function resolveCard(input: string, options: ResolveCardOptions = {}): CardResolution {
-  const text = input.trim();
   const none: CardResolution = { cardId: null, confidence: 0, method: "none", suggestions: [] };
-  if (!text) return none;
+  // Whitespace runs are collapsed and the length bounded before any pattern runs.
+  const text = input.trim().replace(/\s+/g, " ");
+  if (!text || text.length > MAX_CARD_TEXT_LENGTH) return none;
 
   const wholeId = parseCardId(text);
   if (wholeId) return CARD_INDEX.has(wholeId) ? { cardId: wholeId, confidence: 1, method: "id", suggestions: [] } : none;
@@ -99,7 +124,7 @@ export function resolveCard(input: string, options: ResolveCardOptions = {}): Ca
   const embeddedId = embedded ? parseCardId(embedded[0]) : null;
   if (embeddedId && CARD_INDEX.has(embeddedId)) return { cardId: embeddedId, confidence: 1, method: "id", suggestions: [] };
 
-  const name = text.replace(/\s*[([][^()[\]]*[)\]]\s*$/, "").trim() || text;
+  const name = stripTrailingGroup(text) || text;
   const query = normalizeName(name);
   if (!query) return none;
   const { preferType } = options;
@@ -126,7 +151,10 @@ export function resolveCard(input: string, options: ResolveCardOptions = {}): Ca
   const scored = INDEX.map(({ card, forms }) => {
     let score = 0;
     for (const form of forms) {
-      score = Math.max(score, similarity(query, form.key));
+      // Scores under the suggestion floor are never used, so a form that cannot reach it is skipped.
+      if (similarityBound(query.length, form.key.length) >= SUGGESTION_FLOOR) {
+        score = Math.max(score, similarity(query, form.key, Math.max(SUGGESTION_FLOOR, score)));
+      }
       const formWords = form.key.split(" ");
       if (words.every((word) => formWords.includes(word))) score = Math.max(score, WORD_MATCH_SCORE);
     }

@@ -1,54 +1,26 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import { Bar, BarChart, BarStack, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from "recharts";
 import { ChartFrame } from "@/components/charts/chart-frame";
-import { CHART } from "@/components/charts/chart-theme";
-import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { DataTable, THead, Td, Th, Tr } from "@/components/ui/table";
-import { CHART_COLORS, OTHER_COLOR } from "@/lib/data/archetypes";
-import type { CostCurvePoint, DeckSectionKey } from "@/lib/decks/deck-utils";
-import { formatNumber, pluralize } from "@/lib/format";
+import type { CostCurvePoint } from "@/lib/decks/deck-utils";
+import { COST_CURVE_HEIGHT, COST_CURVE_SERIES, curveTotal } from "./cost-curve-series";
 
-/** Plot plus the cost-label band. */
-const HEIGHT = 228;
-const X_AXIS_BAND = 24;
-const AXIS_TICK = { fill: CHART.tick, fontSize: CHART.fontSize } as const;
-const HOVER_CURSOR = { fill: "rgba(255, 255, 255, 0.04)" } as const;
-
-interface Series {
-  key: DeckSectionKey;
-  label: string;
-  color: string;
-}
-
-/** Card-type series (not archetypes): fixed colors, stacked bottom to top in this order. */
-const TYPE_SERIES: readonly Series[] = [
-  { key: "character", label: "Characters", color: CHART_COLORS[0] },
-  { key: "jutsu", label: "Jutsus", color: CHART_COLORS[1] },
-  { key: "mission", label: "Missions", color: CHART_COLORS[2] },
-  { key: "other", label: "Other", color: OTHER_COLOR },
-];
-
-const total = (point: CostCurvePoint, series: readonly Series[]) => series.reduce((sum, s) => sum + point[s.key], 0);
-
-function CurveTooltip({ active, payload, series }: TooltipContentProps & { series: readonly Series[] }) {
-  const point = payload?.[0]?.payload as CostCurvePoint | undefined;
-  if (!active || !point) return null;
-  return (
-    <ChartTooltipCard
-      title={`Cost ${point.cost}`}
-      rows={[...series].reverse().map((s) => ({ key: s.key, label: s.label, value: formatNumber(point[s.key]), color: s.color }))}
-      footer={pluralize(total(point, series), "card")}
-    />
-  );
-}
+/**
+ * Recharts is only needed for this one plot on the deck page, so it loads on its own after
+ * hydration. The placeholder holds the plot's exact height (the server rendered an empty box of
+ * that height before too), so nothing shifts when it arrives.
+ */
+const CostCurvePlot = dynamic(() => import("./cost-curve-plot").then((m) => m.CostCurvePlot), {
+  ssr: false,
+  loading: () => <div aria-hidden="true" style={{ height: COST_CURVE_HEIGHT }} />,
+});
 
 /** Copies per cost, stacked by card type, with a table twin. */
 export function CostCurveChart({ curve }: { curve: CostCurvePoint[] }) {
   // "Other" only appears when the list has such cards; the three type series always show.
-  const series = useMemo(() => TYPE_SERIES.filter((s) => s.key !== "other" || curve.some((point) => point.other > 0)), [curve]);
-  const peak = Math.max(0, ...curve.map((point) => total(point, series)));
+  const series = useMemo(() => COST_CURVE_SERIES.filter((s) => s.key !== "other" || curve.some((point) => point.other > 0)), [curve]);
 
   return (
     <ChartFrame
@@ -81,7 +53,7 @@ export function CostCurveChart({ curve }: { curve: CostCurvePoint[] }) {
                   </Td>
                 ))}
                 <Td numeric className="font-semibold text-white">
-                  {total(point, series)}
+                  {curveTotal(point, series)}
                 </Td>
               </Tr>
             ))}
@@ -89,42 +61,7 @@ export function CostCurveChart({ curve }: { curve: CostCurvePoint[] }) {
         </DataTable>
       }
     >
-      <ResponsiveContainer width="100%" height={HEIGHT} initialDimension={{ width: 640, height: HEIGHT }}>
-        <BarChart data={curve} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barCategoryGap="18%">
-          <CartesianGrid vertical={false} stroke={CHART.grid} strokeWidth={1} />
-          <XAxis
-            dataKey="cost"
-            height={X_AXIS_BAND}
-            interval={0}
-            tick={AXIS_TICK}
-            tickLine={false}
-            axisLine={{ stroke: CHART.axis }}
-          />
-          <YAxis
-            allowDecimals={false}
-            domain={[0, Math.max(4, Math.ceil(peak / 4) * 4)]}
-            tick={AXIS_TICK}
-            tickLine={false}
-            axisLine={false}
-            width={28}
-          />
-          <Tooltip content={(props) => <CurveTooltip {...props} series={series} />} cursor={HOVER_CURSOR} isAnimationActive={false} />
-          <BarStack radius={[CHART.radius, CHART.radius, 0, 0]}>
-            {series.map((s) => (
-              <Bar
-                key={s.key}
-                dataKey={s.key}
-                name={s.label}
-                fill={s.color}
-                stroke={CHART.surface}
-                strokeWidth={CHART.gap}
-                maxBarSize={CHART.maxBarSize}
-                isAnimationActive={false}
-              />
-            ))}
-          </BarStack>
-        </BarChart>
-      </ResponsiveContainer>
+      <CostCurvePlot curve={curve} series={series} />
     </ChartFrame>
   );
 }

@@ -1,8 +1,12 @@
 import type { EventLocation, Tournament } from "@naruto-tcg/types";
 import { z } from "zod";
+import { RULES } from "@/lib/rules";
 import type { EventMetaInput, IngestIssue, IngestSource } from "./types";
 
 /** Zod mirror of the canonical tournament record in `packages/types/src/competitive.ts`. */
+
+/** Longest event name accepted; it labels pages and charts, and its slug becomes the event id. */
+export const MAX_EVENT_NAME_LENGTH = 120;
 
 export const EventTierSchema = z.enum(["store-championship", "online-open", "regional-championship", "national-championship"]);
 
@@ -16,7 +20,8 @@ export const EventLocationSchema = z.object({
 
 export const DecklistSchema = z.object({
   leaderId: z.string().min(1),
-  cards: z.array(z.object({ cardId: z.string().min(1), quantity: z.number().int().positive() })),
+  // No single entry can hold more cards than a whole main deck.
+  cards: z.array(z.object({ cardId: z.string().min(1), quantity: z.number().int().positive().max(RULES.mainDeckSize) })),
 });
 
 export const TournamentPlayerSchema = z.object({
@@ -44,7 +49,7 @@ export const BestOfSchema = z.union([z.literal(1), z.literal(3)]);
 
 export const TournamentSchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(1),
+  name: z.string().min(1).max(MAX_EVENT_NAME_LENGTH),
   tier: EventTierSchema,
   format: z.string(),
   date: z.string().min(1),
@@ -62,7 +67,7 @@ export const TournamentSchema = z.object({
 
 /** Event details for CSV imports (`--meta meta.json` in the CLI). Location and organizer may be omitted. */
 export const EventMetaSchema = z.object({
-  name: z.string().trim().min(1),
+  name: z.string().trim().min(1).max(MAX_EVENT_NAME_LENGTH),
   date: z.string().trim().min(1),
   tier: EventTierSchema,
   format: z.string().optional(),

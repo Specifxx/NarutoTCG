@@ -78,6 +78,39 @@ describe("buildCommentTree", () => {
     expect(ids(tree.find((node) => node.comment.id === "x")!.children)).toEqual(["ok"]);
   });
 
+  it("detaches only the comments that form a loop; replies hanging off the loop keep their parent", () => {
+    const corrupt = [comment("w", "y"), comment("y", "z"), comment("z", "y"), comment("w1", "w")];
+    const tree = buildCommentTree(corrupt, { sort: "new" });
+    expect(ids(tree).sort()).toEqual(["y", "z"]);
+    const y = tree.find((node) => node.comment.id === "y")!;
+    expect(ids(y.children)).toEqual(["w"]);
+    expect(y.children[0].depth).toBe(1);
+    expect(y.children[0].replyTo).toBe("user-y");
+    expect(y.children[0].children[0].depth).toBe(2);
+    expect(countComments(tree)).toBe(4);
+  });
+
+  it("builds and caps a 10,000-deep reply chain without overflowing the stack", () => {
+    const depth = 10_000;
+    const chain = Array.from({ length: depth }, (_, i) => comment(`n${i}`, i === 0 ? null : `n${i - 1}`));
+    // Children listed before their parents, so the first one walks the whole chain above it.
+    chain.reverse();
+    const tree = buildCommentTree(chain);
+    expect(countComments(tree)).toBe(depth);
+    const capped = capThreadDepth(tree);
+    expect(countComments(capped)).toBe(depth);
+    const level2 = capped[0].children[0].children[0];
+    expect(level2.depth).toBe(2);
+    expect(level2.children).toHaveLength(depth - 3);
+    expect(level2.children.at(-1)!.depth).toBe(depth - 1);
+    expect(level2.children.every((node) => node.displayDepth === 3 && node.children.length === 0)).toBe(true);
+  });
+
+  it("treats a vote count that is not a number as 0", () => {
+    const [node] = buildCommentTree([{ ...comment("v", null), votes: Number.NaN }], { localVotes: { v: 1 } });
+    expect(node.score).toBe(1);
+  });
+
   it("returns an empty thread for no comments", () => {
     expect(buildCommentTree([])).toEqual([]);
   });

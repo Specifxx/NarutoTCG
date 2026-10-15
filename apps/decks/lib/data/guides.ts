@@ -4,7 +4,8 @@ import { getCard } from "@/lib/data/cards";
 /**
  * Matchup strategy guides, from the first archetype's point of view. Every ordered pair of
  * charted archetypes is curated; any other pair gets a guide generated from both archetypes'
- * definitions. Guides never quote win rates: the UI shows the real numbers from event data.
+ * definitions. Guides describe how a matchup plays, never who is favored or by how much: the UI
+ * shows the verdict and the real numbers from event data beside them.
  */
 
 export interface MatchupGuide {
@@ -21,7 +22,7 @@ type GuideText = Pick<MatchupGuide, "summary" | "keys" | "mulligan">;
 
 const CURATED: Record<string, GuideText> = {
   "uchiha-avenger|uzumaki-sage": {
-    summary: "Sage Naruto has a slight edge: Minato shrugs off your removal and Rasengan trades evenly with every Taka body. Win by pressuring before their Sage count reaches three.",
+    summary: "Minato shrugs off your removal and Rasengan trades evenly with every Taka body, so win by pressuring before their Sage count reaches three.",
     keys: [
       "Point Chidori at Fukasaku & Shima before it can search; denying the third Sage card turns off their extra draw.",
       "Minato Namikaze returns to hand instead of being defeated once per turn, so attack into him only after that clause is spent.",
@@ -30,7 +31,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Karin or Hawk Summon plus a Chidori. A hand without early pressure gives them time to assemble Sage Mode.",
   },
   "uchiha-avenger|hyuga-gentle-fist": {
-    summary: "An even tempo battle. Hyuga sees your draws coming, so win on card quality: two-for-ones with Kirin and the Taka Leader's on-play damage.",
+    summary: "A tempo battle. Hyuga sees your draws coming, so win on card quality: two-for-ones with Kirin and the Taka Leader's on-play damage.",
     keys: [
       "Neji Hyuga's attack stops Jutsu for the rest of their turn, so remove him with Chidori on your own turn before he swings.",
       "Eight Trigrams Palm Rotation negates attacks, not Jutsu: clear Ko Hyuga with Chidori instead of attacking into an open counter.",
@@ -39,7 +40,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Hawk Summon or Karin for card flow plus Chidori, which kills Neji Hyuga and Hinata Hyuga — Twin Lion Fists alike.",
   },
   "uchiha-avenger|sand-gaara": {
-    summary: "One of your best matchups. Cheap Lightning removal strips Gaara's Blockers faster than they rebuild, and Gaara has few proactive threats to punish you.",
+    summary: "Cheap Lightning removal strips Gaara's Blockers faster than they rebuild, and Gaara has few proactive threats to punish you.",
     keys: [
       "Chidori cleanly answers Matsuri, Baki and Yashamaru; attack only with what you can afford to lose to Sand Coffin.",
       "Kirin can't touch Shukaku, which cannot be defeated by Jutsu, so race it: Hawk Summon attacks the turn it lands and draws a card.",
@@ -48,7 +49,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep any two of Chidori, Hawk Summon and Karin. You want to be well ahead on board before the Shukaku turn.",
   },
   "uchiha-avenger|medical-ninja": {
-    summary: "Favorable. Tsunade heals damage, but Chidori and Kirin defeat outright, so the healing engine gets no value against your removal.",
+    summary: "Tsunade heals damage, but Chidori and Kirin defeat outright, so the healing engine gets no value against your removal.",
     keys: [
       "Save Kirin for Katsuyu: its protection only covers their other Characters, so Katsuyu itself is a legal target.",
       "Chidori Shizune before it can search; every Medical body except Katsuyu dies to it.",
@@ -57,7 +58,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep early pressure plus one Lightning Jutsu. Medical is slow to threaten you, so hands built around Kirin are fine.",
   },
   "uchiha-avenger|leaf-jonin": {
-    summary: "Even. Both decks trade removal efficiently and Kakashi's copy effect doubles every Lightning Blade, so tempo and card economy decide it.",
+    summary: "Both decks trade removal efficiently and Kakashi's copy effect doubles every Lightning Blade, so tempo and card economy decide it.",
     keys: [
       "Ibiki Morino strips a Jutsu from your hand; cast Chidori before Ibiki comes down.",
       "Lightning Blade defeats anything with 5000 power or less, which covers every Taka body except Jugo; make Jugo your main threat.",
@@ -66,7 +67,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Karin, Hawk Summon and a Chidori. A fast start forces Kakashi to spend his chakra copying defensively.",
   },
   "uchiha-avenger|itachi-tsukuyomi": {
-    summary: "Roughly even. Itachi strips your hand while you race, and the game swings on whether Tsukuyomi lands before you have deployed your cheap threats.",
+    summary: "Itachi strips your hand while you race, and the game swings on whether Tsukuyomi lands before you have deployed your cheap threats.",
     keys: [
       "Empty your hand quickly: Itachi's Leader only forces a discard at five or more cards, and Tsukuyomi is weak against a small hand.",
       "Hidan can't be defeated by damage from Jutsu, so Fire Style: Fireball Jutsu does nothing to him; save Chidori, which defeats outright.",
@@ -75,7 +76,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep cheap threats over card draw: Hawk Summon, Karin and Suigetsu Hozuki apply pressure before Tsukuyomi.",
   },
   "uchiha-avenger|akatsuki-pain": {
-    summary: "Even. Almighty Push bounces your cheap Taka bodies, while your Lightning removal picks apart the Six Paths one at a time.",
+    summary: "Almighty Push bounces your cheap Taka bodies, while your Lightning removal picks apart the Six Paths one at a time.",
     keys: [
       "Preta Path negates Jutsu that target Six Paths Characters: remove it first, or bait the counter with Fire Style: Fireball Jutsu.",
       "Don't overextend into Almighty Push; two Characters with cost 2 or less on the board is plenty.",
@@ -85,7 +86,7 @@ const CURATED: Record<string, GuideText> = {
   },
 
   "uzumaki-sage|uchiha-avenger": {
-    summary: "A slight edge for you: Rasengan trades with every Taka body and Minato shrugs off Lightning removal. Just don't fall behind before the Sage engine starts.",
+    summary: "Rasengan trades with every Taka body and Minato shrugs off Lightning removal. Just don't fall behind before the Sage engine starts.",
     keys: [
       "Minato Namikaze returns to your hand instead of being defeated, which makes Chidori and Kirin poor trades for them.",
       "Kushina Uzumaki's Adamantine Chains stops Jugo from attacking or blocking through their Hunt for Itachi turn.",
@@ -94,7 +95,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Fukasaku & Shima or Shadow Clone Jutsu plus one Rasengan to answer Hawk Summon early.",
   },
   "uzumaki-sage|hyuga-gentle-fist": {
-    summary: "Even. Eight Trigrams Sixty-Four Palms can switch off your Leader on the key turn, but your bigger Characters outclass Hyuga's low power.",
+    summary: "Eight Trigrams Sixty-Four Palms can switch off your Leader on the key turn, but your bigger Characters outclass Hyuga's low power.",
     keys: [
       "Play around Eight Trigrams Sixty-Four Palms: cash in Sage Mode on turns when they are low on chakra.",
       "Gamabunta's bounce resets Hiashi Hyuga and buys a full turn of tempo.",
@@ -103,7 +104,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Prioritize Fukasaku & Shima. The Byakugan Leader reveals your top card, so they will see Train at Mount Myoboku coming and race it.",
   },
   "uzumaki-sage|sand-gaara": {
-    summary: "Even and grindy. Gaara's walls blunt your attacks, but your card-advantage engine outlasts their Blockers as long as you don't feed Sand Coffin.",
+    summary: "A grindy game. Gaara's walls blunt your attacks, but your card-advantage engine outlasts their Blockers as long as you don't feed Sand Coffin.",
     keys: [
       "Sand Coffin only defeats tapped Characters, so attack with Minato Namikaze, who returns to hand instead of being defeated.",
       "Kushina Uzumaki's Adamantine Chains is your clean answer to Shukaku: it can't block until the end of their next turn.",
@@ -112,7 +113,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep the Sage engine: Fukasaku & Shima, Shadow Clone Jutsu and Naruto Uzumaki — Shadow Clone Army. Early aggression isn't needed.",
   },
   "uzumaki-sage|medical-ninja": {
-    summary: "Even. Medical heals your Rasengan damage, so lean on Sage Art: Massive Rasengan, which defeats outright, and win the card race.",
+    summary: "Medical heals your Rasengan damage, so lean on Sage Art: Massive Rasengan, which defeats outright, and win the card race.",
     keys: [
       "Mystical Palm Technique undoes Rasengan damage; only cast Rasengan when it kills.",
       "Sage Art: Massive Rasengan defeats Katsuyu, the card that blanks the rest of your Jutsu.",
@@ -121,7 +122,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep the Sage engine pieces. Medical Ninja is slow, so an engine hand beats a removal hand.",
   },
   "uzumaki-sage|leaf-jonin": {
-    summary: "An even midrange battle. Kakashi copies their best removal, while your Sage draw engine gives you the long game.",
+    summary: "A midrange battle. Kakashi copies their best removal, while your Sage draw engine gives you the long game.",
     keys: [
       "Ibiki Morino takes a Jutsu from your hand; cast Rasengan early or keep enough copies to spare one.",
       "Kamui removes Minato Namikaze from the game, bypassing his return clause; bait it with Gamabunta first.",
@@ -130,7 +131,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Fukasaku & Shima with a Rasengan. Leaf Jonin curves out well, so you need early interaction.",
   },
   "uzumaki-sage|itachi-tsukuyomi": {
-    summary: "An uphill matchup. Your extra draws push you over five cards for Itachi's Leader discard, and Tsukuyomi tears the engine apart.",
+    summary: "Your extra draws push you over five cards for Itachi's Leader discard, and Tsukuyomi tears the engine apart.",
     keys: [
       "End your turns with four cards or fewer: Itachi Uchiha — Akatsuki only forces a discard at five or more.",
       "Deploy Fukasaku & Shima and Kushina Uzumaki as soon as possible instead of holding them where Tsukuyomi can hit them.",
@@ -139,7 +140,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Mulligan aggressively for cheap plays: Naruto Uzumaki — Shadow Clone Army and Shadow Clone Jutsu let you empty your hand before discard matters.",
   },
   "uzumaki-sage|akatsuki-pain": {
-    summary: "Pain is favored. Almighty Push bounces your cheap Uzumaki bodies and stalls the Sage count, and every trade feeds the Deva Path's chakra.",
+    summary: "Almighty Push bounces your cheap Uzumaki bodies and stalls the Sage count, and every trade feeds the Deva Path's chakra.",
     keys: [
       "Almighty Push returns Characters with cost 2 or less, so develop Fukasaku & Shima and Kushina Uzumaki, which cost 3 or more, ahead of cheap bodies.",
       "Preta Path negates Rasengan aimed at Six Paths Characters; remove it in battle first.",
@@ -149,7 +150,7 @@ const CURATED: Record<string, GuideText> = {
   },
 
   "hyuga-gentle-fist|uchiha-avenger": {
-    summary: "An even tempo battle. Your information lets you play around Kirin, but Chidori kills most of your Characters, so value every body.",
+    summary: "A tempo battle. Your information lets you play around Kirin, but Chidori kills most of your Characters, so value every body.",
     keys: [
       "When the revealed top card is Kirin, spread out instead of committing two key Hyuga at once.",
       "Neji Hyuga's attack stops Substitution Jutsu, so the rest of your swing connects.",
@@ -158,7 +159,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Hanabi Hyuga or Ko Hyuga plus Eight Trigrams Palm Rotation; you want efficient early trades.",
   },
   "hyuga-gentle-fist|uzumaki-sage": {
-    summary: "Even. Eight Trigrams Sixty-Four Palms turns off Sage Mode for a full turn cycle, but their bigger bodies outsize yours.",
+    summary: "Eight Trigrams Sixty-Four Palms turns off Sage Mode for a full turn cycle, but their bigger bodies outsize yours.",
     keys: [
       "Fire Eight Trigrams Sixty-Four Palms the turn they reach three Sage cards to deny the extra draw and the +2000.",
       "Hanabi Hyuga reorders their top three cards: push Gamabunta and Sage Art: Massive Rasengan to the back.",
@@ -167,7 +168,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep cheap Hyuga and Eight Trigrams Sixty-Four Palms; the Leader lock is your plan.",
   },
   "hyuga-gentle-fist|sand-gaara": {
-    summary: "Favorable. Gentle Fist tempo dismantles the Kazekage: Neji's attack shuts off Sand Coffin and Shield of Shukaku, and Sixty-Four Palms removes Gaara's damage reduction.",
+    summary: "Gentle Fist tempo dismantles the Kazekage: Neji's attack shuts off Sand Coffin and Shield of Shukaku, and Sixty-Four Palms removes Gaara's damage reduction.",
     keys: [
       "Attack with Neji Hyuga first every turn: their Jutsu, Sand Coffin included, are off for the rest of your attacks.",
       "Eight Trigrams Sixty-Four Palms shuts off Gaara's Leader, removing the 1000 damage reduction and the Sand bonus while defending.",
@@ -176,7 +177,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Neji Hyuga and Eight Trigrams Sixty-Four Palms. Hanabi Hyuga is a fine opener to line up their draws.",
   },
   "hyuga-gentle-fist|medical-ninja": {
-    summary: "Even. Medical heals through your low-power attacks, so disrupt Tsunade with Sixty-Four Palms and pressure the Leader directly.",
+    summary: "Medical heals through your low-power attacks, so disrupt Tsunade with Sixty-Four Palms and pressure the Leader directly.",
     keys: [
       "Eight Trigrams Sixty-Four Palms stops Tsunade's end-of-turn heal and her Medical draw for a full cycle.",
       "Protect the Byakugan reveals their hand: spot Strength of a Hundred Seal before you commit a big attack.",
@@ -185,7 +186,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Hyuga bodies over counters; you need pressure before Field Hospital starts recycling their Characters.",
   },
   "hyuga-gentle-fist|leaf-jonin": {
-    summary: "Even. Kakashi's copy effect relies on his Leader ability, which Sixty-Four Palms switches off at the critical moment.",
+    summary: "Kakashi's copy effect relies on his Leader ability, which Sixty-Four Palms switches off at the critical moment.",
     keys: [
       "Ibiki Morino targets Jutsu in your hand, so cast Eight Trigrams Sixty-Four Palms early rather than holding it.",
       "Lightning Blade defeats every Hyuga Character; bait it with Hanabi Hyuga before landing Hiashi Hyuga.",
@@ -194,7 +195,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Eight Trigrams Sixty-Four Palms and a cheap Hyuga to deny Kakashi his copy turn.",
   },
   "hyuga-gentle-fist|itachi-tsukuyomi": {
-    summary: "Even. Itachi's discard strips your counters, but cheap Hyuga develop before Tsukuyomi matters.",
+    summary: "Itachi's discard strips your counters, but cheap Hyuga develop before Tsukuyomi matters.",
     keys: [
       "Play out your hand: Eight Trigrams Palm Rotation is better spent than discarded to Itachi's Leader.",
       "Hidan can't be defeated by Jutsu damage, so beat it in battle with an attacking Hiashi Hyuga.",
@@ -203,7 +204,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep a low curve: Hanabi Hyuga, Ko Hyuga and Hinata Hyuga — Twin Lion Fists.",
   },
   "hyuga-gentle-fist|akatsuki-pain": {
-    summary: "A slight edge for you. Sixty-Four Palms cuts off Pain's chakra ramp, and seeing their top card lets you play around Almighty Push.",
+    summary: "Sixty-Four Palms cuts off Pain's chakra ramp, and seeing their top card lets you play around Almighty Push.",
     keys: [
       "Eight Trigrams Sixty-Four Palms stops the Deva Path Leader from gaining chakra, delaying Nagato and Planetary Devastation.",
       "Ko Hyuga survives Konan's Paper Shuriken but Hanabi Hyuga doesn't, so don't overload on 1000-power bodies.",
@@ -213,7 +214,7 @@ const CURATED: Record<string, GuideText> = {
   },
 
   "sand-gaara|uchiha-avenger": {
-    summary: "An uphill matchup. Chidori picks off your Blockers efficiently and Kirin trades two-for-one; your outs are Shukaku and a long game.",
+    summary: "Chidori picks off your Blockers efficiently and Kirin trades two-for-one; your outs are Shukaku and a long game.",
     keys: [
       "Shukaku cannot be defeated by Jutsu, so their entire removal suite misses it; plan your chakra around landing it.",
       "Sand Coffin punishes Jugo and Hawk Summon after they attack, so keep three chakra open on their turn.",
@@ -222,7 +223,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Matsuri and Ultimate Absolute Defense: Shield of Shukaku; surviving the early turns is the whole plan.",
   },
   "sand-gaara|uzumaki-sage": {
-    summary: "Even and grindy. Your Blockers absorb their attacks, but the Sage draw engine outlasts you if the game goes too long.",
+    summary: "A grindy game. Your Blockers absorb their attacks, but the Sage draw engine outlasts you if the game goes too long.",
     keys: [
       "Sand Coffin Fukasaku & Shima after it attacks to keep them below three Sage cards.",
       "Temari's bounce resets Naruto Uzumaki — Shadow Clone Army and costs them tempo.",
@@ -231,7 +232,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Matsuri plus Sand Coffin; Shukaku and Defend Sunagakure are your late game.",
   },
   "sand-gaara|hyuga-gentle-fist": {
-    summary: "Unfavorable. Neji's attack shuts off Sand Coffin and Shield of Shukaku, and Sixty-Four Palms removes your Leader's damage reduction.",
+    summary: "Neji's attack shuts off Sand Coffin and Shield of Shukaku, and Sixty-Four Palms removes your Leader's damage reduction.",
     keys: [
       "Tap Neji Hyuga with Water Prison Jutsu or Darui, then Sand Coffin it on your own turn.",
       "Hinata Hyuga — Byakugan Heiress reveals your top card, so lead with Blockers like Matsuri and the information matters less.",
@@ -240,7 +241,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Sand Coffin with a tap effect and early Blockers like Matsuri.",
   },
   "sand-gaara|medical-ninja": {
-    summary: "Even and slow. Neither deck pressures much; Defend Sunagakure and Shukaku give you a clock while Tsunade heals.",
+    summary: "A slow game. Neither deck pressures much; Defend Sunagakure and Shukaku give you a clock while Tsunade heals.",
     keys: [
       "Katsuyu stops Sand Coffin from defeating the rest of their board, but Katsuyu itself is fair game once it attacks.",
       "Shukaku outclasses every Medical body; land it and attack every turn.",
@@ -249,7 +250,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep card draw and a steady curve; there is no early pressure to fear.",
   },
   "sand-gaara|leaf-jonin": {
-    summary: "Even. Kakashi copies Lightning Blade to clear two Blockers at once, but your defensive Leader blunts Jonin attacks.",
+    summary: "Kakashi copies Lightning Blade to clear two Blockers at once, but your defensive Leader blunts Jonin attacks.",
     keys: [
       "Kamui removes Shukaku from the game, which its Jutsu immunity doesn't stop; bait Kamui out before you land it.",
       "Anko Mitarashi attacks the turn she lands, so keep Matsuri back as a Blocker.",
@@ -258,7 +259,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Blockers and Sand Coffin; Ultimate Absolute Defense: Shield of Shukaku is strong against Anko and Asuma.",
   },
   "sand-gaara|itachi-tsukuyomi": {
-    summary: "Even. Itachi's discard hurts, but your defense lives on the board and Shukaku shrugs off Amaterasu.",
+    summary: "Itachi's discard hurts, but your defense lives on the board and Shukaku shrugs off Amaterasu.",
     keys: [
       "Shukaku cannot be defeated by Jutsu, so Amaterasu does nothing to it.",
       "Hidan can't be defeated by Jutsu damage, but Sand Coffin defeats it outright once it has attacked.",
@@ -267,7 +268,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Blockers and Sand Coffin; avoid hands that depend on holding counters.",
   },
   "sand-gaara|akatsuki-pain": {
-    summary: "Favorable. Shukaku is the Blocker that never dies, and Pain's sweepers struggle against a wall of sturdy Sand Characters.",
+    summary: "Shukaku is the Blocker that never dies, and Pain's sweepers struggle against a wall of sturdy Sand Characters.",
     keys: [
       "Shukaku can't be defeated by Jutsu and Almighty Push only bounces cost 2 or less, so it walls the Six Paths indefinitely.",
       "Konan's Paper Shuriken only kills Matsuri; Temari, Baki and Yashamaru survive it.",
@@ -277,7 +278,7 @@ const CURATED: Record<string, GuideText> = {
   },
 
   "medical-ninja|uchiha-avenger": {
-    summary: "Unfavorable. Chidori and Kirin defeat rather than deal damage, so your healing has nothing to work with; Katsuyu is the key card.",
+    summary: "Chidori and Kirin defeat rather than deal damage, so your healing has nothing to work with; Katsuyu is the key card.",
     keys: [
       "Katsuyu stops Jutsu from defeating your other Characters, blanking Chidori and Kirin across your board.",
       "Have Shizune search for Katsuyu or Strength of a Hundred Seal, not another cheap body.",
@@ -286,7 +287,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Mulligan for Shizune; landing Katsuyu on time is how you win.",
   },
   "medical-ninja|uzumaki-sage": {
-    summary: "Even. Your healing undoes Rasengan damage, but Sage Art: Massive Rasengan and Gamabunta's bounce get around it.",
+    summary: "Your healing undoes Rasengan damage, but Sage Art: Massive Rasengan and Gamabunta's bounce get around it.",
     keys: [
       "Mystical Palm Technique restores 3000 power, enough to save a Character after Rasengan.",
       "Katsuyu blanks Sage Art: Massive Rasengan against your other Characters.",
@@ -295,7 +296,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Shizune and Mystical Palm Technique; the game will go long.",
   },
   "medical-ninja|hyuga-gentle-fist": {
-    summary: "Even. Hyuga's low power struggles through your healing, but Sixty-Four Palms can switch off Tsunade's heal at a key moment.",
+    summary: "Hyuga's low power struggles through your healing, but Sixty-Four Palms can switch off Tsunade's heal at a key moment.",
     keys: [
       "Tsunade's end-of-turn heal undoes Hyuga chip damage; only trade when you can finish the exchange.",
       "Strength of a Hundred Seal keeps your Leader from being defeated for a turn; hold it for their big Hinata Hyuga — Twin Lion Fists attack.",
@@ -304,7 +305,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Medical Characters for the Tsunade draw; three on the board early is ideal.",
   },
   "medical-ninja|sand-gaara": {
-    summary: "Even and slow. Gaara rarely pressures you, but Shukaku outsizes everything you have.",
+    summary: "A slow game. Gaara rarely pressures you, but Shukaku outsizes everything you have.",
     keys: [
       "Katsuyu protects your board from Sand Coffin, since it is a Jutsu.",
       "Strength of a Hundred Seal keeps your Leader safe through a Shukaku swing.",
@@ -313,7 +314,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Shizune and your draw engine; this matchup goes long.",
   },
   "medical-ninja|leaf-jonin": {
-    summary: "Even. Kakashi's copied removal tests your board, but your heals and Tsunade's draw keep pace.",
+    summary: "Kakashi's copied removal tests your board, but your heals and Tsunade's draw keep pace.",
     keys: [
       "Ibiki Morino can strip Mystical Palm Technique from your hand, so play heals proactively.",
       "Lightning Blade defeats outright; keep Katsuyu protecting the board when you can.",
@@ -322,7 +323,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Shizune, Sakura Haruno and a cheap draw engine.",
   },
   "medical-ninja|itachi-tsukuyomi": {
-    summary: "Even and grindy. Itachi's discard targets your hand while your heals undo their damage, and Tsunade's extra draw refills what you lose.",
+    summary: "A grindy game. Itachi's discard targets your hand while your heals undo their damage, and Tsunade's extra draw refills what you lose.",
     keys: [
       "Nawaki and Tonton replace themselves, which blunts Tsukuyomi's discard.",
       "Kisame Hoshigaki and Kakuzu outsize your Characters; Choji Akimichi holds the ground on defense.",
@@ -331,7 +332,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep low-cost Medical bodies so you stay under five cards in hand.",
   },
   "medical-ninja|akatsuki-pain": {
-    summary: "Even. Your heals undo Konan's sweep, but Almighty Push bounces your cheap Medical bodies.",
+    summary: "Your heals undo Konan's sweep, but Almighty Push bounces your cheap Medical bodies.",
     keys: [
       "Tsunade's end-of-turn heal and Mystical Palm Technique undo Konan's Paper Shuriken damage.",
       "Almighty Push returns Sakura Haruno, Shizune and Tonton, but replaying them gives you fresh on-play effects.",
@@ -341,7 +342,7 @@ const CURATED: Record<string, GuideText> = {
   },
 
   "leaf-jonin|uchiha-avenger": {
-    summary: "Even. Copying Lightning Blade gives you two-for-ones, but the Avenger's cheap threats come quickly.",
+    summary: "Copying Lightning Blade gives you two-for-ones, but the Avenger's cheap threats come quickly.",
     keys: [
       "Copy Lightning Blade with Kakashi to clear two Taka bodies in one turn.",
       "Ibiki Morino can strip Kirin before they assemble their big turn.",
@@ -350,7 +351,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Ibiki Morino plus a removal Jutsu to slow the Taka curve.",
   },
   "leaf-jonin|uzumaki-sage": {
-    summary: "Even. Kamui handles Minato cleanly and Ibiki disrupts the Sage engine, but the late game favors their card draw.",
+    summary: "Kamui handles Minato cleanly and Ibiki disrupts the Sage engine, but their card draw takes over in the late game.",
     keys: [
       "Kamui removes Minato Namikaze from the game, which his return-to-hand clause can't prevent.",
       "Ibiki Morino can take Sage Art: Massive Rasengan or Rasengan from their hand.",
@@ -359,7 +360,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Ibiki Morino and a cheap curve; pressure them before Sage Mode comes online.",
   },
   "leaf-jonin|hyuga-gentle-fist": {
-    summary: "Even. Sixty-Four Palms can lock Kakashi's copy ability, so spread your value across Jonin bodies.",
+    summary: "Sixty-Four Palms can lock Kakashi's copy ability, so spread your value across Jonin bodies.",
     keys: [
       "Don't lean on copying while Eight Trigrams Sixty-Four Palms is available to them; Asuma Sarutobi and Anko Mitarashi deal steady damage.",
       "Lightning Blade kills any Hyuga Character; aim it at Neji Hyuga to avoid Jutsu lockouts.",
@@ -368,7 +369,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Lightning Blade and Asuma Sarutobi.",
   },
   "leaf-jonin|sand-gaara": {
-    summary: "Even. Copied Lightning Blades clear Blockers, and Kamui is one of the few answers to Shukaku.",
+    summary: "Copied Lightning Blades clear Blockers, and Kamui is one of the few answers to Shukaku.",
     keys: [
       "Kamui removes Shukaku from the game, which its Jutsu immunity doesn't stop.",
       "Lightning Blade copied by Kakashi clears Matsuri and Baki in one turn.",
@@ -377,7 +378,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Lightning Blade and a steady Jonin curve; Kamui can be drawn into later.",
   },
   "leaf-jonin|medical-ninja": {
-    summary: "Even. Lightning Blade and Kamui defeat or remove outright, so Tsunade's healing matters less; Katsuyu is the problem card.",
+    summary: "Lightning Blade and Kamui defeat or remove outright, so Tsunade's healing matters less; Katsuyu is the problem card.",
     keys: [
       "Kamui answers Katsuyu cleanly; hold it until Katsuyu lands.",
       "Ibiki Morino strips Strength of a Hundred Seal before their defensive turn.",
@@ -386,7 +387,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Kamui or Ibiki Morino plus a curve of Jonin.",
   },
   "leaf-jonin|itachi-tsukuyomi": {
-    summary: "Even. Ibiki and Zetsu make it a battle of information; cast your Jutsu early before Tsukuyomi takes them.",
+    summary: "Ibiki and Zetsu make it a battle of information; cast your Jutsu early before Tsukuyomi takes them.",
     keys: [
       "Cast Lightning Blade before Tsukuyomi can discard it; holding cards is a liability against Itachi.",
       "Hidan can't be defeated by damage from Jutsu, but Lightning Blade defeats outright and works on him.",
@@ -395,7 +396,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep a curve over reactive cards and empty your hand fast.",
   },
   "leaf-jonin|akatsuki-pain": {
-    summary: "Even. Almighty Push hits Ibiki and your cheap support, but your midrange Jonin sit above its range.",
+    summary: "Almighty Push hits Ibiki and your cheap support, but your midrange Jonin sit above its range.",
     keys: [
       "Asuma Sarutobi, Yamato and Anko Mitarashi all cost 3 or more, so Almighty Push doesn't touch them.",
       "Kamui removes Nagato from the game before it can bring back more Six Paths.",
@@ -405,7 +406,7 @@ const CURATED: Record<string, GuideText> = {
   },
 
   "itachi-tsukuyomi|uchiha-avenger": {
-    summary: "Even. Tsukuyomi and your Leader strip their hand, but the Avenger empties it quickly with cheap threats.",
+    summary: "Tsukuyomi and your Leader strip their hand, but the Avenger empties it quickly with cheap threats.",
     keys: [
       "Zetsu reveals whether they hold Kirin; time Tsukuyomi for the turn before their Kirin setup.",
       "Hidan can't be defeated by damage from Jutsu, so Fire Style: Fireball Jutsu bounces off him.",
@@ -414,7 +415,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Zetsu and Deidara: trade early, then discard their reload.",
   },
   "itachi-tsukuyomi|uzumaki-sage": {
-    summary: "Favorable. Their draw engine pushes them over five cards for your Leader discard, and Tsukuyomi breaks up Sage Mode before it starts.",
+    summary: "Their draw engine pushes them over five cards for your Leader discard, and Tsukuyomi breaks up Sage Mode before it starts.",
     keys: [
       "Itachi Uchiha — Akatsuki discards a card whenever they start your turn with five or more, which their extra draw makes routine.",
       "An early Tsukuyomi hits Fukasaku & Shima or Train at Mount Myoboku before they reach the board.",
@@ -423,7 +424,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Zetsu and Tsukuyomi; early discard is the whole plan.",
   },
   "itachi-tsukuyomi|hyuga-gentle-fist": {
-    summary: "Even. Hyuga's cheap threats arrive before discard bites, but your bodies outsize theirs.",
+    summary: "Hyuga's cheap threats arrive before discard bites, but your bodies outsize theirs.",
     keys: [
       "Kisame Hoshigaki and Kakuzu outsize every Hyuga Character in battle.",
       "Tsukuyomi takes Eight Trigrams Palm Rotation and Eight Trigrams Sixty-Four Palms out of their hand.",
@@ -432,7 +433,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Zetsu and a 3-cost body to hold the early board.",
   },
   "itachi-tsukuyomi|sand-gaara": {
-    summary: "Even. Shukaku ignores your Jutsu, but Gaara's hand empties slowly, so your discard hits harder than usual.",
+    summary: "Shukaku ignores your Jutsu, but Gaara's hand empties slowly, so your discard hits harder than usual.",
     keys: [
       "Shukaku cannot be defeated by Jutsu, so Amaterasu won't help; strip Gaara's hand with Tsukuyomi before Shukaku lands.",
       "Susanoo's +5000 lets your Leader battle Shukaku, and defeating it completes Capture the Jinchuriki.",
@@ -441,7 +442,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Tsukuyomi and Zetsu; Gaara relies on specific cards.",
   },
   "itachi-tsukuyomi|medical-ninja": {
-    summary: "Even. Amaterasu's permanent defeat shuts down Field Hospital, and your discard trims their heals.",
+    summary: "Amaterasu's permanent defeat shuts down Field Hospital, and your discard trims their heals.",
     keys: [
       "Amaterasu's permanent defeat stops Field Hospital from recovering the target.",
       "Zetsu reveals Strength of a Hundred Seal before you commit to an attack.",
@@ -450,7 +451,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Zetsu and Tsukuyomi.",
   },
   "itachi-tsukuyomi|leaf-jonin": {
-    summary: "Even. Ibiki and Zetsu both look at hands; the deck that spends its Jutsu more efficiently wins.",
+    summary: "Ibiki and Zetsu both look at hands; the deck that spends its Jutsu more efficiently wins.",
     keys: [
       "Kakashi copies the Jutsu he plays, so Tsukuyomi their hand to deny him copy targets.",
       "Lightning Blade defeats Hidan outright, so keep Hidan back when they have chakra open.",
@@ -459,7 +460,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Zetsu and a body; deny Ibiki value by casting your Jutsu early.",
   },
   "itachi-tsukuyomi|akatsuki-pain": {
-    summary: "Even. Pain's sweepers hit your cheap bodies, while your discard targets their expensive finishers.",
+    summary: "Pain's sweepers hit your cheap bodies, while your discard targets their expensive finishers.",
     keys: [
       "An early Tsukuyomi can strip Nagato or Planetary Devastation before they are castable.",
       "Hidan and Kakuzu survive Konan's 1000-damage sweep.",
@@ -469,7 +470,7 @@ const CURATED: Record<string, GuideText> = {
   },
 
   "akatsuki-pain|uchiha-avenger": {
-    summary: "Even. Almighty Push sweeps their cheap Taka board, but Chidori picks off Six Paths before the ramp starts.",
+    summary: "Almighty Push sweeps their cheap Taka board, but Chidori picks off Six Paths before the ramp starts.",
     keys: [
       "Almighty Push returns Karin, Hawk Summon and Suigetsu Hozuki in one cast.",
       "Preta Path negates Chidori targeting a Six Paths Character.",
@@ -478,7 +479,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Animal Path and Almighty Push.",
   },
   "akatsuki-pain|uzumaki-sage": {
-    summary: "Favorable. Almighty Push resets their cheap Uzumaki bodies and stalls the Sage count, and every trade feeds your chakra ramp.",
+    summary: "Almighty Push resets their cheap Uzumaki bodies and stalls the Sage count, and every trade feeds your chakra ramp.",
     keys: [
       "Cast Almighty Push the turn before they reach three Sage cards to stall the engine.",
       "Preta Path negates Rasengan aimed at your Six Paths.",
@@ -487,7 +488,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Animal Path and Konan.",
   },
   "akatsuki-pain|hyuga-gentle-fist": {
-    summary: "Slightly unfavored. Sixty-Four Palms switches off your chakra ramp, and their view of your top card lets them play around Almighty Push.",
+    summary: "Sixty-Four Palms switches off your chakra ramp, and their view of your top card lets them play around Almighty Push.",
     keys: [
       "Konan's Paper Shuriken kills Hanabi Hyuga and softens Ko Hyuga for Asura Path.",
       "Expect Eight Trigrams Sixty-Four Palms on your Nagato turn; ramp a turn early with Invasion of Konoha.",
@@ -496,7 +497,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Konan and Water Prison Jutsu.",
   },
   "akatsuki-pain|sand-gaara": {
-    summary: "Unfavorable. Shukaku is the Blocker that never dies, and Sand Coffin punishes every Six Paths attacker.",
+    summary: "Shukaku is the Blocker that never dies, and Sand Coffin punishes every Six Paths attacker.",
     keys: [
       "Planetary Devastation taps Shukaku and their other Blockers, opening a lethal window.",
       "Almighty Push returns Matsuri and Yashamaru; time it right before an all-in attack.",
@@ -505,7 +506,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Animal Path and Invasion of Konoha to ramp toward Planetary Devastation.",
   },
   "akatsuki-pain|medical-ninja": {
-    summary: "Even. Their heals blunt Konan's damage, but Almighty Push bounces most Medical bodies for great value.",
+    summary: "Their heals blunt Konan's damage, but Almighty Push bounces most Medical bodies for great value.",
     keys: [
       "Almighty Push returns Sakura Haruno, Shizune, Tonton and Nawaki.",
       "Katsuyu protects against Jutsu that defeat, but Almighty Push bounces instead, so it still works.",
@@ -514,7 +515,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Almighty Push and Animal Path.",
   },
   "akatsuki-pain|leaf-jonin": {
-    summary: "Even. Jonin's 3-cost bodies dodge Almighty Push, so rely on Konan and battles to grind them down.",
+    summary: "Jonin's 3-cost bodies dodge Almighty Push, so rely on Konan and battles to grind them down.",
     keys: [
       "Ibiki Morino is the only Jonin piece Almighty Push hits; their 3-cost Jonin stay put.",
       "Preta Path negates Lightning Blade targeting a Six Paths Character.",
@@ -523,7 +524,7 @@ const CURATED: Record<string, GuideText> = {
     mulligan: "Keep Konan and Preta Path.",
   },
   "akatsuki-pain|itachi-tsukuyomi": {
-    summary: "Even. Their discard targets your expensive finishers, but your ramp lets you cast threats before Tsukuyomi finds them.",
+    summary: "Their discard targets your expensive finishers, but your ramp lets you cast threats before Tsukuyomi finds them.",
     keys: [
       "Cast Nagato or Planetary Devastation as soon as you can; holding them invites Tsukuyomi.",
       "Deidara deals 3000 damage when defeated, so don't put Animal Path in front of it.",

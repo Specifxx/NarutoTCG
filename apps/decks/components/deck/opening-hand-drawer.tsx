@@ -167,7 +167,14 @@ export function OpeningHandDrawer({
   if (!mounted) return null;
 
   return createPortal(
-    <div ref={rootRef} className={cx("fixed inset-0 z-[60] transition-[visibility] duration-200", shown ? "visible" : "invisible")} inert={!shown}>
+    <div
+      ref={rootRef}
+      // Visibility transitions only on the way out (so the panel stays visible while it slides away).
+      // On the way in it must flip at once: a transitioning `visibility` is still `hidden` in the frame
+      // where the effect focuses the close button, and the focus would be lost to <body>.
+      className={cx("fixed inset-0 z-[60]", shown ? "visible" : "invisible transition-[visibility] duration-200 motion-reduce:transition-none")}
+      inert={!shown}
+    >
       <div
         aria-hidden="true"
         onClick={() => onCloseRef.current()}

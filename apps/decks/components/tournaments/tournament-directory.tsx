@@ -2,7 +2,7 @@
 
 import type { EventTier } from "@naruto-tcg/types";
 import { cx } from "@naruto-tcg/ui";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/components/ui/badges";
 import { StatTile } from "@/components/ui/stat-tile";
 import { EVENT_TIER_LABEL, EVENT_TIER_ORDER, EVENT_TIER_SHORT, formatNumber, pluralize } from "@/lib/format";
@@ -31,11 +31,13 @@ function SearchIcon({ className }: { className?: string }) {
 export function TournamentDirectory({ events }: { events: TournamentSummary[] }) {
   const id = useId();
   const imported = useImportedTournaments();
-  // Stored events arrive sanitized; everything in this browser's store counts as an import.
+  // Stored events arrive sanitized; everything in this browser's store counts as an import. A
+  // re-import of a seed event (its own "Download JSON") is skipped so it is not counted twice.
   const all = useMemo(
     () => mergeEventSummaries(events, imported.map((t) => ({ ...summarize(t), source: "import" as const }))),
     [events, imported],
   );
+  const listHeading = useRef<HTMLHeadingElement>(null);
 
   const [text, setText] = useState("");
   const [tiers, setTiers] = useState<EventTier[]>([]);
@@ -53,6 +55,7 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
   const totals = eventTotals(filtered);
   const filtering = text.trim() !== "" || tiers.length > 0 || activeRegion !== "all" || activeFormat !== "all";
   const importedCount = all.filter((e) => e.source === "import").length;
+  const duplicateImports = imported.length - importedCount;
 
   const toggleTier = (tier: EventTier) =>
     setTiers((prev) => (prev.includes(tier) ? prev.filter((t) => t !== tier) : EVENT_TIER_ORDER.filter((t) => t === tier || prev.includes(t))));
@@ -61,6 +64,8 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
     setTiers([]);
     setRegion("all");
     setFormat("all");
+    // Both "Clear filters" buttons unmount once nothing is filtered; land on the list instead of <body>.
+    listHeading.current?.focus();
   };
 
   const chip = (pressed: boolean) =>
@@ -79,13 +84,20 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
           detail={
             filtering
               ? `of ${formatNumber(all.length)} tracked`
-              : importedCount > 0
-                ? `Including ${pluralize(importedCount, "import")} from this browser`
+              : importedCount > 0 || duplicateImports > 0
+                ? [
+                    importedCount > 0 && `Including ${pluralize(importedCount, "import")} from this browser`,
+                    duplicateImports > 0 &&
+                      `${pluralize(duplicateImports, "re-import")} of ${duplicateImports === 1 ? "a tracked event" : "tracked events"} not counted`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
                 : "Tracked this season"
           }
         />
-        <StatTile label="Players" value={formatNumber(totals.players)} detail="Entries across events" />
-        <StatTile label="Matches" value={formatNumber(totals.matches)} detail="Swiss and top cut, byes excluded" />
+        {/* Per-event registrations, as on the home page (which counts distinct players and shows entries below). */}
+        <StatTile label="Entries" value={formatNumber(totals.players)} detail="Each player counted once per event" />
+        <StatTile label="Matches" value={formatNumber(totals.matches)} detail="Swiss and top cut, byes and intentional draws excluded" />
         <StatTile label="Published decklists" value={formatNumber(totals.decklists)} detail="Full lists with placements" />
       </section>
 
@@ -172,6 +184,9 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
           </div>
         </form>
 
+        <h2 ref={listHeading} id={`${id}-list`} tabIndex={-1} className="sr-only">
+          Events, newest first
+        </h2>
         {filtered.length === 0 ? (
           <EmptyState title="No events match these filters">
             <button type="button" onClick={reset} className={cx("rounded-sm font-semibold text-chakra-400 hover:text-chakra-300", FOCUS_RING)}>
@@ -181,9 +196,6 @@ export function TournamentDirectory({ events }: { events: TournamentSummary[] })
           </EmptyState>
         ) : (
           <div className="lg:overflow-hidden lg:rounded-lg lg:border lg:border-shadow-700">
-            <h2 id={`${id}-list`} className="sr-only">
-              Events, newest first
-            </h2>
             <EventListHeader />
             <ul aria-labelledby={`${id}-list`} className="flex flex-col gap-3 lg:gap-0">
               {filtered.map((event) => (

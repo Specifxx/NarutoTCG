@@ -5,7 +5,7 @@ import { sanitizeTournament } from "@/lib/storage/sanitize";
 import { buildBracket } from "./bracket";
 import { buildStandings, eventMetaBreakdown } from "./event";
 import { eventRounds } from "./rounds";
-import { structureLabel, summarize } from "./summary";
+import { countPlayedMatches, structureLabel, summarize } from "./summary";
 import { fixtureTournament } from "./test-fixtures";
 
 describe("summarize", () => {
@@ -22,7 +22,8 @@ describe("summarize", () => {
       players: 8,
       swissRounds: 3,
       topCutSize: 4,
-      matches: 14,
+      // 15 pairings less one bye and one intentional draw.
+      matches: 13,
       decklists: 4,
       winner: { id: "ann-a", name: "Ann Aoki", archetypeId: "akatsuki-pain" },
       topCutArchetypeIds: ["akatsuki-pain", "uchiha-avenger", "akatsuki-pain", "medical-ninja"],
@@ -52,6 +53,29 @@ describe("summarize", () => {
       expect(summary.topCutArchetypeIds).toHaveLength(t.topCutSize);
       expect(summary.winner).not.toBeNull();
     }
+  });
+});
+
+describe("countPlayedMatches", () => {
+  it("leaves out byes, intentional draws and unregistered opponents", () => {
+    const t = fixtureTournament();
+    expect(t.matches).toHaveLength(15);
+    expect(countPlayedMatches(t)).toBe(13);
+    const ghost = { round: 1, stage: "swiss" as const, player1Id: "ann-a", player2Id: "nobody", outcome: "p1" as const };
+    expect(countPlayedMatches({ ...t, matches: [...t.matches, ghost] })).toBe(13);
+    expect(countPlayedMatches({ players: [], matches: [] })).toBe(0);
+  });
+
+  it("matches the meta engine's count on every seed event", () => {
+    let all = 0;
+    let played = 0;
+    for (const t of SEED_TOURNAMENTS) {
+      all += t.matches.filter((m) => m.outcome !== "bye" && m.player2Id !== null).length;
+      played += summarize(t).matches;
+      expect(summarize(t).matches).toBe(countPlayedMatches(t));
+    }
+    // The seed has intentional draws, so the played count is strictly lower than the pairing count.
+    expect(played).toBeLessThan(all);
   });
 });
 

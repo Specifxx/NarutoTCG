@@ -125,8 +125,13 @@ export function detectCsvKind(headers: readonly string[]): { kind: CsvKind; conf
   return best;
 }
 
-/** Trimmed value of `field` in `row` under `mapping`; "" when unmapped or absent. */
+/**
+ * Trimmed value of `field` in `row` under `mapping`; "" when unmapped or absent. Only the row's
+ * own string values are read, so a header named like an Object member ("toString") is never
+ * mistaken for one.
+ */
 export function cell(row: Record<string, string>, mapping: ColumnMapping, field: string): string {
-  const header = mapping[field];
-  return header ? (row[header] ?? "").trim() : "";
+  const header = Object.hasOwn(mapping, field) ? mapping[field] : null;
+  const value = typeof header === "string" && Object.hasOwn(row, header) ? row[header] : undefined;
+  return typeof value === "string" ? value.trim() : "";
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { BUTTON_GHOST, BUTTON_PRIMARY, FOCUS_RING } from "@/components/directory/styles";
+import { useClientTitle } from "@/components/tournaments/client-title";
 import { EmptyState } from "@/components/ui/badges";
 import { PageHeader } from "@/components/ui/page-header";
 import type { TierId } from "@/lib/meta/types";
@@ -10,8 +11,6 @@ import { useImportedTournaments } from "@/lib/storage/imports";
 import { useHydrated } from "@/lib/storage/local-store";
 import { importedPlayerProfile } from "./imported-profile";
 import { ProfileView } from "./profile-view";
-
-const TITLE_SUFFIX = " · Naruto TCG Decks";
 
 function LoadingState() {
   return (
@@ -42,9 +41,7 @@ export function ImportedPlayerLoader({ handle, tiers }: { handle: string; tiers:
   const imported = useImportedTournaments();
   const profile = useMemo(() => importedPlayerProfile(imported, handle), [imported, handle]);
 
-  useEffect(() => {
-    if (hydrated) document.title = `${profile ? profile.name : "Player not found"}${TITLE_SUFFIX}`;
-  }, [hydrated, profile]);
+  useClientTitle(hydrated ? (profile ? profile.name : "Player not found") : null);
 
   if (!hydrated) return <LoadingState />;
   if (profile) return <ProfileView profile={profile} tiers={tiers} origin="imported" />;

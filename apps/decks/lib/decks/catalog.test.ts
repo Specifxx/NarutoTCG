@@ -227,7 +227,7 @@ describe("pickKeyCardIds", () => {
 
 describe("buildDeckCatalog / toSummary", () => {
   it("merges tournament and community decks, newest first", () => {
-    const catalog = buildDeckCatalog(TOURNAMENTS);
+    const catalog = buildDeckCatalog(TOURNAMENTS, COMMUNITY_DECKS);
     expect(catalog).toHaveLength(8 + COMMUNITY_DECKS.length);
     for (let i = 1; i < catalog.length; i++) expect(catalog[i - 1]!.createdAt >= catalog[i]!.createdAt).toBe(true);
     const sameDay = catalog.filter((d) => d.createdAt === "2026-06-20").map((d) => d.tournament?.placement ?? 99);
@@ -249,7 +249,7 @@ describe("buildDeckCatalog / toSummary", () => {
 });
 
 describe("searchDecks", () => {
-  const decks = buildDeckCatalog(TOURNAMENTS).map(toSummary);
+  const decks = buildDeckCatalog(TOURNAMENTS, COMMUNITY_DECKS).map(toSummary);
   const ids = (query: Parameters<typeof searchDecks>[1]) => searchDecks(decks, query).map((d) => d.id);
 
   it("returns everything, newest first, for an empty query without mutating the input", () => {
@@ -324,6 +324,23 @@ describe("searchDecks", () => {
     const rates = byWinRate.slice(0, -1).map((d) => d.winRate!);
     for (let i = 1; i < rates.length; i++) expect(rates[i - 1]!).toBeGreaterThanOrEqual(rates[i]!);
     expect(byWinRate[0]!.id).toBe("fixture-store--iris-tanaka");
+  });
+
+  it("ranks by the vote count the cards show: seed votes plus this browser's vote", () => {
+    const byVotes = searchDecks(decks, { sort: "votes" });
+    // Two neighbours: a downvote on the higher one and an upvote on the lower one can swap them.
+    const pairIndex = byVotes.findIndex((deck, i) => i + 1 < byVotes.length && deck.votes - byVotes[i + 1]!.votes <= 1);
+    expect(pairIndex).toBeGreaterThanOrEqual(0);
+    const [upper, lower] = [byVotes[pairIndex]!, byVotes[pairIndex + 1]!];
+    const localVotes = { [upper.id]: -1, [lower.id]: 1 };
+    const voted = searchDecks(decks, { sort: "votes", localVotes });
+    const shown = voted.map((d) => d.votes + (localVotes[d.id] ?? 0));
+    for (let i = 1; i < shown.length; i++) expect(shown[i - 1]!).toBeGreaterThanOrEqual(shown[i]!);
+    expect(voted.indexOf(lower)).toBeLessThan(voted.indexOf(upper));
+    // Rows keep their seed counts (cards add the vote themselves), and other sorts ignore votes.
+    expect(lower.votes).toBe(decks.find((d) => d.id === lower.id)!.votes);
+    expect(searchDecks(decks, { sort: "newest", localVotes }).map((d) => d.id)).toEqual(ids({ sort: "newest" }));
+    expect(searchDecks(decks, { sort: "votes", localVotes: {} }).map((d) => d.id)).toEqual(byVotes.map((d) => d.id));
   });
 
   it("sorts by placement, then tier prestige, with community decks last", () => {

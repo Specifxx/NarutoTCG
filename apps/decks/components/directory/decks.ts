@@ -1,4 +1,5 @@
 import type { Tournament } from "@naruto-tcg/types";
+import { trackedEventId } from "@/components/tournaments/directory";
 import { getCard } from "@/lib/data/cards";
 import { buildTournamentDecks, normalizeSearchText, searchDecks, toSummary } from "@/lib/decks/catalog";
 import type { DeckSummary } from "@/lib/decks/types";
@@ -21,10 +22,12 @@ function tagImported(deck: DeckSummary): DeckSummary {
 /**
  * Directory rows for events imported in this browser (sanitized by the imports store), tagged
  * "Imported" (first, so the card shows it). An event that still fails to build is skipped
- * rather than breaking the directory.
+ * rather than breaking the directory, and so is a re-import of a seed event (`local-<seed id>`,
+ * matched against `seedEventIds`), whose decks the directory already lists.
  */
-export function importedDeckSummaries(tournaments: readonly Tournament[]): DeckSummary[] {
+export function importedDeckSummaries(tournaments: readonly Tournament[], seedEventIds: ReadonlySet<string> = new Set()): DeckSummary[] {
   return tournaments.flatMap((tournament) => {
+    if (seedEventIds.has(trackedEventId({ id: tournament.id, source: "import" }))) return [];
     try {
       return buildTournamentDecks([tournament]).map((deck) => tagImported(toSummary(deck)));
     } catch {
@@ -47,14 +50,18 @@ export function mergeDecks(...lists: ReadonlyArray<readonly DeckSummary[]>): Dec
   return merged;
 }
 
-/** The featured strip: the latest event winners and the most upvoted community decks. */
+/**
+ * The featured strip: the latest event winners and the most upvoted community decks, counting
+ * this browser's votes (`localVotes`) the way the cards do.
+ */
 export function featuredDecks(
   decks: readonly DeckSummary[],
   count = FEATURED_COUNT,
+  localVotes?: Readonly<Record<string, number>>,
 ): { winners: DeckSummary[]; community: DeckSummary[] } {
   return {
     winners: searchDecks(decks, { placement: "winner", sort: "newest" }).slice(0, count),
-    community: searchDecks(decks, { source: "community", sort: "votes" }).slice(0, count),
+    community: searchDecks(decks, { source: "community", sort: "votes", localVotes }).slice(0, count),
   };
 }
 

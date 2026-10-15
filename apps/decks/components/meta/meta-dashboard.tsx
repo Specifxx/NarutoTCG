@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { EmptyState } from "@/components/ui/badges";
 import { Section } from "@/components/ui/page-header";
 import { formatDate, pluralize } from "@/lib/format";
@@ -15,6 +15,7 @@ import {
   aggregateImported,
   availableFormats,
   countMatches,
+  countSeedCopies,
   mergeImportedAggregates,
   newestEventDate,
 } from "./derive";
@@ -47,6 +48,8 @@ function MetaView({
 }) {
   const imported = useImportedTournaments();
   const importedAggregates = useMemo(() => aggregateImported(imported), [imported]);
+  // Focus target that survives a reset: the Reset buttons unmount once nothing is filtered.
+  const rangeRef = useRef<HTMLSelectElement>(null);
   const state = useMemo(() => parseMetaParams(query), [query]);
   const includeImports = state.imports && importedAggregates.length > 0;
 
@@ -55,6 +58,11 @@ function MetaView({
     [includeImports, aggregates, importedAggregates],
   );
   const seedIds = useMemo(() => new Set(aggregates.map((a) => a.tournamentId)), [aggregates]);
+  // Re-imported tracked events are left out of the pool (the seed copy wins); say so instead of dropping them silently.
+  const seedCopies = useMemo(
+    () => (includeImports ? countSeedCopies(aggregates, importedAggregates) : 0),
+    [includeImports, aggregates, importedAggregates],
+  );
   const formats = useMemo(() => availableFormats(pool), [pool]);
   const newestDate = useMemo(() => newestEventDate(pool), [pool]);
   const filter = useMemo(() => toMetaFilter(state, { newestDate, formats }), [state, newestDate, formats]);
@@ -67,7 +75,13 @@ function MetaView({
   const importedShown = snapshot.aggregates.filter((a) => !seedIds.has(a.tournamentId)).length;
   const matches = Math.round(countMatches(snapshot.meta));
   const hasTopCut = snapshot.meta.topCutSlots > 0;
-  const reset = onChange ? () => onChange(resetFilters(state)) : undefined;
+  const reset = onChange
+    ? () => {
+        // Move focus before the clicked button unmounts, so it never drops to <body>.
+        rangeRef.current?.focus();
+        onChange(resetFilters(state));
+      }
+    : undefined;
 
   return (
     <div className="flex flex-col gap-10">
@@ -78,16 +92,24 @@ function MetaView({
           activeFormat={resolveFormat(state.format, formats)}
           importedCount={importedAggregates.length}
           onChange={onChange}
+          onReset={reset}
+          rangeRef={rangeRef}
         />
         <p aria-live="polite" className="text-sm text-ash-300">
           <span className="font-semibold text-white">{pluralize(events, "event")}</span>
           {" · "}
-          {pluralize(snapshot.meta.playerCount, "player")}
+          {pluralize(snapshot.meta.playerCount, "entry", "entries")}
           {" · "}
           {pluralize(matches, "match", "matches")}
           {" · "}
           {formatRange(snapshot.dateRange)}
           {importedShown > 0 && <span className="text-ash-400"> · incl. {pluralize(importedShown, "imported event")}</span>}
+          {seedCopies > 0 && (
+            <span className="text-ash-400">
+              {" "}
+              · {pluralize(seedCopies, "import")} left out as {seedCopies === 1 ? "a copy" : "copies"} of tracked events
+            </span>
+          )}
         </p>
       </div>
 
@@ -129,7 +151,7 @@ function MetaView({
           >
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <MetaShareDonut rows={snapshot.overallShare} totalPlayers={snapshot.meta.playerCount} />
+                <MetaShareDonut rows={snapshot.overallShare} totalEntries={snapshot.meta.playerCount} />
                 <FieldVsCutChart rows={snapshot.fieldVsTopCut} hasTopCut={hasTopCut} />
               </div>
               <EventShareChart rows={snapshot.shareByEvent} />

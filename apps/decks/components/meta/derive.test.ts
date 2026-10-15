@@ -10,12 +10,15 @@ import {
   blendHex,
   compactEventTick,
   countMatches,
+  countSeedCopies,
+  formatIntervalPercent,
   formatLift,
   formatWinRateInterval,
   isMetaReady,
   matchupCellTitle,
   mergeImportedAggregates,
   newestEventDate,
+  rawConversionMultiple,
   sliceDonut,
   sortFieldVsTopCut,
   trendDirection,
@@ -48,6 +51,24 @@ describe("imported aggregates", () => {
     expect(merged[1]!.name).toBe("Event b");
     expect(merged[2]!.date).toBe("2026-11-01");
     expect(seed).toHaveLength(2);
+  });
+
+  it("skips re-imports of a seed event (local-<seed id>) so it is never counted twice", () => {
+    const seed = [agg("leaf-cup-2026-10", "2026-10-01", { playerCount: 32 })];
+    const imported = [
+      agg("local-leaf-cup-2026-10", "2026-10-01", { name: "Re-imported Leaf Cup", playerCount: 32 }),
+      agg("local-leaf-cup-2026-10", "2026-10-01"),
+      agg("local-new-event-2026-10-05", "2026-10-05"),
+      agg("local-", "2026-10-06"),
+    ];
+    const merged = mergeImportedAggregates(seed, imported);
+    expect(merged.map((a) => a.tournamentId)).toEqual(["leaf-cup-2026-10", "local-new-event-2026-10-05", "local-"]);
+    expect(merged[0]!.name).toBe("Event leaf-cup-2026-10");
+    expect(merged.reduce((sum, a) => sum + a.playerCount, 0)).toBe(32);
+    expect(countSeedCopies(seed, imported)).toBe(1);
+    expect(countSeedCopies(seed, [agg("leaf-cup-2026-10", "2026-10-01")])).toBe(1);
+    expect(countSeedCopies(seed, imported.slice(2))).toBe(0);
+    expect(countSeedCopies([], imported)).toBe(0);
   });
 
   it("aggregates valid imports and skips ones that cannot be read", () => {
@@ -262,6 +283,10 @@ describe("formatting helpers", () => {
     expect(matchupCellTitle({ ...cell, winRate: null, interval: null, games: 0 }, "A", "B", 8)).toBe("A vs B: no games yet");
   });
 
+  it("formats an interval in whole percents", () => {
+    expect(formatIntervalPercent([0.431, 0.618])).toBe("43–62%");
+  });
+
   it("blends hex colors", () => {
     expect(blendHex("#ffffff", 0.5, "#000000")).toBe("#808080");
     expect(blendHex("#3987e5", 0)).toBe("#3987e5");
@@ -273,5 +298,15 @@ describe("formatting helpers", () => {
     expect(compactEventTick("Shinobi Online Open #4")).toBe("Shinobi #4");
     expect(compactEventTick("Konohagakure Hidden Leaf Invitational")).toBe("Konohagakure…");
     expect(compactEventTick("Konohagakure Village 12")).toBe("Konohagakure…");
+  });
+});
+
+describe("rawConversionMultiple", () => {
+  it("is top-cut share ÷ field share, the Field vs top cut ratio", () => {
+    expect(rawConversionMultiple({ metaShare: 0.2, topCutShare: 0.3 })).toBeCloseTo(1.5, 10);
+    // Never made a cut: 0× the field, not a smoothed non-zero lift.
+    expect(rawConversionMultiple({ metaShare: 0.1, topCutShare: 0 })).toBe(0);
+    expect(rawConversionMultiple({ metaShare: 0, topCutShare: 0 })).toBeNull();
+    expect(formatLift(rawConversionMultiple({ metaShare: 0.1, topCutShare: 0 })!)).toBe("0.0×");
   });
 });

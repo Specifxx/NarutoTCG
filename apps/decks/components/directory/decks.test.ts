@@ -30,6 +30,18 @@ describe("importedDeckSummaries", () => {
     expect(importedDeckSummaries([broken, importedCopy()]).every((deck) => deck.tournament?.id === "my-local-event")).toBe(true);
   });
 
+  it("skips a re-import of a seed event, whose decks the directory already lists", () => {
+    const original = getSeedTournaments()[0]!;
+    const reimport: Tournament = { ...original, id: `local-${original.id}`, source: "import" };
+    const seedEventIds = new Set(getSeedTournaments().map((t) => t.id));
+    expect(importedDeckSummaries([reimport], seedEventIds)).toEqual([]);
+    const kept = importedDeckSummaries([reimport, importedCopy()], seedEventIds);
+    expect(kept.length).toBeGreaterThan(0);
+    expect(kept.every((deck) => deck.tournament?.id === "my-local-event")).toBe(true);
+    // Without the seed ids (the profile pages' imported-player lookup) nothing is skipped.
+    expect(importedDeckSummaries([reimport]).length).toBeGreaterThan(0);
+  });
+
   it("never produces NaN votes or undefined tags from incomplete stored events the store sanitized", () => {
     const { tier, topCutSize, ...incomplete } = importedCopy();
     void tier;
@@ -73,6 +85,16 @@ describe("featuredDecks", () => {
     expect([...votes].sort((a, b) => b - a)).toEqual(votes);
     const best = Math.max(...seed.filter((deck) => deck.source === "community").map((deck) => deck.votes));
     expect(votes[0]).toBe(best);
+  });
+
+  it("ranks community decks by the count the cards show, this browser's votes included", () => {
+    const top = featuredDecks(seed, seed.length).community;
+    const [first, second] = [top[0]!, top[1]!];
+    // Enough downvotes on the leader to drop it below the runner-up (a real browser only adds ±1).
+    const localVotes = { [first.id]: second.votes - first.votes - 1 };
+    const reordered = featuredDecks(seed, seed.length, localVotes).community;
+    expect(reordered.indexOf(second)).toBeLessThan(reordered.indexOf(first));
+    expect(featuredDecks(seed, 3, {}).community).toEqual(featuredDecks(seed).community);
   });
 
   it("returns empty lists for an empty catalog", () => {

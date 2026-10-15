@@ -3,8 +3,8 @@
 import type { Tournament } from "@naruto-tcg/types";
 import { cx } from "@naruto-tcg/ui";
 import Link from "next/link";
-import { useMemo, type ReactNode } from "react";
-import { DeckCard } from "@/components/decks/deck-card";
+import { useMemo, type FocusEvent, type ReactNode } from "react";
+import { VotedDeckCard } from "@/components/directory/voted-deck-card";
 import { ArchetypeDot, EmptyState, EventTierBadge } from "@/components/ui/badges";
 import { PageHeader, Section } from "@/components/ui/page-header";
 import { StatTile } from "@/components/ui/stat-tile";
@@ -31,6 +31,11 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
       <dd className="mt-1 break-words text-sm text-ash-100">{children}</dd>
     </div>
   );
+}
+
+/** Keeps the focused jump link fully visible in the horizontally scrolling "On this page" row on phones. */
+function revealFocusedLink(event: FocusEvent<HTMLElement>) {
+  if (event.target !== event.currentTarget) event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 
 /**
@@ -114,7 +119,11 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
 
         <section aria-label="Event totals" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile label="Players" value={formatNumber(t.players.length)} detail={dropped > 0 ? `${formatNumber(dropped)} dropped` : "No drops"} />
-          <StatTile label="Matches" value={formatNumber(summary.matches)} detail={rounds.length > 0 ? `${pluralize(rounds.length, "round")}, byes not counted` : "No results recorded"} />
+          <StatTile
+            label="Matches"
+            value={formatNumber(summary.matches)}
+            detail={rounds.length > 0 ? `${pluralize(rounds.length, "round")}, byes and intentional draws excluded` : "No results recorded"}
+          />
           <StatTile
             label="Decklists published"
             value={formatNumber(summary.decklists)}
@@ -147,7 +156,7 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
           />
         </section>
 
-        <nav aria-label="On this page" className="flex gap-2 relative overflow-x-auto pb-1">
+        <nav aria-label="On this page" onFocus={revealFocusedLink} className="flex gap-2 relative overflow-x-auto pb-1">
           {sections.map((s) => (
             <a
               key={s.id}
@@ -206,7 +215,7 @@ export function TournamentView({ tournament: t }: { tournament: Tournament }) {
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {decks.map((deck) => (
               <li key={deck.id}>
-                <DeckCard deck={deck} />
+                <VotedDeckCard deck={deck} />
               </li>
             ))}
           </ul>

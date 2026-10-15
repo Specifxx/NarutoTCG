@@ -13,10 +13,11 @@ export const REGION_LABELS: Record<RegionId, string> = {
   other: "Other regions",
 };
 
-const COUNTRY_REGION: Record<string, RegionId> = {};
+/** A Map, not an object literal: free-text input such as "Constructor" must not hit Object.prototype. */
+const COUNTRY_REGION = new Map<string, RegionId>();
 
 function assign(region: RegionId, keys: string[]) {
-  for (const key of keys) COUNTRY_REGION[key] = region;
+  for (const key of keys) COUNTRY_REGION.set(key, region);
 }
 
 assign("north-america", [
@@ -52,8 +53,8 @@ const normalize = (text: string | undefined) =>
  */
 export function classifyRegion(location: EventLocation): RegionId {
   if (location.online) return "online";
-  const country = COUNTRY_REGION[normalize(location.country)];
+  const country = COUNTRY_REGION.get(normalize(location.country));
   if (country) return country;
   const region = normalize(location.region);
-  return (region.length > 3 && COUNTRY_REGION[region]) || "other";
+  return (region.length > 3 && COUNTRY_REGION.get(region)) || "other";
 }

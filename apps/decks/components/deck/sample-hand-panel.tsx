@@ -16,6 +16,7 @@ import {
   handCards,
   hasTarget,
   nextDrawTurn,
+  sampleHandStatus,
   type SampleHandAction,
   type SampleHandState,
 } from "./sample-hand";
@@ -46,7 +47,7 @@ export function SampleHandPanel({
   const mulligansLeft = freeMulligansLeft(state);
   const nextTurn = nextDrawTurn(state);
 
-  const describeHand = (hand: string[]) =>
+  const describeHand = (hand: readonly string[]) =>
     `${hand.map(nameOf).join(", ")}. ${state.targets.length === 0 ? "" : hasTarget(hand, state.targets) ? "Keepable." : "No mulligan target."}`;
 
   // A focused button that disables itself drops focus to <body>; hand it to the draw button first.
@@ -92,7 +93,7 @@ export function SampleHandPanel({
       </div>
 
       <p className="sr-only" role="status" aria-live="polite">
-        {announcement || (dealt ? `Opening hand${state.mulligansUsed > 0 ? " after mulligan" : ""}: ${describeHand(state.opening)}` : "")}
+        {sampleHandStatus(state, announcement, describeHand)}
       </p>
 
       {dealt ? (

@@ -53,7 +53,8 @@ function WinRateChip({ entry, lowSample }: { entry: MatchupEntry; lowSample: boo
       )}
       style={{ backgroundColor: colors.background, color: colors.color }}
     >
-      {entry.games > 0 ? formatPercent(entry.winRate, 0) : "—"}
+      {/* One decimal, like /meta: a rounded "53%" could sit beside an Even verdict (52.6%). */}
+      {entry.games > 0 ? formatPercent(entry.winRate) : "—"}
     </span>
   );
 }

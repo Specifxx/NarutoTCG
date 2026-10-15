@@ -76,7 +76,7 @@ const SUMMER = event(
 );
 
 const TOURNAMENTS = [SUMMER, SPRING];
-const DECKS = buildDeckCatalog(TOURNAMENTS).map(toSummary);
+const DECKS = buildDeckCatalog(TOURNAMENTS, COMMUNITY_DECKS).map(toSummary);
 
 describe("buildPlayerProfiles", () => {
   const profiles = buildPlayerProfiles(TOURNAMENTS, DECKS);

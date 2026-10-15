@@ -20,15 +20,18 @@ function DonutTooltip({ active, payload }: TooltipContentProps) {
     <ChartTooltipCard
       title={slice.label}
       rows={[
-        { key: "share", label: "of players", value: formatPercent(slice.share), color: slice.fill },
+        { key: "share", label: "of entries", value: formatPercent(slice.share), color: slice.fill },
         { key: "entries", label: slice.entries === 1 ? "entry" : "entries", value: formatNumber(slice.entries) },
       ]}
     />
   );
 }
 
-/** Part-to-whole meta share: the five largest archetypes plus "Other" (at most six slices). */
-export function MetaShareDonut({ rows, totalPlayers }: { rows: OverallShareRow[]; totalPlayers: number }) {
+/**
+ * Part-to-whole meta share: the five largest archetypes plus "Other" (at most six slices).
+ * `totalEntries` counts player registrations, so a player at two events counts twice.
+ */
+export function MetaShareDonut({ rows, totalEntries }: { rows: OverallShareRow[]; totalEntries: number }) {
   const { slices, folded } = useMemo(() => {
     const result = sliceDonut(rows);
     return { slices: result.slices.map((s): Slice => ({ ...s, fill: seriesColor(s.seriesId) })), folded: result.folded };
@@ -43,7 +46,7 @@ export function MetaShareDonut({ rows, totalPlayers }: { rows: OverallShareRow[]
   return (
     <ChartFrame
       title="Meta share"
-      description={`Share of ${pluralize(totalPlayers, "player")}.${foldedNote}`}
+      description={`Share of ${pluralize(totalEntries, "entry", "entries")}.${foldedNote}`}
       legend={slices.map((s) => ({ id: s.seriesId, label: `${s.label} ${formatPercent(s.share)}`, color: s.fill }))}
       table={
         <table className="w-full text-sm">
@@ -80,8 +83,15 @@ export function MetaShareDonut({ rows, totalPlayers }: { rows: OverallShareRow[]
     >
       <div className="relative overflow-hidden">
         <ResponsiveContainer width="100%" height={HEIGHT} initialDimension={{ width: 640, height: HEIGHT }}>
-          <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
+          {/* One named image, not Recharts' unnamed role="application" tab stop: the Table view carries the values. */}
+          <PieChart
+            margin={{ top: 4, right: 4, bottom: 4, left: 4 }}
+            accessibilityLayer={false}
+            role="img"
+            aria-label="Meta share donut chart. Switch to the Table view for exact values."
+          >
             <Pie
+              rootTabIndex={-1}
               data={slices}
               dataKey="entries"
               nameKey="label"
@@ -97,8 +107,8 @@ export function MetaShareDonut({ rows, totalPlayers }: { rows: OverallShareRow[]
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center" aria-hidden="true">
-          <span className="text-2xl font-semibold text-white">{formatNumber(totalPlayers)}</span>
-          <span className="text-xs text-ash-400">players</span>
+          <span className="text-2xl font-semibold text-white">{formatNumber(totalEntries)}</span>
+          <span className="text-xs text-ash-400">{totalEntries === 1 ? "entry" : "entries"}</span>
         </div>
       </div>
     </ChartFrame>

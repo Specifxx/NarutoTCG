@@ -42,14 +42,30 @@ export function compareEventsNewest(a: TournamentSummary, b: TournamentSummary):
   return compareStrings(b.date, a.date) || compareStrings(a.name, b.name) || compareStrings(a.id, b.id);
 }
 
-/** Seed and browser-imported rows together; the first row with a given id wins. */
+/** The import wizard saves every event under this id prefix, seed events re-imported from their own JSON included. */
+export const IMPORTED_ID_PREFIX = "local-";
+
+/**
+ * The id an event is tracked under: a browser import's id without its `local-` prefix, so a
+ * seed event that was downloaded and imported again maps back onto the seed original.
+ */
+export function trackedEventId(event: Pick<TournamentSummary, "id" | "source">): string {
+  return event.source === "import" && event.id.startsWith(IMPORTED_ID_PREFIX) ? event.id.slice(IMPORTED_ID_PREFIX.length) : event.id;
+}
+
+/**
+ * Seed and browser-imported rows together (seed first); the first row for a tracked event wins.
+ * An import of a seed event (`local-<seed id>`) is skipped, so the seed row is listed and counted once.
+ */
 export function mergeEventSummaries(...lists: ReadonlyArray<readonly TournamentSummary[]>): TournamentSummary[] {
   const seen = new Set<string>();
   const merged: TournamentSummary[] = [];
   for (const list of lists) {
     for (const event of list) {
-      if (seen.has(event.id)) continue;
+      const key = trackedEventId(event);
+      if (seen.has(event.id) || seen.has(key)) continue;
       seen.add(event.id);
+      seen.add(key);
       merged.push(event);
     }
   }

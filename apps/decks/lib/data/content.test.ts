@@ -150,20 +150,13 @@ describe("community decks", () => {
 
 describe("matchup guides", () => {
   const charted = CHARTED_ARCHETYPES.map((a) => a.id);
-  /** Intended edges: [favored, unfavored]. Every other charted pair should read as even. */
-  const EDGES: Array<[string, string]> = [
-    ["sand-gaara", "akatsuki-pain"],
-    ["akatsuki-pain", "uzumaki-sage"],
-    ["hyuga-gentle-fist", "sand-gaara"],
-    ["hyuga-gentle-fist", "akatsuki-pain"],
-    ["uchiha-avenger", "sand-gaara"],
-    ["uchiha-avenger", "medical-ninja"],
-    ["itachi-tsukuyomi", "uzumaki-sage"],
-    ["uzumaki-sage", "uchiha-avenger"],
-  ];
-  const FAVORED = /^(favorable|one of your best|a slight edge for you)/i;
-  const UNFAVORED = /^(unfavorable|an uphill|slightly unfavored|[\w ]+ (is favored|has a slight edge))/i;
-  const EVEN = /^(even|an even|roughly even)/i;
+  /**
+   * The matchup card shows a Favored / Even / Unfavored chip computed from event data next to the
+   * guide, so the prose must not carry a verdict of its own that could contradict it.
+   */
+  const VERDICT_OPENING =
+    /^(even|an even|roughly even|favou?r|unfavou?r|uphill|an uphill|slightly|a slight edge|one of your (best|worst)|[\w ]+ (is|are) (favou?red|the favou?rite)|[\w ]+ ha(s|ve) (a|the) (slight )?edge)/i;
+  const VERDICT_ANYWHERE = /\b(favou?rable|unfavou?r\w*|favou?red|uphill|slight edge|edge for you|(best|worst) matchups?)\b/i;
 
   const checkGuide = (guide: MatchupGuide) => {
     expect(guide.summary.length).toBeGreaterThan(30);
@@ -190,17 +183,17 @@ describe("matchup guides", () => {
     }
   });
 
-  it("keep the intended matchup dynamics in both directions", () => {
-    const edge = new Set(EDGES.map(([a, b]) => `${a}|${b}`));
-    for (const [winner, loser] of EDGES) {
-      expect(getMatchupGuide(winner, loser)!.summary).toMatch(FAVORED);
-      expect(getMatchupGuide(loser, winner)!.summary).toMatch(UNFAVORED);
-    }
-    for (const a of charted) {
-      for (const b of charted) {
-        if (a === b || edge.has(`${a}|${b}`) || edge.has(`${b}|${a}`)) continue;
-        expect(getMatchupGuide(a, b)!.summary, `${a} vs ${b}`).toMatch(EVEN);
+  it("leave the verdict to the data: no summary opens with or states who is favored", () => {
+    for (const a of ARCHETYPES) {
+      for (const b of ARCHETYPES) {
+        const { summary } = getMatchupGuide(a.id, b.id)!;
+        expect(summary, `${a.id} vs ${b.id}`).not.toMatch(VERDICT_OPENING);
+        expect(summary, `${a.id} vs ${b.id}`).not.toMatch(VERDICT_ANYWHERE);
       }
+    }
+    // The guard itself catches the verdict wording the curated guides used to open with.
+    for (const old of ["Even. Both decks", "Favorable. Tsunade", "An uphill matchup.", "Pain is favored.", "A slight edge for you:", "Slightly unfavored."]) {
+      expect(old).toMatch(VERDICT_OPENING);
     }
   });
 

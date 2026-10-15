@@ -40,53 +40,92 @@ export function mergeComments(seed: readonly DeckComment[], local: readonly Deck
 }
 
 /**
+ * Each comment's parent id (null for top level) and nesting depth, in one pass. A comment whose
+ * parent is missing, or is itself, is top level. Comments that form a parent loop are corrupt
+ * data: every member of the loop becomes top level, and the replies hanging off the loop keep
+ * their parents. Iterative with memoized depths, so a chain thousands of comments deep is fine.
+ */
+function resolveParents(byId: ReadonlyMap<string, DeckComment>): Map<string, { parentId: string | null; depth: number }> {
+  const resolved = new Map<string, { parentId: string | null; depth: number }>();
+  const parentIdOf = (comment: DeckComment): string | null =>
+    comment.parentId && comment.parentId !== comment.id && byId.has(comment.parentId) ? comment.parentId : null;
+
+  for (const start of byId.values()) {
+    if (resolved.has(start.id)) continue;
+    // Walk up until a resolved comment, a top-level comment, or a comment already on this walk (a loop).
+    const path: DeckComment[] = [];
+    const onPath = new Map<string, number>();
+    let loopStart = -1;
+    for (let cursor: DeckComment | undefined = start; cursor && !resolved.has(cursor.id); ) {
+      const seenAt = onPath.get(cursor.id);
+      if (seenAt !== undefined) {
+        loopStart = seenAt;
+        break;
+      }
+      onPath.set(cursor.id, path.length);
+      path.push(cursor);
+      const parentId = parentIdOf(cursor);
+      cursor = parentId === null ? undefined : byId.get(parentId);
+    }
+    // Assign from the top of the walk down, so each parent is resolved before its child.
+    for (let i = path.length - 1; i >= 0; i--) {
+      const comment = path[i]!;
+      const parentId = loopStart !== -1 && i >= loopStart ? null : parentIdOf(comment);
+      const depth = parentId === null ? 0 : resolved.get(parentId)!.depth + 1;
+      resolved.set(comment.id, { parentId, depth });
+    }
+  }
+  return resolved;
+}
+
+/**
  * Nests comments under their parents and sorts every level. Comments whose parent is missing,
- * or whose parent chain loops back on itself, become top-level comments. `localVotes` maps comment
- * ids to this browser's vote and is added to the seed votes.
+ * or that form a parent loop, become top-level comments. `localVotes` maps comment ids to this
+ * browser's vote and is added to the seed votes. No recursion: any depth of reply chain builds.
  */
 export function buildCommentTree(
   comments: readonly DeckComment[],
   { sort = "top", localVotes = {} }: { sort?: CommentSort; localVotes?: Readonly<Record<string, number>> } = {},
 ): CommentNode[] {
   const byId = new Map(comments.map((comment) => [comment.id, comment]));
+  const parents = resolveParents(byId);
 
-  const parentOf = (comment: DeckComment): DeckComment | null => {
-    if (!comment.parentId || comment.parentId === comment.id) return null;
-    const parent = byId.get(comment.parentId);
-    if (!parent) return null;
-    // Walk up the chain; a loop back to this comment means the data is corrupt, so detach it.
-    const visited = new Set([comment.id]);
-    for (let cursor: DeckComment | undefined = parent; cursor; cursor = cursor.parentId ? byId.get(cursor.parentId) : undefined) {
-      if (visited.has(cursor.id)) return null;
-      visited.add(cursor.id);
-    }
-    return parent;
-  };
-
-  const children = new Map<string | null, DeckComment[]>();
+  const nodes = new Map<string, CommentNode>();
   for (const comment of byId.values()) {
-    const key = parentOf(comment)?.id ?? null;
-    children.set(key, [...(children.get(key) ?? []), comment]);
+    const { parentId, depth } = parents.get(comment.id)!;
+    const votes = Number.isFinite(comment.votes) ? comment.votes : 0;
+    const local = localVotes[comment.id] ?? 0;
+    nodes.set(comment.id, {
+      comment,
+      score: votes + (Number.isFinite(local) ? local : 0),
+      depth,
+      displayDepth: Math.min(depth, MAX_COMMENT_DEPTH),
+      replyTo: parentId === null ? null : byId.get(parentId)!.author,
+      children: [],
+    });
   }
 
-  const build = (parent: DeckComment | null, depth: number): CommentNode[] =>
-    (children.get(parent?.id ?? null) ?? [])
-      .map((comment) => ({
-        comment,
-        score: comment.votes + (localVotes[comment.id] ?? 0),
-        depth,
-        displayDepth: Math.min(depth, MAX_COMMENT_DEPTH),
-        replyTo: parent?.author ?? null,
-        children: build(comment, depth + 1),
-      }))
-      .sort(COMPARATORS[sort]);
-
-  return build(null, 0);
+  const roots: CommentNode[] = [];
+  for (const node of nodes.values()) {
+    const { parentId } = parents.get(node.comment.id)!;
+    (parentId === null ? roots : nodes.get(parentId)!.children).push(node);
+  }
+  const compare = COMPARATORS[sort];
+  roots.sort(compare);
+  for (const node of nodes.values()) node.children.sort(compare);
+  return roots;
 }
 
-/** Every descendant of a node in thread order, without nesting. */
+/** Every descendant of a node in thread order (depth first), without nesting. Iterative, for deep chains. */
 function descendants(node: CommentNode): CommentNode[] {
-  return node.children.flatMap((child) => [{ ...child, children: [] }, ...descendants(child)]);
+  const out: CommentNode[] = [];
+  const stack = [...node.children].reverse();
+  while (stack.length > 0) {
+    const next = stack.pop()!;
+    out.push({ ...next, children: [] });
+    for (let i = next.children.length - 1; i >= 0; i--) stack.push(next.children[i]!);
+  }
+  return out;
 }
 
 /**
@@ -100,9 +139,16 @@ export function capThreadDepth(nodes: readonly CommentNode[], maxDepth: number =
   }));
 }
 
-/** Total comments in a (sub)tree. */
+/** Total comments in a (sub)tree. Iterative, for deep chains. */
 export function countComments(nodes: readonly CommentNode[]): number {
-  return nodes.reduce((sum, node) => sum + 1 + countComments(node.children), 0);
+  let count = 0;
+  const stack = [...nodes];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    count += 1;
+    for (const child of node.children) stack.push(child);
+  }
+  return count;
 }
 
 /** Longest comment the local store keeps. */

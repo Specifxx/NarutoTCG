@@ -12,7 +12,7 @@ export interface TournamentSummary {
   players: number;
   swissRounds: number;
   topCutSize: number;
-  /** Matches actually played; byes are not matches. */
+  /** Matches actually played (see {@link countPlayedMatches}): byes and intentional draws are left out. */
   matches: number;
   /** Players with a published decklist. */
   decklists: number;
@@ -20,6 +20,23 @@ export interface TournamentSummary {
   /** Archetype of each top cut player, champion first. */
   topCutArchetypeIds: string[];
   source: Tournament["source"];
+}
+
+/**
+ * Matches actually played, Swiss and top cut, counted the way the meta engine counts them: byes,
+ * intentional draws and matches against unregistered players are left out. The home page, the
+ * event directory and every event page share this count, so the same label shows the same number.
+ */
+export function countPlayedMatches(tournament: Pick<Tournament, "players" | "matches">): number {
+  const registered = new Set(tournament.players.map((p) => p.id));
+  return tournament.matches.filter(
+    (m) =>
+      m.outcome !== "bye" &&
+      !m.intentionalDraw &&
+      m.player2Id !== null &&
+      registered.has(m.player1Id) &&
+      registered.has(m.player2Id),
+  ).length;
 }
 
 /** Reduces a tournament record to its directory row. Pure; never touches seed data. */
@@ -37,7 +54,7 @@ export function summarize(tournament: Tournament): TournamentSummary {
     players: tournament.players.length,
     swissRounds: tournament.swissRounds,
     topCutSize: tournament.topCutSize,
-    matches: tournament.matches.filter((m) => m.outcome !== "bye" && m.player2Id !== null).length,
+    matches: countPlayedMatches(tournament),
     decklists: tournament.players.filter((p) => p.decklist).length,
     winner: winner ? { id: winner.id, name: winner.name, archetypeId: winner.archetypeId } : null,
     topCutArchetypeIds:

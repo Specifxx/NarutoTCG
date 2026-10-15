@@ -37,7 +37,8 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} aria-labelledby={id ? `${id}-title` : undefined} className="scroll-mt-32">
+    // No scroll-margin: the html scroll-padding in globals.css already clears the sticky header.
+    <section id={id} aria-labelledby={id ? `${id}-title` : undefined}>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 id={id ? `${id}-title` : undefined} className="text-xl font-bold text-white">

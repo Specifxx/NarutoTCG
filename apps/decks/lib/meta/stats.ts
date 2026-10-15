@@ -104,13 +104,16 @@ export function groupByTier(stats: readonly ArchetypeStats[]): Record<TierId, Ar
 
 /**
  * Pooled meta share over the `recentEvents` most recent events versus the same number of
- * events before them. Empty when either window has no players (nothing to compare).
+ * events before them. Empty unless both windows are full (at least `2 × recentEvents` events),
+ * so a trend never compares the latest window with a smaller one, and empty when either window
+ * has no players (nothing to compare).
  */
 export function computeTrends(
   aggregates: readonly TournamentAggregate[],
   { recentEvents = 4 }: { recentEvents?: number } = {},
 ): Record<string, ArchetypeTrend> {
   const window = Math.max(1, Math.floor(recentEvents));
+  if (aggregates.length < 2 * window) return {};
   const newestFirst = [...aggregates].sort((a, b) => compareAggregatesByDate(b, a));
   const recent = mergeAggregates(newestFirst.slice(0, window));
   const previous = mergeAggregates(newestFirst.slice(window, 2 * window));

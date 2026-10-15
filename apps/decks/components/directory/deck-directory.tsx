@@ -1,25 +1,16 @@
 "use client";
 
 import { cx } from "@naruto-tcg/ui";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useOptimistic,
-  useRef,
-  useState,
-  useTransition,
-  type ReactNode,
-} from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type FocusEvent, type ReactNode } from "react";
 import { EmptyState } from "@/components/ui/badges";
 import { DECK_SORT_LABELS, searchDecks, type DeckSort } from "@/lib/decks/catalog";
 import type { DeckSummary } from "@/lib/decks/types";
 import { formatNumber, pluralize } from "@/lib/format";
 import type { TierId } from "@/lib/meta/types";
+import { deckVotesStore } from "@/lib/storage/community";
 import { useImportedTournaments } from "@/lib/storage/imports";
+import { useLocalStore } from "@/lib/storage/local-store";
 import { DeckFilters } from "./deck-filters";
 import { PAGE_SIZE, cardOptionsFor, featuredDecks, importedDeckSummaries, mergeDecks, type CardOption } from "./decks";
 import {
@@ -63,6 +54,17 @@ function UpvoteIcon({ className }: { className?: string }) {
   );
 }
 
+/**
+ * Keeps the focused card fully visible in the swipeable strip: Chrome does not scroll a nested
+ * scroller for a partly visible focus target, and with mandatory snapping a small scroll would
+ * snap straight back, so scroll the whole snap item (the <li>) instead of the focused link.
+ */
+function revealFocusedItem(event: FocusEvent<HTMLUListElement>) {
+  if (event.target === event.currentTarget) return;
+  const item = event.target.closest("li");
+  if (item && event.currentTarget.contains(item)) item.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
 function FeaturedGroup({
   title,
   icon,
@@ -85,6 +87,7 @@ function FeaturedGroup({
       {/* A swipeable strip on small screens (it scrolls inside itself), a 3-up grid from md. */}
       <ul
         aria-labelledby={id}
+        onFocus={revealFocusedItem}
         className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 relative overflow-x-auto px-4 pb-2 sm:mx-0 sm:scroll-px-0 sm:px-0 md:grid md:grid-cols-3 md:overflow-visible md:pb-0"
       >
         {decks.map((deck) => (
@@ -97,6 +100,9 @@ function FeaturedGroup({
   );
 }
 
+/** A change to the directory state, applied to the latest state (the URL may be ahead of the last render). */
+type DeckParamsUpdate = (prev: DeckParams) => DeckParams;
+
 /**
  * The directory body for one query string: seed decks plus decks from events imported in this
  * browser, filtered and sorted client-side. `onChange` is absent in the Suspense fallback, which
@@ -108,31 +114,35 @@ function DirectoryView({
   cards,
   query,
   onChange,
-}: DeckDirectoryProps & { query: string; onChange?: (next: DeckParams) => void }) {
+}: DeckDirectoryProps & { query: string; onChange?: (update: DeckParamsUpdate) => void }) {
   const id = useId();
   const imported = useImportedTournaments();
-  const importedDecks = useMemo(() => importedDeckSummaries(imported), [imported]);
+  // Seed events the directory already lists; a re-import of one adds no second copy of its decks.
+  const seedEventIds = useMemo(() => new Set(decks.flatMap((deck) => (deck.tournament ? [deck.tournament.id] : []))), [decks]);
+  const importedDecks = useMemo(() => importedDeckSummaries(imported, seedEventIds), [imported, seedEventIds]);
   const all = useMemo(() => mergeDecks(decks, importedDecks), [decks, importedDecks]);
   const importedIds = useMemo(() => new Set(all.slice(decks.length).map((deck) => deck.id)), [all, decks.length]);
   const cardOptions = useMemo(() => cardOptionsFor(importedDecks, cards), [importedDecks, cards]);
+  // This browser's votes: "Most upvoted" ranks by the counts the cards show (seed + vote).
+  // Empty on the server and the first render, like the cards themselves.
+  const [localVotes] = useLocalStore(deckVotesStore);
 
   const state = useMemo(() => parseDeckParams(query), [query]);
-  const results = useMemo(() => searchDecks(all, toDeckQuery(state)), [all, state]);
+  const results = useMemo(() => searchDecks(all, { ...toDeckQuery(state), localVotes }), [all, state, localVotes]);
   const filtering = hasActiveFilters(state);
-  const featured = useMemo(() => (filtering ? null : featuredDecks(all)), [filtering, all]);
+  const featured = useMemo(() => (filtering ? null : featuredDecks(all, undefined, localVotes)), [filtering, all, localVotes]);
   const importedShown = importedIds.size > 0 ? results.filter((deck) => importedIds.has(deck.id)).length : 0;
   const tierOf = (archetypeId: string) => {
     const tier = tiers[archetypeId];
     return tier && tier !== "unranked" ? tier : undefined;
   };
 
-  // Event handlers close over the committed state; the debounce timer reads it through refs.
-  const stateRef = useRef(state);
+  // The debounce timer reads the latest `onChange` through a ref; every change is an updater
+  // applied to the URL's current state, so quick successive changes never drop one another.
   const onChangeRef = useRef(onChange);
   useLayoutEffect(() => {
-    stateRef.current = state;
     onChangeRef.current = onChange;
-  }, [state, onChange]);
+  }, [onChange]);
 
   // The search box edits a local draft; the URL follows after a short pause.
   const [draft, setDraft] = useState(state.text);
@@ -154,7 +164,8 @@ function DirectoryView({
 
   const update = (patch: Partial<DeckParams>) => {
     if (!onChange) return;
-    onChange({ ...state, ...takePendingText(), ...patch });
+    const pending = takePendingText();
+    onChange((prev) => ({ ...prev, ...pending, ...patch }));
   };
 
   const onTextChange = (value: string) => {
@@ -162,15 +173,18 @@ function DirectoryView({
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
       timer.current = undefined;
-      onChangeRef.current?.({ ...stateRef.current, text: value });
+      onChangeRef.current?.((prev) => ({ ...prev, text: value }));
     }, TEXT_DEBOUNCE_MS);
   };
 
+  const resultsHeading = useRef<HTMLHeadingElement>(null);
   const reset = () => {
     window.clearTimeout(timer.current);
     timer.current = undefined;
     setDraft("");
-    onChange?.(resetDeckFilters(state));
+    onChange?.(resetDeckFilters);
+    // Both reset buttons unmount once nothing is filtered: land on the results heading, not <body>.
+    resultsHeading.current?.focus();
   };
 
   // "Show more" pagination, reset whenever the filters or sort change.
@@ -234,7 +248,7 @@ function DirectoryView({
       <section aria-labelledby={`${id}-results`} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 id={`${id}-results`} className="text-xl font-bold text-white">
+            <h2 ref={resultsHeading} id={`${id}-results`} tabIndex={-1} className="text-xl font-bold text-white focus:outline-none">
               {filtering ? "Matching decks" : "All decks"}
             </h2>
             <p aria-live="polite" className="mt-1 text-sm text-ash-400">
@@ -303,34 +317,28 @@ function DirectoryView({
 }
 
 /**
- * URL-synced deck directory. Filter changes render immediately (optimistic query) while
- * `router.replace` brings the URL along. The server parent must wrap it in <Suspense>.
+ * URL-synced deck directory. Filtering is entirely client-side, so changes go through the native
+ * History API (as on /meta): Next integrates `history.replaceState` with the App Router, so
+ * `useSearchParams` follows without a server round-trip (no RSC refetch of the whole deck list,
+ * and no hard-navigation fallback when offline), and the scroll position stays put. Updates read
+ * and write `window.location` directly, which is current even before React re-renders.
+ * The server parent must wrap it in <Suspense>.
  */
 export function DeckDirectory(props: DeckDirectoryProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [query, setOptimisticQuery] = useOptimistic(searchParams.toString());
-  const [, startTransition] = useTransition();
-  const queryRef = useRef(query);
-  useEffect(() => {
-    queryRef.current = query;
-  }, [query]);
 
   const onChange = useCallback(
-    (next: DeckParams) => {
-      const nextQuery = serializeDeckParams(next, queryRef.current);
-      if (nextQuery === queryRef.current) return;
-      queryRef.current = nextQuery;
-      startTransition(() => {
-        setOptimisticQuery(nextQuery);
-        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-      });
+    (update: DeckParamsUpdate) => {
+      const current = window.location.search.replace(/^\?/, "");
+      const nextQuery = serializeDeckParams(update(parseDeckParams(current)), current);
+      if (nextQuery === current) return;
+      window.history.replaceState(null, "", `${pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`);
     },
-    [pathname, router, setOptimisticQuery],
+    [pathname],
   );
 
-  return <DirectoryView {...props} query={query} onChange={onChange} />;
+  return <DirectoryView {...props} query={searchParams.toString()} onChange={onChange} />;
 }
 
 /** Suspense fallback: the unfiltered directory with inert controls, so the static HTML carries real decks. */

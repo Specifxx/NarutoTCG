@@ -49,22 +49,46 @@ export function aggregateImported(tournaments: readonly Tournament[]): Tournamen
   return aggregates;
 }
 
+/** Prefix the import pipeline puts on every imported event id. */
+const IMPORTED_ID_PREFIX = "local-";
+
+/** An imported event's id without the `local-` prefix: a re-imported seed event's JSON comes back as `local-<seed id>`. */
+function unprefixedId(tournamentId: string): string {
+  return tournamentId.startsWith(IMPORTED_ID_PREFIX) ? tournamentId.slice(IMPORTED_ID_PREFIX.length) : tournamentId;
+}
+
+/**
+ * True when an imported aggregate is a copy of a tracked (seed) event: its id, with or without the
+ * `local-` prefix, is a seed id. Re-importing an event's own "Download JSON" export does exactly this.
+ */
+export function isSeedCopy(aggregate: Pick<TournamentAggregate, "tournamentId">, seedIds: ReadonlySet<string>): boolean {
+  return seedIds.has(aggregate.tournamentId) || seedIds.has(unprefixedId(aggregate.tournamentId));
+}
+
 /**
  * Seed aggregates plus imported ones, deduplicated by tournament id. Seed events win over
- * imports with the same id; among imports the first occurrence wins.
+ * imports with the same id, and over imports that are copies of them (`local-<seed id>`), so a
+ * re-imported tracked event is never counted twice; among imports the first occurrence wins.
  */
 export function mergeImportedAggregates(
   seed: readonly TournamentAggregate[],
   imported: readonly TournamentAggregate[],
 ): TournamentAggregate[] {
-  const seen = new Set(seed.map((a) => a.tournamentId));
+  const seedIds = new Set(seed.map((a) => a.tournamentId));
+  const seen = new Set(seedIds);
   const merged = [...seed];
   for (const aggregate of imported) {
-    if (seen.has(aggregate.tournamentId)) continue;
+    if (seen.has(aggregate.tournamentId) || isSeedCopy(aggregate, seedIds)) continue;
     seen.add(aggregate.tournamentId);
     merged.push(aggregate);
   }
   return merged;
+}
+
+/** How many distinct imported events {@link mergeImportedAggregates} leaves out as copies of tracked events. */
+export function countSeedCopies(seed: readonly TournamentAggregate[], imported: readonly TournamentAggregate[]): number {
+  const seedIds = new Set(seed.map((a) => a.tournamentId));
+  return new Set(imported.filter((a) => isSeedCopy(a, seedIds)).map((a) => a.tournamentId)).size;
 }
 
 /** ISO date of the newest event, or null without events. */
@@ -166,6 +190,15 @@ export function formatWinRateInterval(winRate: number | null, interval: [number,
   return `${formatPercent(winRate)} (${(interval[0] * 100).toFixed(1)}–${(interval[1] * 100).toFixed(1)})`;
 }
 
+/**
+ * Raw top-cut multiple of the field: the archetype's share of top-cut slots ÷ its share of the
+ * field, which equals its conversion rate ÷ the field-wide conversion. Unsmoothed, so it matches
+ * the Field vs top cut ratio; null when the archetype has no entries.
+ */
+export function rawConversionMultiple(stat: Pick<ArchetypeStats, "metaShare" | "topCutShare">): number | null {
+  return stat.metaShare > 0 ? stat.topCutShare / stat.metaShare : null;
+}
+
 /** Conversion lift as a multiplier: 1.62 → "1.6×". */
 export function formatLift(lift: number): string {
   return Number.isFinite(lift) ? `${lift.toFixed(1)}×` : "—";
@@ -176,11 +209,16 @@ export function formatWLD(record: { wins: number; losses: number; draws: number 
   return `${record.wins}-${record.losses}-${record.draws}`;
 }
 
+/** A 95% interval in whole percents: [0.431, 0.618] → "43–62%". */
+export function formatIntervalPercent(interval: readonly [number, number]): string {
+  return `${Math.round(interval[0] * 100)}–${Math.round(interval[1] * 100)}%`;
+}
+
 /** Hover text for a matrix cell: "Pain vs Gaara: 52.6% · 60-54-0 · 95% CI 43–62%". */
 export function matchupCellTitle(cell: MatchupCell, rowName: string, columnName: string, minGames: number): string {
   if (cell.mirror) return `${rowName} mirror: ${cell.games} ${cell.games === 1 ? "match" : "matches"} (not counted in win rates)`;
   if (cell.winRate === null) return `${rowName} vs ${columnName}: no games yet`;
-  const ci = cell.interval ? ` · 95% CI ${Math.round(cell.interval[0] * 100)}–${Math.round(cell.interval[1] * 100)}%` : "";
+  const ci = cell.interval ? ` · 95% CI ${formatIntervalPercent(cell.interval)}` : "";
   const low = cell.lowSample ? ` · low sample (fewer than ${minGames} games)` : "";
   return `${rowName} vs ${columnName}: ${formatPercent(cell.winRate)} · ${formatWLD(cell.record)}${ci}${low}`;
 }

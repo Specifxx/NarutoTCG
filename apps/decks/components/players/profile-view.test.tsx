@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import { DeckDirectoryFallback } from "@/components/directory/deck-directory";
 import { PAGE_SIZE, cardOptionsFor } from "@/components/directory/decks";
 import { getAllPlayerHandles, getDeckSummaries, getPlayerProfile } from "@/lib/decks/repository";
+import { formatNumber } from "@/lib/format";
 import { ImportedPlayerLoader } from "./imported-player-loader";
 import { ProfileView } from "./profile-view";
+import { totalUpvotes } from "./upvotes-tile";
 
 const profiles = getAllPlayerHandles().map((handle) => getPlayerProfile(handle)!);
 const pilot = profiles.find((profile) => !profile.isAuthor && profile.decks.length > 0 && profile.results.length > 1)!;
@@ -27,6 +29,9 @@ describe("ProfileView server render", () => {
     const html = renderToString(<ProfileView profile={author} tiers={{}} />);
     expect(html).toContain("Author");
     expect(html).toContain("Published decks");
+    // The server renders the seed total; this browser's votes are added after hydration.
+    const seedUpvotes = author.decks.filter((d) => d.source === "community").reduce((sum, d) => sum + d.votes, 0);
+    expect(html).toMatch(new RegExp(`Upvotes</div><div[^>]*>${formatNumber(seedUpvotes)}</div>`));
     expect(html).not.toContain('id="history"');
     expect(html).not.toContain('href="#history"');
   });
@@ -36,6 +41,20 @@ describe("ProfileView server render", () => {
     expect(html).toContain("Imported player");
     expect(html).toContain("imported in this browser");
     expect(html).not.toContain("Fictional demo profile");
+  });
+});
+
+describe("totalUpvotes", () => {
+  it("adds this browser's votes to the seed votes, as the deck cards do", () => {
+    const decks = [
+      { id: "community--a", votes: 10 },
+      { id: "community--b", votes: 5 },
+    ];
+    expect(totalUpvotes(decks, {})).toBe(15);
+    expect(totalUpvotes(decks, { "community--a": 1, "community--b": -1, "community--other": 1 })).toBe(15);
+    expect(totalUpvotes(decks, { "community--a": 1 })).toBe(16);
+    expect(totalUpvotes([], { "community--a": 1 })).toBe(0);
+    expect(totalUpvotes([{ id: "constructor", votes: 3 }], {})).toBe(3);
   });
 });
 

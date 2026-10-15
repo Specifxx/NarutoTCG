@@ -25,7 +25,8 @@ const OUTCOME_WORDS = new Map<string, MatchOutcome>(Object.entries({
   bye: "bye",
 } satisfies Record<string, MatchOutcome>));
 const INTENTIONAL_DRAW = new Set(["id", "i d", "intentional draw", "intentional", "ided", "idd"]);
-const SCORE = /(\d+)\s*[-–—:/]\s*(\d+)(?:\s*[-–—:/]\s*(\d+))?/;
+/** A game score. Starting only where a digit run starts keeps a long run of digits linear. */
+const SCORE = /(?<!\d)(\d+)\s*[-–—:/]\s*(\d+)(?:\s*[-–—:/]\s*(\d+))?/;
 
 function nameOutcome(text: string, context: MatchResultContext): MatchOutcome | null {
   const key = normalizeName(text);

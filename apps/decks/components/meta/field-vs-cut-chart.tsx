@@ -14,6 +14,7 @@ const ROW_HEIGHT = 40;
 const X_AXIS_BAND = 28;
 const BAR_SIZE = 10;
 
+/** Top-cut share ÷ field share: the raw (unsmoothed) multiple of the field's conversion, as on the tier tiles. */
 function ratio(row: FieldVsTopCutRow): string {
   return row.fieldShare > 0 ? formatLift(row.topCutShare / row.fieldShare) : "—";
 }
@@ -50,7 +51,7 @@ export function FieldVsCutChart({ rows, hasTopCut }: { rows: FieldVsTopCutRow[];
       title="Field vs top cut"
       description={
         hasTopCut
-          ? "Share of all entries vs share of top-cut slots, by field share (Other last). An orange bar longer than its gray twin means the deck converts above its numbers."
+          ? "Share of all entries vs share of top-cut slots, by field share (Other last). An orange bar longer than its gray twin means the deck converts above its numbers; the ratio (top cut ÷ field) is its raw multiple of the field's conversion."
           : "None of the selected events had a top cut, so every top-cut share is 0%."
       }
       legend={[
@@ -72,7 +73,7 @@ export function FieldVsCutChart({ rows, hasTopCut }: { rows: FieldVsTopCutRow[];
                 Top cut
               </th>
               <th scope="col" className="py-1.5 text-right font-semibold">
-                Ratio
+                Top cut ÷ field
               </th>
             </tr>
           </thead>
@@ -96,6 +97,9 @@ export function FieldVsCutChart({ rows, hasTopCut }: { rows: FieldVsTopCutRow[];
         <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 640, height }}>
           <BarChart
             data={data}
+            accessibilityLayer={false}
+            role="img"
+            aria-label="Field vs top cut bar chart. Switch to the Table view for exact values."
             layout="vertical"
             margin={{ top: 0, right: 8, bottom: 0, left: 0 }}
             barGap={CHART.gap}

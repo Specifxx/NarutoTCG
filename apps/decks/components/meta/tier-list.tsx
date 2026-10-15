@@ -7,7 +7,7 @@ import { formatNumber, formatPercent } from "@/lib/format";
 import { TIER_CONFIG, TIER_META } from "@/lib/meta/config";
 import type { ArchetypeTrend } from "@/lib/meta/stats";
 import type { ArchetypeStats, TierId } from "@/lib/meta/types";
-import { formatLift, unrankedReason } from "./derive";
+import { formatLift, rawConversionMultiple, unrankedReason } from "./derive";
 import { TrendValue } from "./trend";
 
 const RANKED_TIERS: readonly Exclude<TierId, "unranked">[] = ["S", "A", "B", "C"];
@@ -61,7 +61,13 @@ function ArchetypeTile({
         <Metric label="Adj. win rate">{formatPercent(stat.adjustedWinRate)}</Metric>
         <Metric label="Meta share">{formatPercent(stat.metaShare)}</Metric>
         <Metric label="Top-cut conversion">
-          {hasTopCut ? `${formatPercent(stat.conversionRate)} · ${formatLift(stat.conversionLift)} field` : "No top cut"}
+          {hasTopCut ? (
+            <span title="Conversion rate and its raw multiple of the field's conversion (the same ratio as Field vs top cut)">
+              {formatPercent(stat.conversionRate)} · {formatLift(rawConversionMultiple(stat) ?? Number.NaN)} field
+            </span>
+          ) : (
+            "No top cut"
+          )}
         </Metric>
         <Metric label="Share trend">
           <TrendValue trend={trend} />

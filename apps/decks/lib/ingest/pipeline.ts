@@ -1,12 +1,15 @@
 import { getArchetype } from "@/lib/data/archetypes";
+import type { Tournament } from "@naruto-tcg/types";
 import { assembleTournament, assignArchetype, canonicalOrder, failed, summarize } from "./assemble";
+import { bracketConflicts, bracketPlacements } from "./bracket";
 import { autoMapColumns, cell, COLUMN_FIELDS, describeFields, missingRequiredFields } from "./columns";
 import { parseCsv } from "./csv";
-import { slugify } from "./slug";
+import { idSlug } from "./slug";
 import { detectJsonFormat, TournamentSchema, zodIssues } from "./schema";
 import { convertScraped } from "./scraped";
+import { stripControlCharactersDeep } from "./text";
 import { sortIssues, type ColumnMapping, type CsvKind, type EventMetaInput, type IngestIssue, type IngestResult, type RawEvent } from "./types";
-import { validateTournament } from "./validate";
+import { describeConflicts, isPermutation, validateTournament } from "./validate";
 
 export interface CsvFileInput {
   text: string;
@@ -126,10 +129,36 @@ export function ingestCsv(input: IngestCsvInput): IngestResult {
   return assembleTournament(raw, issues, input.now);
 }
 
+/**
+ * The record with placements that follow its top cut when the stored ones contradict it (with a
+ * warning), so an import never names the wrong winner. Order within each bracket band, and
+ * outside the cut, stays as recorded.
+ */
+function followBracket(t: Tournament, issues: IngestIssue[]): Tournament {
+  const ids = new Set(t.players.map((p) => p.id));
+  if (ids.size !== t.players.length || !isPermutation(t.players.map((p) => p.placement))) return t;
+  const conflicts = bracketConflicts(t);
+  if (conflicts.length === 0) return t;
+  const placements = bracketPlacements(t.players, t.matches, new Map(t.players.map((p) => [p.id, p.placement])));
+  issues.push({
+    severity: "warning",
+    code: "placements-recomputed",
+    message: `The stored placements contradict the top cut results: ${describeConflicts(conflicts)} Top cut players were re-placed by how far they got in the bracket; the stored order is kept within each round and outside the cut.`,
+    source: "json",
+    field: "players",
+  });
+  return canonicalOrder({ ...t, players: t.players.map((p) => ({ ...p, placement: placements.get(p.id)! })) });
+}
+
 function ingestCanonical(value: unknown, options: IngestJsonOptions): IngestResult {
   const parsed = TournamentSchema.safeParse(value);
   if (!parsed.success) return failed(zodIssues(parsed.error, "json"));
-  const data = parsed.data;
+  const issues: IngestIssue[] = [];
+  const cleaned = stripControlCharactersDeep(parsed.data);
+  if (cleaned.changed) {
+    issues.push({ severity: "warning", code: "control-characters-removed", message: "Some values held invisible control characters; they were removed.", source: "json" });
+  }
+  const data = cleaned.value;
   const meta = mergeMeta(
     {
       name: data.name,
@@ -146,7 +175,6 @@ function ingestCanonical(value: unknown, options: IngestJsonOptions): IngestResu
     options.metaOverrides,
   );
 
-  const issues: IngestIssue[] = [];
   let fromLabel = 0;
   let inferred = 0;
   const players = data.players.map((player, index) => {
@@ -161,19 +189,22 @@ function ingestCanonical(value: unknown, options: IngestJsonOptions): IngestResu
     return { ...player, archetypeId };
   });
 
-  const tournament = canonicalOrder({
-    ...data,
-    ...meta,
-    format: meta.format ?? data.format,
-    swissRounds: meta.swissRounds ?? data.swissRounds,
-    topCutSize: meta.topCutSize ?? data.topCutSize,
-    bestOf: meta.bestOf ?? data.bestOf,
-    // Slugified so hand-written ids with spaces, "/" or "#" still make safe URLs and deck ids.
-    id: `local-${slugify(data.id.replace(/^local-/, ""), "event")}`,
-    players,
-    source: "import",
-    importedAt: options.now ?? new Date().toISOString(),
-  });
+  const tournament = followBracket(
+    canonicalOrder({
+      ...data,
+      ...meta,
+      format: meta.format ?? data.format,
+      swissRounds: meta.swissRounds ?? data.swissRounds,
+      topCutSize: meta.topCutSize ?? data.topCutSize,
+      bestOf: meta.bestOf ?? data.bestOf,
+      // Slugified (and length-capped) so hand-written ids with spaces, "/" or "#" still make safe URLs and deck ids.
+      id: `local-${idSlug(data.id.replace(/^local-/, ""), "event")}`,
+      players,
+      source: "import",
+      importedAt: options.now ?? new Date().toISOString(),
+    }),
+    issues,
+  );
   issues.push(...validateTournament(tournament));
   return { tournament, issues: sortIssues(issues), summary: summarize(tournament, issues, fromLabel, inferred) };
 }

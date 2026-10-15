@@ -1,7 +1,9 @@
 import type { EventLocation, EventTier } from "@naruto-tcg/types";
 import { z } from "zod";
-import { EventLocationSchema, EventTierSchema, zodIssues } from "./schema";
-import { normalizeDate, normalizeName } from "./text";
+import { RULES } from "@/lib/rules";
+import { EventLocationSchema, EventTierSchema, MAX_EVENT_NAME_LENGTH, zodIssues } from "./schema";
+import { MAX_CELL_LENGTH } from "./csv";
+import { normalizeDate, normalizeName, stripControlCharactersDeep } from "./text";
 import type { EventMetaInput, IngestIssue, IngestSource, RawEvent, RawPairing, RawStanding } from "./types";
 
 /**
@@ -16,7 +18,8 @@ export const ScrapedDecklistSchema = z.union([
   z.string(),
   z.object({
     leader: z.string().nullish(),
-    cards: z.array(z.object({ quantity: Numberish, name: z.string().nullish(), id: z.string().nullish() })),
+    // A number above a whole main deck is rejected here; such a string is rejected by the list parser.
+    cards: z.array(z.object({ quantity: z.union([z.number().max(RULES.mainDeckSize), z.string()]), name: z.string().nullish(), id: z.string().nullish() })),
   }),
 ]);
 
@@ -44,7 +47,7 @@ export const ScrapedPairingSchema = z.object({
 });
 
 export const ScrapedEventSchema = z.object({
-  name: z.string().trim().min(1),
+  name: z.string().trim().min(1).max(MAX_EVENT_NAME_LENGTH),
   date: z.string().trim().min(1),
   tier: z.string().nullish(),
   format: z.string().nullish(),
@@ -125,16 +128,39 @@ function decklistToText(list: NonNullable<ScrapedStanding["decklist"]>): string 
   return lines.join("\n");
 }
 
-function parseRows<T>(items: readonly unknown[], schema: z.ZodType<T>, source: IngestSource, issues: IngestIssue[]) {
+/** Path and length of the first string in `value` longer than {@link MAX_CELL_LENGTH}, if any. */
+function longString(value: unknown, path: string, depth = 0): { path: string; length: number } | null {
+  if (typeof value === "string") return value.length > MAX_CELL_LENGTH ? { path, length: value.length } : null;
+  if (depth > 8 || typeof value !== "object" || value === null) return null;
+  for (const [key, item] of Object.entries(value)) {
+    const found = longString(item, Array.isArray(value) ? `${path}[${key}]` : `${path}.${key}`, depth + 1);
+    if (found) return found;
+  }
+  return null;
+}
+
+const tooLong = (found: { path: string; length: number }, what: string) =>
+  `${found.path} has ${found.length.toLocaleString("en-US")} characters, more than the ${MAX_CELL_LENGTH.toLocaleString("en-US")} a value may hold; ${what}.`;
+
+/** Rows that parse, with control characters removed; malformed and over-long rows are skipped with an error each. */
+function parseRows<T>(items: readonly unknown[], schema: z.ZodType<T>, source: IngestSource, issues: IngestIssue[], cleaned: { changed: boolean }) {
   const rows: Array<{ row: number; value: T }> = [];
   items.forEach((item, index) => {
     const parsed = schema.safeParse(item);
-    if (parsed.success) rows.push({ row: index + 1, value: parsed.data });
-    else {
+    if (!parsed.success) {
       for (const issue of zodIssues(parsed.error, source, `${source}[${index}]`)) {
         issues.push({ ...issue, row: index + 1, message: `${issue.message} (row skipped)` });
       }
+      return;
     }
+    const long = longString(parsed.data, `${source}[${index}]`);
+    if (long) {
+      issues.push({ severity: "error", code: "cell-too-long", message: tooLong(long, "row skipped"), source, row: index + 1, field: long.path });
+      return;
+    }
+    const clean = stripControlCharactersDeep(parsed.data);
+    if (clean.changed) cleaned.changed = true;
+    rows.push({ row: index + 1, value: clean.value });
   });
   return rows;
 }
@@ -206,16 +232,26 @@ function toPairing({ row, value }: { row: number; value: ScrapedPairing }): RawP
 
 /**
  * Converts scraped JSON into pipeline rows. Returns `raw: null` (with schema errors) only when
- * the `event` block is unusable; malformed rows are skipped with an error each. A missing or
- * unknown tier defaults to store championship with a warning; dates are normalized when the
- * spelling is unambiguous; a `sourceUrl` is kept in the notes.
+ * the `event` block is unusable; malformed rows, and rows with a value longer than
+ * {@link MAX_CELL_LENGTH}, are skipped with an error each. Control characters are removed with a
+ * warning. A missing or unknown tier defaults to store championship with a warning; dates are
+ * normalized when the spelling is unambiguous; a `sourceUrl` is kept in the notes.
  */
 export function convertScraped(value: unknown): { raw: RawEvent | null; issues: IngestIssue[] } {
   const envelope = EnvelopeSchema.safeParse(value);
   if (!envelope.success) return { raw: null, issues: zodIssues(envelope.error, "json") };
+  const { notes, ...fields } = envelope.data.event;
+  const long = longString(fields, "event");
+  if (long) return { raw: null, issues: [{ severity: "error", code: "cell-too-long", message: tooLong(long, "the event cannot be read"), source: "json", field: long.path }] };
   const issues: IngestIssue[] = [];
-  const meta = toMeta(envelope.data.event, issues);
-  const standings = parseRows(envelope.data.standings ?? [], ScrapedStandingSchema, "standings", issues).map(toStanding);
-  const pairings = parseRows(envelope.data.pairings ?? [], ScrapedPairingSchema, "pairings", issues).map(toPairing);
+  const cleaned = { changed: false };
+  const event = stripControlCharactersDeep({ ...fields, notes });
+  if (event.changed) cleaned.changed = true;
+  const meta = toMeta(event.value, issues);
+  const standings = parseRows(envelope.data.standings ?? [], ScrapedStandingSchema, "standings", issues, cleaned).map(toStanding);
+  const pairings = parseRows(envelope.data.pairings ?? [], ScrapedPairingSchema, "pairings", issues, cleaned).map(toPairing);
+  if (cleaned.changed) {
+    issues.push({ severity: "warning", code: "control-characters-removed", message: "Some values held invisible control characters; they were removed.", source: "json" });
+  }
   return { raw: { meta, standings, pairings, decklistRows: [] }, issues };
 }

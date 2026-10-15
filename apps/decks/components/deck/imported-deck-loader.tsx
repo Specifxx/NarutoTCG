@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import { useClientTitle } from "@/components/tournaments/client-title";
 import { EmptyState } from "@/components/ui/badges";
 import { PageHeader } from "@/components/ui/page-header";
 import type { TierId } from "@/lib/meta/types";
@@ -40,9 +41,9 @@ export function ImportedDeckLoader({ deckId, tournamentId, tiers }: { deckId: st
   const imported = useImportedTournaments();
   const deck = useMemo(() => findImportedDeck(imported, deckId), [imported, deckId]);
 
-  useEffect(() => {
-    if (deck) document.title = `${deckPageTitle(deck)} · Naruto TCG Decks`;
-  }, [deck]);
+  // Not a one-shot document.title write (Next's metadata title overwrites it on hard loads) and not a
+  // React <title> (the later-mounting metadata title is inserted ahead of it): the shared hook keeps it set.
+  useClientTitle(hydrated ? (deck ? deckPageTitle(deck) : "Deck not found") : null);
 
   if (!hydrated) return <LoadingState />;
 

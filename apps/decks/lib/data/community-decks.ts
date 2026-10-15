@@ -4,6 +4,10 @@ import { communityDeckId, type DeckDetail } from "@/lib/decks/types";
 /**
  * Community-published decklists (fictional demo content). Records are playtest results the
  * authors logged on the simulator, not tournament results.
+ *
+ * Server only: import it from server modules (lib/decks/repository.ts), never from a "use client"
+ * module or anything one imports (such as lib/decks/catalog.ts), or every write-up and list ships
+ * in the browser bundle. Pages hand client components the summaries they need instead.
  */
 
 export const COMMUNITY_TAGS = [

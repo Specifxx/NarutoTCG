@@ -1,2 +1,11 @@
 @import "@naruto-tcg/ui/theme.css";
 @source "../../../packages/ui/src";
+
+/*
+ * The sticky site header (top bar plus the decks sub-nav, about 98px) would otherwise cover
+ * whatever focus or an in-page link scrolls to. Scroll padding keeps those targets below it,
+ * so sections need no scroll-margin of their own (the two would add up).
+ */
+html {
+  scroll-padding-top: 7rem;
+}

@@ -21,7 +21,7 @@ function TrendIcon({ direction, className }: { direction: TrendDirection; classN
 export function TrendValue({ trend }: { trend: ArchetypeTrend | undefined }) {
   if (!trend) {
     return (
-      <span className="text-ash-500" title={`Needs more than ${TREND_EVENTS} events in the selection`}>
+      <span className="text-ash-500" title={`Needs at least ${2 * TREND_EVENTS} events in the selection`}>
         —<span className="sr-only"> no trend yet</span>
       </span>
     );

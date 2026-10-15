@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
-import { eventTotals, filterEvents, formatOptions, mergeEventSummaries, normalizeQuery, offeredOr, regionOptions } from "./directory";
+import {
+  eventTotals,
+  filterEvents,
+  formatOptions,
+  mergeEventSummaries,
+  normalizeQuery,
+  offeredOr,
+  regionOptions,
+  trackedEventId,
+} from "./directory";
 import { classifyRegion } from "./region";
 import { summarize, type TournamentSummary } from "./summary";
 import { fixtureTournament } from "./test-fixtures";
@@ -32,6 +41,16 @@ describe("classifyRegion", () => {
   it("puts unknown places in other", () => {
     expect(classifyRegion({ country: "JP" })).toBe("other");
     expect(classifyRegion({})).toBe("other");
+  });
+  it("never reads Object.prototype keys as countries or regions", () => {
+    for (const name of ["Constructor", "constructor", " CONSTRUCTOR. ", "toString", "__proto__", "hasOwnProperty", "valueOf"]) {
+      expect(classifyRegion({ country: name }), name).toBe("other");
+      expect(classifyRegion({ city: "Testville", region: name }), name).toBe("other");
+    }
+    // An event in such a place still shows up under "Other regions".
+    const odd = event({ id: "odd", location: { city: "Testville", country: "Constructor" } });
+    expect(regionOptions([odd])).toContain("other");
+    expect(filterEvents([odd], { region: "other" }).map((e) => e.id)).toEqual(["odd"]);
   });
   it("classifies every seed event into a named region", () => {
     for (const summary of SEED) expect(classifyRegion(summary.location)).not.toBe("other");
@@ -95,6 +114,22 @@ describe("mergeEventSummaries", () => {
       ["x", "Seed"],
       ["local-y", merged[1]!.name],
     ]);
+  });
+
+  it("skips a re-import of a seed event, so the seed row is listed and counted once", () => {
+    const seed = SEED.slice(0, 3);
+    const twin = { ...seed[1]!, id: `local-${seed[1]!.id}`, source: "import" as const };
+    const fresh = event({ id: "local-new-event", source: "import" });
+    const merged = mergeEventSummaries(seed, [twin, fresh]);
+    expect(merged.map((e) => e.id)).toEqual([...seed.map((e) => e.id), "local-new-event"]);
+    expect(merged[1]).toBe(seed[1]);
+    expect(eventTotals(merged)).toEqual(eventTotals([...seed, fresh]));
+    // Only the import prefix is stripped, and only from imports.
+    expect(trackedEventId(twin)).toBe(seed[1]!.id);
+    expect(trackedEventId({ id: "local-x", source: "seed" })).toBe("local-x");
+    expect(trackedEventId({ id: "localx", source: "import" })).toBe("localx");
+    // Two different imports stay apart.
+    expect(mergeEventSummaries([], [fresh, event({ id: "local-other", source: "import" })])).toHaveLength(2);
   });
 });
 

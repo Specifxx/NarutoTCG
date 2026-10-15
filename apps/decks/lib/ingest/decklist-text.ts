@@ -1,7 +1,8 @@
 import type { CardType, Decklist } from "@naruto-tcg/types";
 import { CARD_INDEX } from "@/lib/data/cards";
+import { RULES } from "@/lib/rules";
 import { cardLabel, describeSuggestions, resolveCard } from "./cards";
-import { normalizeName } from "./text";
+import { clip, normalizeName } from "./text";
 import type { IngestIssue, IngestSource } from "./types";
 
 /** A card type section, or `"main"` for a generic "Main Deck" header. */
@@ -58,11 +59,20 @@ export function parseQuantity(raw: string | undefined): number | null {
   return match ? Number(match[1]) : Number.NaN;
 }
 
-const LEADER_LINE = /^leaders?\s*(?:\(\s*\d+\s*\))?\s*[:=\-–—]\s*(.+)$/i;
+// Anchored, and written so that no whitespace run can be split between two quantifiers before a
+// match fails: a long line costs linear time, never quadratic.
+const LEADER_LINE = /^leaders?\s*(?:\(\s*\d+\s*\)\s*)?[:=\-–—]\s*(.+)$/i;
 const QUANTITY_FIRST = /^(\d+)\s*(?:[x×](?=\s))?\s*(.+)$/i;
-const QUANTITY_LAST = /^(.+?)\s*(?:[x×]\s*(\d+)|\(\s*[x×]?\s*(\d+)\s*\))$/i;
+const QUANTITY_LAST = /^(.*?\S)\s*(?:[x×]\s*(\d+)|\(\s*[x×]?\s*(\d+)\s*\))$/i;
 const SKIPPED_LINE = /^(?:\/\/|#)|^total\b|^\d+\s+cards?$/i;
-const TRAILING_COMMENT = /\s+\/\/.*$/;
+/** Start of a trailing `//` comment: whitespace then `//` (so "https://…" is not one). */
+const COMMENT_START = /\s\/\//;
+
+/** The line without a trailing `// comment`. */
+function stripTrailingComment(line: string): string {
+  const start = line.search(COMMENT_START);
+  return start >= 0 ? line.slice(0, start) : line;
+}
 
 /** "4 Konan", "4x Konan", "Konan x4" or "Konan (4)" → card text and quantity; null quantity when none is given. */
 function splitQuantity(text: string): Pick<DecklistLine, "quantity" | "card"> {
@@ -83,7 +93,7 @@ export function parseDecklistText(text: string, context: DecklistContext = {}): 
   const lines: DecklistLine[] = [];
   let section: DeckSection | undefined;
   for (const raw of text.split(/\r?\n|[;|]/)) {
-    const line = raw.replace(TRAILING_COMMENT, "").trim();
+    const line = stripTrailingComment(raw).trim();
     if (!line || SKIPPED_LINE.test(line)) continue;
     const leader = line.match(LEADER_LINE);
     if (leader) {
@@ -126,7 +136,7 @@ export function buildDecklist(lines: readonly DecklistLine[], context: DecklistC
       report(line, {
         severity: "error",
         code: "unknown-card",
-        message: `${prefix}unknown card "${line.card}".`,
+        message: `${prefix}unknown card "${clip(line.card)}".`,
         suggestion: alternatives ? `Did you mean ${alternatives}?` : "Check the spelling or use the card id, e.g. NT02-009.",
       });
       continue;
@@ -136,14 +146,14 @@ export function buildDecklist(lines: readonly DecklistLine[], context: DecklistC
       report(line, {
         severity: "warning",
         code: "card-fuzzy-match",
-        message: `${prefix}read "${line.card}" as ${cardLabel(card.id)}.`,
+        message: `${prefix}read "${clip(line.card)}" as ${cardLabel(card.id)}.`,
         suggestion: resolution.suggestions.length > 0 ? `Other close matches: ${describeSuggestions(resolution.suggestions)}.` : undefined,
       });
     } else if (resolution.confidence < 0.8) {
       report(line, {
         severity: "warning",
         code: "card-ambiguous",
-        message: `${prefix}"${line.card}" matches several cards; used ${cardLabel(card.id)}.`,
+        message: `${prefix}"${clip(line.card)}" matches several cards; used ${cardLabel(card.id)}.`,
         suggestion: `Add the card id to pick ${describeSuggestions(resolution.suggestions)} instead.`,
       });
     }
@@ -174,6 +184,14 @@ export function buildDecklist(lines: readonly DecklistLine[], context: DecklistC
       quantity = 1;
     } else if (!Number.isInteger(quantity) || quantity < 1) {
       report(line, { severity: "warning", code: "invalid-quantity", message: `${prefix}invalid quantity for ${card.name}; line skipped.` });
+      continue;
+    } else if (quantity > RULES.mainDeckSize) {
+      report(line, {
+        severity: "error",
+        code: "invalid-quantity",
+        message: `${prefix}${quantity} copies of ${card.name} is more than a whole ${RULES.mainDeckSize}-card main deck; line skipped.`,
+        suggestion: "Check that the Quantity column holds card counts.",
+      });
       continue;
     }
     copies.set(card.id, (copies.get(card.id) ?? 0) + quantity);

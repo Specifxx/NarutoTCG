@@ -6,13 +6,21 @@ import { computeFinalPlacements, computeRecords, emptyRecord, formatRecord, matc
 import { classifyDecklist, resolveArchetypeLabel } from "./archetypes";
 import { buildDecklist, parseDecklistText, parseQuantity, parseSection, type DecklistLine } from "./decklist-text";
 import { isByeToken, parseMatchResult, parseRecord, parseRoundLabel, parseStage, type ParsedMatchResult } from "./results";
-import { slugify, uniqueSlug } from "./slug";
-import { closestMatch, isIsoDate, normalizeName } from "./text";
+import { bracketConflicts, bracketPlacements } from "./bracket";
+import { idSlug, uniqueSlug } from "./slug";
+import { clip, closestMatches, isIsoDate, normalizeName, stripControlCharacters } from "./text";
 import { sortIssues, type EventMetaInput, type IngestIssue, type IngestResult, type IngestSource, type IngestSummary, type RawEvent } from "./types";
-import { isPermutation, validateTournament } from "./validate";
+import { describeConflicts, isPermutation, validateTournament } from "./validate";
 
 /** Similarity at which a misspelled name in pairings or decklists is matched to a known player. */
 const PLAYER_FUZZY_THRESHOLD = 0.85;
+/** Similarity from which an unknown name gets a "Did you mean" suggestion. */
+const SUGGESTION_FLOOR = 0.5;
+/**
+ * Distinct unknown names that get a suggestion. Past it only close matches are looked for, which
+ * is much cheaper: a file full of different unknown names would otherwise cost names × players.
+ */
+const SUGGESTED_NAMES = 50;
 /** Classifier confidence at which a list that contradicts the reported deck name is flagged. */
 const MISMATCH_CONFIDENCE = 0.8;
 
@@ -53,29 +61,59 @@ export function failed(issues: IngestIssue[]): IngestResult {
   };
 }
 
-/** Players by every name and handle they go by. A name shared by two players is ambiguous. */
+/** Outcome of a fuzzy lookup for a name that matched no player exactly. */
+interface Miss {
+  /** The single close player, accepted with a warning. */
+  fuzzy: Draft | null;
+  /** "A and B" when two players are equally close. */
+  tied: string | null;
+  /** Best candidate for a "Did you mean" suggestion. */
+  suggestion: string | null;
+}
+
+/**
+ * Players by every name and handle they go by. A name shared by two players is ambiguous. Names
+ * that miss are fuzzy-matched once each (every player is added before the first lookup), so
+ * cost grows with the distinct names, not the rows.
+ */
 function createRoster(issues: IngestIssue[]) {
   const drafts: Draft[] = [];
+  /** Each player's normalized display name, for fuzzy matching. */
+  const candidates: Array<{ candidate: Draft; key: string }> = [];
   const usedIds = new Set<string>();
   const keys = new Map<string, Draft | null>();
+  const misses = new Map<string, Miss>();
   const reported = new Set<string>();
-  const register = (text: string | undefined, draft: Draft) => {
-    const key = normalizeName(text ?? "");
+  const register = (key: string, draft: Draft) => {
     if (!key) return;
     const existing = keys.get(key);
     keys.set(key, existing === undefined || existing === draft ? draft : null);
   };
   /** The player for a name or handle; null when ambiguous, undefined when unknown. */
   const find = (text: string): Draft | null | undefined => keys.get(normalizeName(text));
+  let suggested = 0;
+  const miss = (key: string): Miss => {
+    const cached = misses.get(key);
+    if (cached) return cached;
+    const floor = suggested < SUGGESTED_NAMES ? SUGGESTION_FLOOR : PLAYER_FUZZY_THRESHOLD;
+    const { best, runnerUp } = closestMatches(key, candidates, floor);
+    const fuzzy = best && best.score >= PLAYER_FUZZY_THRESHOLD ? best.candidate : null;
+    const tied = fuzzy && runnerUp && runnerUp.score >= PLAYER_FUZZY_THRESHOLD ? `${fuzzy.name} and ${runnerUp.candidate.name}` : null;
+    if (!fuzzy) suggested++;
+    const result = { fuzzy: tied ? null : fuzzy, tied, suggestion: best ? best.candidate.name : null };
+    misses.set(key, result);
+    return result;
+  };
 
   return {
     drafts,
     find,
-    /** Adds a player under a unique slug of `idSource`. */
+    /** Adds a player under a unique, length-capped slug of `idSource`. */
     add(fields: Omit<Draft, "id">, idSource: string): Draft {
-      const draft = { ...fields, id: uniqueSlug(slugify(idSource), usedIds) };
+      const draft = { ...fields, id: uniqueSlug(idSlug(idSource), usedIds) };
       drafts.push(draft);
-      for (const text of [draft.name, draft.playerId, draft.id]) register(text, draft);
+      candidates.push({ candidate: draft, key: normalizeName(draft.name) });
+      for (const text of [draft.name, draft.playerId, draft.id]) register(normalizeName(text ?? ""), draft);
       return draft;
     },
     /**
@@ -84,22 +122,20 @@ function createRoster(issues: IngestIssue[]) {
      * name and file.
      */
     resolve(text: string, source: IngestSource, row: number, field: string): Draft | null {
-      const hit = find(text);
+      const key = normalizeName(text);
+      const hit = keys.get(key);
       if (hit) return hit;
-      const firstReport = !reported.has(`${source}|${normalizeName(text)}`);
-      reported.add(`${source}|${normalizeName(text)}`);
-      const close = hit === undefined ? closestMatch(text, drafts, (draft) => draft.name) : null;
-      const fuzzy = close && close.score >= PLAYER_FUZZY_THRESHOLD ? close.candidate : null;
-      const rival = fuzzy ? closestMatch(text, drafts.filter((draft) => draft !== fuzzy), (draft) => draft.name) : null;
-      const tied = fuzzy && rival && rival.score >= PLAYER_FUZZY_THRESHOLD ? `${fuzzy.name} and ${rival.candidate.name}` : null;
+      const firstReport = !reported.has(`${source}|${key}`);
+      reported.add(`${source}|${key}`);
+      const { fuzzy, tied, suggestion } = hit === undefined ? miss(key) : { fuzzy: null, tied: null, suggestion: null };
       if (hit === null || tied) {
         if (firstReport) {
           issues.push({
             severity: "error",
             code: "ambiguous-player",
             message: tied
-              ? `"${text}" is close to more than one player (${tied}); rows with this name were skipped.`
-              : `"${text}" matches more than one player; rows with this name were skipped.`,
+              ? `"${clip(text)}" is close to more than one player (${tied}); rows with this name were skipped.`
+              : `"${clip(text)}" matches more than one player; rows with this name were skipped.`,
             suggestion: "Refer to these players by their Player ID.",
             source,
             row,
@@ -109,16 +145,17 @@ function createRoster(issues: IngestIssue[]) {
         return null;
       }
       if (fuzzy) {
-        issues.push({ severity: "warning", code: "player-fuzzy-match", message: `Matched "${text}" to ${fuzzy.name}.`, source, row, field });
-        register(text, fuzzy);
+        issues.push({ severity: "warning", code: "player-fuzzy-match", message: `Matched "${clip(text)}" to ${fuzzy.name}.`, source, row, field });
+        // Later rows with this spelling are exact hits, with no further warning.
+        register(key, fuzzy);
         return fuzzy;
       }
       if (firstReport) {
         issues.push({
           severity: "error",
           code: "unknown-player",
-          message: `"${text}" is not in the standings; rows with this player were skipped.`,
-          ...(close && close.score >= 0.5 ? { suggestion: `Did you mean "${close.candidate.name}"?` } : {}),
+          message: `"${clip(text)}" is not in the standings; rows with this player were skipped.`,
+          ...(suggestion ? { suggestion: `Did you mean "${suggestion}"?` } : {}),
           source,
           row,
           field,
@@ -538,18 +575,35 @@ function buildPlayers(roster: Roster, issues: IngestIssue[], source: IngestSourc
   return { players, fromLabel, inferred };
 }
 
-/** Placements from the standings column when it is a clean 1..N, else from the results (or row order). */
+/**
+ * Placements from the standings column when it is a clean 1..N that the top cut results do not
+ * contradict, else from the results (or row order). A column that contradicts the bracket (often
+ * Swiss ranks exported as placements) keeps its order only within each bracket band and outside
+ * the cut.
+ */
 function assignPlacements(
   players: TournamentPlayer[],
   roster: Roster,
   matches: MatchRecord[],
-  topCutSize: number,
+  cut: { swissRounds: number; topCutSize: number },
   placementColumn: boolean,
   issues: IngestIssue[],
 ): void {
   const reported = roster.drafts.map((draft) => draft.placement);
   if (reported.every((p): p is number => p !== undefined) && isPermutation(reported)) {
     players.forEach((player, index) => (player.placement = reported[index]!));
+    const conflicts = bracketConflicts({ players, matches, ...cut });
+    if (conflicts.length === 0) return;
+    const placements = bracketPlacements(players, matches, new Map(players.map((p) => [p.id, p.placement])));
+    for (const player of players) player.placement = placements.get(player.id)!;
+    issues.push({
+      severity: "warning",
+      code: "placements-recomputed",
+      message: `The placement column contradicts the top cut results: ${describeConflicts(conflicts)} Top cut players were re-placed by how far they got in the bracket; the column's order is kept within each round and outside the cut.`,
+      suggestion: "Export the final standings rather than the Swiss standings.",
+      source: "standings",
+      field: "placement",
+    });
     return;
   }
   if (placementColumn) {
@@ -565,7 +619,7 @@ function assignPlacements(
     players.forEach((player, index) => (player.placement = index + 1));
     return;
   }
-  const computed = computeFinalPlacements({ players, matches, topCutSize });
+  const computed = computeFinalPlacements({ players, matches, topCutSize: cut.topCutSize });
   for (const player of players) player.placement = computed.get(player.id)!;
 }
 
@@ -631,13 +685,15 @@ export function assembleTournament(raw: RawEvent, issues: IngestIssue[], now?: s
   const matches = pairings.map(toMatch).sort(compareMatches);
 
   const { players, fromLabel, inferred } = buildPlayers(roster, issues, raw.standings.length > 0 ? "standings" : "pairings");
-  assignPlacements(players, roster, matches, topCutSize, raw.standings.some((s) => s.placement?.trim()), issues);
+  assignPlacements(players, roster, matches, { swissRounds, topCutSize }, raw.standings.some((s) => s.placement?.trim()), issues);
   crossCheckRecords(roster, matches, issues);
 
   const date = meta.date.trim();
+  const name = stripControlCharacters(meta.name).trim();
   const tournament = canonicalOrder({
-    id: `local-${slugify(meta.name, "event")}-${isIsoDate(date) ? date : slugify(date, "undated")}`,
-    name: meta.name.trim(),
+    // Each part is length-capped, so a long name still gives a short, stable id.
+    id: `local-${idSlug(name, "event")}-${isIsoDate(date) ? date : idSlug(date, "undated")}`,
+    name,
     tier: meta.tier,
     format: meta.format?.trim() || (isIsoDate(date) ? formatForDate(date) : ""),
     date,

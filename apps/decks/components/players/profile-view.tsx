@@ -10,6 +10,7 @@ import { ArchetypeBars } from "./archetype-bars";
 import { HistoryTable } from "./history-table";
 import { ProfileHeader, type ProfileOrigin } from "./profile-header";
 import { archetypeRows, bestResult, matchWinRate } from "./profile";
+import { UpvotesTile } from "./upvotes-tile";
 
 const JUMP_LINK =
   "rounded-md border border-shadow-600 bg-shadow-800 px-2.5 py-1 text-xs font-medium text-ash-300 outline-none hover:border-shadow-500 hover:text-white focus-visible:ring-2 focus-visible:ring-chakra-400";
@@ -36,7 +37,6 @@ export function ProfileView({
     return tier && tier !== "unranked" ? tier : undefined;
   };
   const communityDecks = decks.filter((deck) => deck.source === "community");
-  const upvotes = communityDecks.reduce((sum, deck) => sum + deck.votes, 0);
   const deckKinds = [
     decks.length > communityDecks.length && pluralize(decks.length - communityDecks.length, "tournament list"),
     communityDecks.length > 0 && pluralize(communityDecks.length, "community build"),
@@ -85,7 +85,7 @@ export function ProfileView({
       ) : (
         <section aria-label="Author summary" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatTile label="Published decks" value={formatNumber(communityDecks.length)} detail="Community builds" />
-          <StatTile label="Upvotes" value={formatNumber(upvotes)} detail="Across published decks" />
+          <UpvotesTile decks={communityDecks.map(({ id, votes }) => ({ id, votes }))} />
           {profile.joined && <StatTile label="Member since" value={formatDate(profile.joined)} />}
         </section>
       )}

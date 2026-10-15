@@ -2,7 +2,7 @@
 
 import type { EventTier } from "@naruto-tcg/types";
 import { cx } from "@naruto-tcg/ui";
-import { useId } from "react";
+import { useId, type RefObject } from "react";
 import { EVENT_TIER_ORDER, EVENT_TIER_SHORT, pluralize } from "@/lib/format";
 import { DATE_PRESETS, formatSlug, hasActiveFilters, normalizeTiers, resetFilters, type MetaParams } from "./params";
 
@@ -17,6 +17,8 @@ export function MetaFilters({
   activeFormat,
   importedCount,
   onChange,
+  onReset,
+  rangeRef,
 }: {
   state: MetaParams;
   formats: string[];
@@ -25,6 +27,10 @@ export function MetaFilters({
   /** Imported events in this browser; the toggle only shows when there are some. */
   importedCount: number;
   onChange?: (next: MetaParams) => void;
+  /** Clears the filters and moves focus to a control that stays mounted; defaults to a plain reset. */
+  onReset?: () => void;
+  /** The date-range select, the focus target after a reset. */
+  rangeRef?: RefObject<HTMLSelectElement | null>;
 }) {
   const id = useId();
   const disabled = !onChange;
@@ -43,6 +49,7 @@ export function MetaFilters({
           Date range
         </label>
         <select
+          ref={rangeRef}
           id={`${id}-range`}
           value={state.range}
           disabled={disabled}
@@ -128,7 +135,7 @@ export function MetaFilters({
         <button
           type="button"
           disabled={disabled}
-          onClick={() => onChange?.(resetFilters(state))}
+          onClick={() => (onReset ? onReset() : onChange?.(resetFilters(state)))}
           className={cx("rounded-md px-2 py-1.5 text-sm font-medium text-chakra-300 hover:text-chakra-400 sm:ml-auto", FOCUS)}
         >
           Reset filters

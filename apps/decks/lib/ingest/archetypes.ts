@@ -2,7 +2,7 @@ import type { Decklist } from "@naruto-tcg/types";
 import { ARCHETYPES, ROGUE_ID, type Archetype } from "@/lib/data/archetypes";
 import { CARD_INDEX } from "@/lib/data/cards";
 import { resolveCard } from "./cards";
-import { normalizeName, similarity } from "./text";
+import { normalizeName, similarity, similarityBound } from "./text";
 
 export type ArchetypeMatchMethod = "id" | "name" | "alias" | "fuzzy" | "unknown";
 
@@ -32,6 +32,8 @@ const SIGNATURE_SATURATION = 0.4;
 /** Lowest score that names an archetype: a matching Leader alone, or ~14 signature cards alone. */
 export const CLASSIFY_THRESHOLD = 0.35;
 const FUZZY_LABEL_THRESHOLD = 0.8;
+/** Longest deck label read; the longest archetype name or alias is far shorter. */
+export const MAX_LABEL_LENGTH = 200;
 
 const TRACKED = ARCHETYPES.filter((a) => a.id !== ROGUE_ID);
 
@@ -48,10 +50,12 @@ const LABELS: ReadonlyArray<{ archetype: Archetype; id: string; names: string[];
 /**
  * Maps a reported deck name ("Pain", "Sage Naruto", "uchiha-avenger", "Tsunade — Fifth Hokage")
  * to an archetype id: by id, name or short name, alias, the Leader it names, a known alias
- * inside a longer label ("Lightning Sasuke Tempo"), then typo-tolerant matching.
+ * inside a longer label ("Lightning Sasuke Tempo"), then typo-tolerant matching. Labels longer
+ * than {@link MAX_LABEL_LENGTH} are unknown.
  */
 export function resolveArchetypeLabel(label: string): ArchetypeLabelResolution {
   const unknown: ArchetypeLabelResolution = { archetypeId: ROGUE_ID, method: "unknown", confidence: 0 };
+  if (label.trim().length > MAX_LABEL_LENGTH) return unknown;
   const raw = label.trim().toLowerCase();
   const query = normalizeName(label);
   if (!query) return unknown;
@@ -84,8 +88,11 @@ export function resolveArchetypeLabel(label: string): ArchetypeLabelResolution {
   let best: { id: string; score: number } | null = null;
   for (const { archetype, id, names, aliases } of LABELS) {
     for (const phrase of [id, ...names, ...aliases]) {
-      const score = similarity(query, phrase);
-      if (!best || score > best.score) best = { id: archetype.id, score };
+      // Only a score that reaches the threshold and beats the best so far matters.
+      const needed = Math.max(FUZZY_LABEL_THRESHOLD, best?.score ?? 0);
+      if (similarityBound(query.length, phrase.length) < needed) continue;
+      const score = similarity(query, phrase, needed);
+      if (score >= FUZZY_LABEL_THRESHOLD && (!best || score > best.score)) best = { id: archetype.id, score };
     }
   }
   if (best && best.score >= FUZZY_LABEL_THRESHOLD) {

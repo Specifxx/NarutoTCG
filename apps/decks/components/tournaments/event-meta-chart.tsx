@@ -82,7 +82,15 @@ export function EventMetaChart({ rows, topCutSize, playerCount }: { rows: Series
       table={<BreakdownTable rows={rows} topCutSize={topCutSize} />}
     >
       <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 640, height }}>
-        <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 36, bottom: 0, left: 0 }} barCategoryGap="22%">
+        <BarChart
+          data={rows}
+          accessibilityLayer={false}
+          role="img"
+          aria-label="Event meta bar chart. Switch to the Table view for exact values."
+          layout="vertical"
+          margin={{ top: 0, right: 36, bottom: 0, left: 0 }}
+          barCategoryGap="22%"
+        >
           <CartesianGrid horizontal={false} stroke={CHART.grid} strokeWidth={1} />
           <XAxis
             type="number"

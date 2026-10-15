@@ -31,11 +31,11 @@ const COLUMNS: Column[] = [
   {
     key: "entries",
     label: "Entries",
-    hint: "Players registered on the archetype",
+    hint: "Entries (player registrations) on the archetype across the selected events",
     numeric: true,
     render: (r) => formatNumber(r.entries),
   },
-  { key: "share", label: "Share", hint: "Share of all players", numeric: true, render: (r) => formatPercent(r.metaShare) },
+  { key: "share", label: "Share", hint: "Share of all entries", numeric: true, render: (r) => formatPercent(r.metaShare) },
   {
     key: "record",
     label: "W-L-D",
@@ -57,7 +57,7 @@ const COLUMNS: Column[] = [
     numeric: true,
     render: (r) => formatPercent(r.adjustedWinRate),
   },
-  { key: "topCut", label: "Top cuts", hint: "Players that made a top cut", numeric: true, render: (r) => formatNumber(r.topCut) },
+  { key: "topCut", label: "Top cuts", hint: "Entries that made a top cut", numeric: true, render: (r) => formatNumber(r.topCut) },
   {
     key: "conversion",
     label: "Conv.",
@@ -68,8 +68,8 @@ const COLUMNS: Column[] = [
   },
   {
     key: "lift",
-    label: "Lift",
-    hint: "Smoothed conversion ÷ the field-wide conversion (1.0× = average)",
+    label: "Lift (smoothed)",
+    hint: "Conversion smoothed toward the field, ÷ the field-wide conversion (1.0× = average); the score uses it. Tier tiles and Field vs top cut show the raw multiple.",
     numeric: true,
     render: (r) => formatLift(r.conversionLift),
     needsTopCut: true,

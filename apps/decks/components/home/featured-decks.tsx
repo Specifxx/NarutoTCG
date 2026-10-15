@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DeckCard } from "@/components/decks/deck-card";
+import { VotedDeckCard } from "@/components/directory/voted-deck-card";
 import { EmptyState } from "@/components/ui/badges";
 import { Section } from "@/components/ui/page-header";
 import type { DeckSummary } from "@/lib/decks/types";
@@ -37,7 +37,8 @@ function DeckGroup({
         <ul aria-labelledby={id} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {decks.map((deck) => (
             <li key={deck.id}>
-              <DeckCard deck={deck} tier={tiers[deck.archetypeId]} />
+              {/* Client card: the count includes this browser's vote, as on /deck and /decks. */}
+              <VotedDeckCard deck={deck} tier={tiers[deck.archetypeId]} />
             </li>
           ))}
         </ul>

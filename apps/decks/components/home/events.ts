@@ -1,4 +1,5 @@
 import type { EventTier, Tournament } from "@naruto-tcg/types";
+import { countPlayedMatches } from "@/components/tournaments/summary";
 import { tournamentDeckId, type DeckSummary } from "@/lib/decks/types";
 import { formatDate, formatShortDate } from "@/lib/format";
 import type { ArchetypeStats } from "@/lib/meta/types";
@@ -25,18 +26,6 @@ export interface OverviewKpis {
 }
 
 const compareStrings = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
-
-function countPlayedMatches(tournament: Tournament): number {
-  const registered = new Set(tournament.players.map((p) => p.id));
-  return tournament.matches.filter(
-    (m) =>
-      m.outcome !== "bye" &&
-      !m.intentionalDraw &&
-      m.player2Id !== null &&
-      registered.has(m.player1Id) &&
-      registered.has(m.player2Id),
-  ).length;
-}
 
 /**
  * Counts for the overview: events and their date span, distinct players and entries,

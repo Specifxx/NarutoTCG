@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { DIVERGING_SATURATION } from "@/lib/colors";
+import { DIVERGING_SATURATION, VERDICT_MARGIN } from "@/lib/colors";
 import { CHARTED_ARCHETYPES } from "@/lib/data/archetypes";
 import { EVENT_TIER_LABEL, EVENT_TIER_ORDER, formatNumber, formatPercent } from "@/lib/format";
 import { placementPoints } from "@/lib/meta/aggregate";
@@ -24,7 +24,7 @@ const points = (value: number) => formatNumber(Math.round(value * 10) / 10);
 
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
-    // min-w-0: the nowrap formulas scroll inside their block instead of widening the grid column.
+    // min-w-0: long formulas wrap inside their block instead of widening the grid column.
     <div className="min-w-0 rounded-lg border border-shadow-700 bg-shadow-900 p-4">
       <h3 className="font-semibold text-white">{title}</h3>
       <div className="mt-2 space-y-2 text-sm text-ash-300">{children}</div>
@@ -32,9 +32,10 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
+/** A formula on its own line. It wraps between terms rather than scrolling, so nothing is clipped from keyboard users. */
 function Formula({ children }: { children: ReactNode }) {
   return (
-    <code className="block relative overflow-x-auto rounded-md bg-shadow-800 px-3 py-2 font-mono text-xs whitespace-nowrap text-ash-100">
+    <code className="block rounded-md bg-shadow-800 px-3 py-2 font-mono text-xs whitespace-normal wrap-break-word text-ash-100">
       {children}
     </code>
   );
@@ -65,7 +66,7 @@ export function Methodology() {
   ];
 
   return (
-    <details id="methodology" open className="group scroll-mt-32">
+    <details id="methodology" open className="group">
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-chakra-400 [&::-webkit-details-marker]:hidden">
         <svg viewBox="0 0 12 12" aria-hidden="true" className="h-3 w-3 shrink-0 text-ash-400 transition group-open:rotate-90">
           <path d="M4 2l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -102,12 +103,16 @@ export function Methodology() {
         <Block title="Top-cut conversion and lift">
           <p>
             Conversion is top cuts ÷ entries. For the lift it is smoothed with {conversionPrior} pseudo-entries at the field-wide
-            baseline (all top-cut slots ÷ all players), then divided by that baseline: {formatLift(1)} is average, {formatLift(2)}{" "}
+            baseline (all top-cut slots ÷ all entries), then divided by that baseline: {formatLift(1)} is average, {formatLift(2)}{" "}
             converts twice as often as the field.
           </p>
           <Formula>
             lift = ((top cuts + {conversionPrior} × baseline) ÷ (entries + {conversionPrior})) ÷ baseline
           </Formula>
+          <p>
+            The smoothed lift feeds the score and the stats table&rsquo;s Lift column. The tier tiles (&ldquo;× field&rdquo;) and the
+            Field vs top cut ratio show the raw multiple instead, conversion ÷ baseline, which equals top-cut share ÷ field share.
+          </p>
         </Block>
 
         <Block title="Composite score (0–100)">
@@ -192,8 +197,10 @@ export function Methodology() {
             {DONUT_SLICES} largest and folds the rest, uncharted archetypes and rogue into Other.
           </p>
           <p>
-            Matchup cells with fewer than {MATRIX_MIN_GAMES} games are dimmed, hatched and marked “low”. Colors saturate at{" "}
-            {formatPercent(0.5 - DIVERGING_SATURATION, 0)} and {formatPercent(0.5 + DIVERGING_SATURATION, 0)}.
+            Matchup cells with fewer than {MATRIX_MIN_GAMES} games are dimmed, hatched and marked “low”. A matchup is Favored at{" "}
+            {formatPercent(0.5 + VERDICT_MARGIN, 0)} or more and Unfavored at {formatPercent(0.5 - VERDICT_MARGIN, 0)} or less; cells
+            in between are gray (Even). Color starts at those thresholds, deepens one step every {Math.round(VERDICT_MARGIN * 100)}{" "}
+            points and saturates at {formatPercent(0.5 - DIVERGING_SATURATION, 0)} and {formatPercent(0.5 + DIVERGING_SATURATION, 0)}.
           </p>
         </Block>
       </div>

@@ -11,6 +11,7 @@ import {
   mulliganTargetsFor,
   nextDrawTurn,
   sampleHandReducer,
+  sampleHandStatus,
   type SampleHandAction,
   type SampleHandState,
 } from "./sample-hand";
@@ -117,6 +118,35 @@ describe("sample hand", () => {
     expect(state.library).toEqual([]);
     expect(canDrawNext(state)).toBe(false);
     expect(run(state, { type: "next" })).toBe(state);
+  });
+});
+
+describe("sampleHandStatus", () => {
+  const list = (hand: readonly string[]) => hand.join(", ");
+  const dealt = run(createSampleHand({ deck: DECK, targets: TARGETS }), { type: "draw", seed: 7 });
+
+  it("is empty before the first hand and describes the opening hand with the turn order", () => {
+    expect(sampleHandStatus(createSampleHand({ deck: DECK, targets: TARGETS }), "", list)).toBe("");
+    expect(sampleHandStatus(dealt, "", list)).toBe(`Opening hand, on the play: ${dealt.opening.join(", ")}`);
+    const mulled = run(dealt, { type: "mulligan", seed: 8 });
+    expect(sampleHandStatus(mulled, "", list)).toBe(`Opening hand after mulligan, on the play: ${mulled.opening.join(", ")}`);
+  });
+
+  it("announces the latest draw while draws are on the table", () => {
+    const drawn = run(dealt, { type: "next" });
+    expect(sampleHandStatus(drawn, "Turn 2 draw: X.", list)).toBe("Turn 2 draw: X.");
+  });
+
+  it("drops a draw announcement the turn-order switch undid, and names the new order", () => {
+    const drawn = run(dealt, { type: "next" }, { type: "next" });
+    const rewound = run(drawn, { type: "setOnThePlay", onThePlay: false });
+    const status = sampleHandStatus(rewound, "Turn 3 draw: X.", list);
+    expect(status).toBe(`Opening hand, on the draw: ${dealt.opening.join(", ")}`);
+    // Switching back changes the text again, so each switch is announced.
+    const back = run(rewound, { type: "setOnThePlay", onThePlay: true });
+    expect(sampleHandStatus(back, "Turn 3 draw: X.", list)).not.toBe(status);
+    // The next draw is announced again.
+    expect(sampleHandStatus(run(rewound, { type: "next" }), "Turn 1 draw: X.", list)).toBe("Turn 1 draw: X.");
   });
 });
 

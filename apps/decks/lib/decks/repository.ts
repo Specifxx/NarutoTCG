@@ -1,4 +1,5 @@
 import { AUTHORS } from "@/lib/data/authors";
+import { COMMUNITY_DECKS } from "@/lib/data/community-decks";
 import { getSeedTournaments } from "@/lib/data/tournaments";
 import { buildDeckCatalog, toSummary } from "@/lib/decks/catalog";
 import type { DeckDetail, DeckSummary } from "@/lib/decks/types";
@@ -6,7 +7,8 @@ import { buildPlayerProfiles, type PlayerProfile } from "@/lib/players/profiles"
 
 /**
  * Server-side access to the seed deck catalog and player profiles, built once per process.
- * Events imported in the browser are layered on by client components, not here.
+ * Events imported in the browser are layered on by client components, not here. Server only:
+ * it pulls in the community deck write-ups, which client components must never import.
  */
 
 function memo<T>(build: () => T): () => T {
@@ -15,7 +17,7 @@ function memo<T>(build: () => T): () => T {
 }
 
 const catalog = memo(() => {
-  const decks = buildDeckCatalog(getSeedTournaments());
+  const decks = buildDeckCatalog(getSeedTournaments(), COMMUNITY_DECKS);
   return { decks, byId: new Map(decks.map((deck) => [deck.id, deck])), summaries: decks.map(toSummary) };
 });
 

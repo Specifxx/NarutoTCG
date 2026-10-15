@@ -1,6 +1,9 @@
+"use client";
+
 import type { TournamentPlayer } from "@naruto-tcg/types";
 import { cx } from "@naruto-tcg/ui";
 import Link from "next/link";
+import type { FocusEvent } from "react";
 import { ArchetypeDot } from "@/components/ui/badges";
 import { archetypeName } from "./archetype-name";
 import type { BracketMatch, BracketRound, BracketSlot } from "./bracket";
@@ -60,16 +63,33 @@ function MatchBox({ match, players }: { match: BracketMatch; players: ReadonlyMa
 }
 
 /**
+ * Scrolls a sideways scroller just enough to show `item`, keeping `margin` px clear of its edges.
+ * Chrome leaves a partly visible item where it is when it takes focus, so keyboard users would
+ * see a sliver of it. Only the row scrolls, never the page.
+ */
+function revealInRow(row: HTMLElement, item: Element, margin: number) {
+  const bounds = row.getBoundingClientRect();
+  const rect = item.getBoundingClientRect();
+  if (rect.left < bounds.left + margin) row.scrollLeft -= bounds.left + margin - rect.left;
+  else if (rect.right > bounds.right - margin) row.scrollLeft += rect.right - (bounds.right - margin);
+}
+
+/**
  * Single-elimination bracket, one column per round. Columns share a height and space their
  * matches evenly, so each match sits midway between the two that feed it. Scrolls inside its
  * own container on narrow screens.
  */
 export function BracketView({ rounds, players }: { rounds: BracketRound[]; players: ReadonlyMap<string, TournamentPlayer> }) {
+  // Reveal a focused link sideways; the region itself is focusable too and must not scroll itself.
+  const revealFocused = (event: FocusEvent<HTMLElement>) => {
+    if (event.target !== event.currentTarget) revealInRow(event.currentTarget, event.target, 16);
+  };
   return (
     <div
       role="region"
       aria-label="Top cut bracket"
       tabIndex={0}
+      onFocus={revealFocused}
       className={cx("relative overflow-x-auto rounded-lg border border-shadow-700 bg-shadow-950 p-4", FOCUS_RING)}
     >
       <ol className="flex min-w-max gap-6">

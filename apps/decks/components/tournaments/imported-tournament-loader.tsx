@@ -2,11 +2,12 @@
 
 import { cx } from "@naruto-tcg/ui";
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { EmptyState } from "@/components/ui/badges";
 import { PageHeader } from "@/components/ui/page-header";
 import { useImportedTournaments } from "@/lib/storage/imports";
 import { useHydrated } from "@/lib/storage/local-store";
+import { useClientTitle } from "./client-title";
 import { BUTTON_GHOST, BUTTON_PRIMARY, FOCUS_RING } from "./styles";
 import { TournamentView } from "./tournament-view";
 
@@ -50,9 +51,7 @@ export function ImportedTournamentLoader({ id }: { id: string }) {
     return found && (found.source === "import" ? found : { ...found, source: "import" as const });
   }, [imported, id]);
 
-  useEffect(() => {
-    if (tournament) document.title = `${tournament.name} · Naruto TCG Decks`;
-  }, [tournament]);
+  useClientTitle(hydrated ? (tournament ? tournament.name : "Event not found") : null);
 
   if (!hydrated) return <LoadingState />;
 

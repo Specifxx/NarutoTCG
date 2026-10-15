@@ -212,6 +212,19 @@ describe("computeTrends", () => {
     expect(computeTrends([])).toEqual({});
   });
 
+  it("never compares the latest window with a partial one", () => {
+    // 5 to 7 events leave the previous window with 1 to 3 events: no trend rather than a lopsided one.
+    for (const count of [5, 6, 7]) {
+      const some = [...older.slice(4 - (count - 4)), ...newer];
+      expect(some, `${count} events`).toHaveLength(count);
+      expect(computeTrends(some), `${count} events`).toEqual({});
+    }
+    expect(computeTrends([...older.slice(1), ...newer], { recentEvents: 4 })).toEqual({});
+    expect(Object.keys(computeTrends(aggs, { recentEvents: 4 }))).not.toHaveLength(0);
+    expect(computeTrends(aggs.slice(0, 3), { recentEvents: 2 })).toEqual({});
+    expect(computeTrends(aggs.slice(0, 4), { recentEvents: 2 })).not.toEqual({});
+  });
+
   it("does not read archetypes missing from a window off the object prototype", () => {
     const trends = computeTrends([eventAgg("old", "2026-01-01", { constructor: 4, x: 4 }), eventAgg("new", "2026-01-02", { x: 8 })], {
       recentEvents: 1,

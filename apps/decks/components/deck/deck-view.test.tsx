@@ -1,10 +1,12 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { getDeckCatalog } from "@/lib/decks/repository";
+import { DeckStats } from "./deck-stats";
 import { DeckView } from "./deck-view";
 import { ImportedDeckLoader } from "./imported-deck-loader";
 import { buildSeedDeckContext } from "./server-context";
 import { EMPTY_DECK_CONTEXT } from "./types";
+import { COST_CURVE_HEIGHT } from "./cost-curve-series";
 
 const decks = getDeckCatalog();
 const community = decks.find((deck) => deck.source === "community" && deck.description?.length)!;
@@ -50,6 +52,26 @@ describe("DeckView server render", () => {
     const html = renderToString(<DeckView deck={winner} context={EMPTY_DECK_CONTEXT} />);
     expect(html).toContain("No matchup data for this deck");
     expect(html).toContain("No comments yet");
+  });
+
+  it("leaves Recharts out of the server render: the cost curve reserves its height until the plot loads", () => {
+    const html = renderToString(<DeckView deck={winner} context={buildSeedDeckContext(winner)} />);
+    expect(html).toContain("Cost curve");
+    expect(html).not.toContain("recharts");
+    expect(html).toContain(`style="height:${COST_CURVE_HEIGHT}px"`);
+  });
+
+  it("counts unrecognized cards toward the deck in an Unknown tile, so the type shares add up", () => {
+    const decklist = {
+      ...winner.decklist,
+      cards: [...winner.decklist.cards.slice(0, -1), { cardId: "zz-not-a-card", quantity: 3 }],
+    };
+    const size = decklist.cards.reduce((sum, entry) => sum + entry.quantity, 0);
+    const html = renderToString(<DeckStats decklist={decklist} />);
+    expect(html).toContain("Unknown");
+    expect(html).toContain(`${Math.round((3 / size) * 100)}% of the deck, not in the card pool`);
+    expect(html).toContain("Per known main-deck card");
+    expect(renderToString(<DeckStats decklist={winner.decklist} />)).not.toContain("Unknown");
   });
 
   it("renders the imported-deck loader as a loading state on the server", () => {

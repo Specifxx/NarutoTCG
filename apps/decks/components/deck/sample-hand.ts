@@ -115,6 +115,23 @@ export function canDrawNext(state: SampleHandState): boolean {
   return state.opening.length > 0 && state.library.length > 0;
 }
 
+/**
+ * Text for the sample-hand panel's live region. `lastDraw` (the panel's "Turn N draw: …") only
+ * stands while draws are on the table: a turn-order change rewinds them, and the region then falls
+ * back to the opening hand, naming the new turn order, so the switch is announced and an undone
+ * draw is never repeated. Empty before the first hand.
+ */
+export function sampleHandStatus(
+  state: SampleHandState,
+  lastDraw: string,
+  describeHand: (hand: readonly string[]) => string,
+): string {
+  if (state.draws.length > 0 && lastDraw) return lastDraw;
+  if (state.opening.length === 0) return "";
+  const after = state.mulligansUsed > 0 ? " after mulligan" : "";
+  return `Opening hand${after}, ${state.onThePlay ? "on the play" : "on the draw"}: ${describeHand(state.opening)}`;
+}
+
 function dealOpeningHand(state: SampleHandState, seed: number, mulligansUsed: number): SampleHandState {
   const { hand, library } = drawHand(state.deck, RULES.openingHandSize, createRng(seed));
   return {

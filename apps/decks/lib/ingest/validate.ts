@@ -1,10 +1,18 @@
 import type { Tournament } from "@naruto-tcg/types";
 import { ARCHETYPE_INDEX } from "@/lib/data/archetypes";
+import { CARD_INDEX } from "@/lib/data/cards";
 import { checkDecklistLegality } from "@/lib/decks/legality";
-import { BestOfSchema, EventTierSchema } from "./schema";
+import { RULES } from "@/lib/rules";
+import { bracketConflicts } from "./bracket";
+import { BestOfSchema, EventTierSchema, MAX_EVENT_NAME_LENGTH } from "./schema";
 import { isSlug } from "./slug";
-import { isIsoDate } from "./text";
+import { clip, isIsoDate } from "./text";
 import type { IngestIssue, IngestSeverity } from "./types";
+
+/** Longest event or player id accepted: ids go into page and deck URLs. Generated ids are far shorter. */
+export const MAX_ID_LENGTH = 100;
+/** Conflicts quoted in a placement-bracket-mismatch message. */
+const QUOTED_CONFLICTS = 3;
 
 /** True when `values` is exactly 1..N in some order. */
 export function isPermutation(values: readonly number[]): boolean {
@@ -23,10 +31,17 @@ function placementProblems(placements: readonly number[]): string {
     .join("; ");
 }
 
+/** The bracket conflicts as one sentence list, quoting the first few. */
+export function describeConflicts(conflicts: readonly string[]): string {
+  const more = conflicts.length - QUOTED_CONFLICTS;
+  return conflicts.slice(0, QUOTED_CONFLICTS).join(" ") + (more > 0 ? ` (${more} more.)` : "");
+}
+
 /**
  * Structural and consistency checks on a canonical tournament. Errors make the record unusable
- * for stats (broken ids, placements, pairings or archetypes); warnings flag data worth a second
- * look (partial top cut, odd game scores, illegal lists); info notes reduced coverage.
+ * for stats (broken ids, placements, pairings, archetypes or card counts); warnings flag data
+ * worth a second look (partial top cut, placements the bracket contradicts, odd game scores,
+ * illegal lists); info notes reduced coverage.
  */
 export function validateTournament(tournament: Tournament): IngestIssue[] {
   const issues: IngestIssue[] = [];
@@ -34,8 +49,13 @@ export function validateTournament(tournament: Tournament): IngestIssue[] {
     issues.push({ severity, code, message, source: "tournament", ...(field ? { field } : {}) });
 
   if (!tournament.name.trim()) add("error", "missing-name", "The event has no name.", "name");
+  else if (tournament.name.length > MAX_EVENT_NAME_LENGTH) {
+    add("error", "name-too-long", `The event name has ${tournament.name.length} characters; keep it to ${MAX_EVENT_NAME_LENGTH}.`, "name");
+  }
   if (!isSlug(tournament.id)) {
-    add("error", "invalid-id", `Event id "${tournament.id}" must use lowercase letters, digits and single dashes.`, "id");
+    add("error", "invalid-id", `Event id "${clip(tournament.id)}" must use lowercase letters, digits and single dashes.`, "id");
+  } else if (tournament.id.length > MAX_ID_LENGTH) {
+    add("error", "id-too-long", `Event id "${clip(tournament.id)}" is longer than ${MAX_ID_LENGTH} characters.`, "id");
   }
   if (!isIsoDate(tournament.date)) add("error", "invalid-date", `"${tournament.date}" is not a valid date; use YYYY-MM-DD.`, "date");
   if (!EventTierSchema.safeParse(tournament.tier).success) add("error", "invalid-tier", `Unknown event tier "${tournament.tier}".`, "tier");
@@ -45,23 +65,37 @@ export function validateTournament(tournament: Tournament): IngestIssue[] {
   const legalityDate = isIsoDate(tournament.date) ? tournament.date : undefined;
   tournament.players.forEach((player, index) => {
     const field = `players[${index}]`;
-    if (ids.has(player.id)) add("error", "duplicate-player-id", `Player id "${player.id}" is used more than once.`, `${field}.id`);
+    if (ids.has(player.id)) add("error", "duplicate-player-id", `Player id "${clip(player.id)}" is used more than once.`, `${field}.id`);
     ids.add(player.id);
     if (!isSlug(player.id)) {
-      add("error", "invalid-id", `Player id "${player.id}" must use lowercase letters, digits and single dashes.`, `${field}.id`);
+      add("error", "invalid-id", `Player id "${clip(player.id)}" must use lowercase letters, digits and single dashes.`, `${field}.id`);
+    } else if (player.id.length > MAX_ID_LENGTH) {
+      add("error", "id-too-long", `Player id "${clip(player.id)}" is longer than ${MAX_ID_LENGTH} characters.`, `${field}.id`);
     }
     if (!ARCHETYPE_INDEX.has(player.archetypeId)) {
       add("error", "unknown-archetype", `${player.name}: unknown archetype id "${player.archetypeId}".`, `${field}.archetypeId`);
     }
     if (player.decklist) {
+      // A count beyond a whole main deck is a broken file (or a mis-mapped column), not an illegal list.
+      const absurd = player.decklist.cards.filter((entry) => !Number.isInteger(entry.quantity) || entry.quantity < 1 || entry.quantity > RULES.mainDeckSize);
+      for (const entry of absurd) {
+        const card = CARD_INDEX.get(entry.cardId)?.name ?? clip(entry.cardId);
+        add(
+          "error",
+          "invalid-quantity",
+          `${player.name}'s decklist lists ${entry.quantity} copies of ${card}; an entry holds 1 to ${RULES.mainDeckSize} cards.`,
+          `${field}.decklist`,
+        );
+      }
       const problems = checkDecklistLegality(player.decklist, { date: legalityDate });
       if (problems.length > 0) {
         add("warning", "decklist-illegal", `${player.name}'s decklist is not legal: ${problems.map((p) => p.message).join(" ")}`, `${field}.decklist`);
       }
     }
   });
+  const validPlacements = isPermutation(tournament.players.map((p) => p.placement));
   if (tournament.players.length === 0) add("error", "no-players", "The event has no players.", "players");
-  else if (!isPermutation(tournament.players.map((p) => p.placement))) {
+  else if (!validPlacements) {
     add(
       "error",
       "invalid-placements",
@@ -135,6 +169,19 @@ export function validateTournament(tournament: Tournament): IngestIssue[] {
   }
   if (tournament.topCutSize > tournament.players.length) {
     add("warning", "top-cut-too-large", `Top cut of ${tournament.topCutSize} is larger than the ${tournament.players.length}-player field.`, "topCutSize");
+  }
+  if (validPlacements && ids.size === tournament.players.length) {
+    const conflicts = bracketConflicts(tournament);
+    if (conflicts.length > 0) {
+      issues.push({
+        severity: "warning",
+        code: "placement-bracket-mismatch",
+        message: `The placements contradict the top cut results: ${describeConflicts(conflicts)}`,
+        suggestion: "Use the final standings (top cut players ranked by how far they got), not the Swiss standings.",
+        source: "tournament",
+        field: "players",
+      });
+    }
   }
   return issues;
 }

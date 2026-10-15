@@ -162,7 +162,10 @@ export function CardCombobox({
                 )}
               >
                 <span className="min-w-0 truncate">{option.name}</span>
-                <span className="shrink-0 font-mono text-[11px] text-ash-400">{option.id}</span>
+                {/* ash-400 drops below 4.5:1 on the highlighted row's shadow-600, so the active id lightens. */}
+                <span className={cx("shrink-0 font-mono text-[11px]", index === activeIndex ? "text-ash-300" : "text-ash-400")}>
+                  {option.id}
+                </span>
               </li>
             ))}
           </ul>

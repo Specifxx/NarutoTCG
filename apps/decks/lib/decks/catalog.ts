@@ -1,7 +1,6 @@
 import type { Decklist, EventTier, Rarity, Tournament, TournamentPlayer } from "@naruto-tcg/types";
 import { ARCHETYPE_INDEX, ROGUE_ID } from "@/lib/data/archetypes";
 import { CARD_INDEX } from "@/lib/data/cards";
-import { COMMUNITY_DECKS } from "@/lib/data/community-decks";
 import { tournamentDeckId, type DeckDetail, type DeckSummary } from "@/lib/decks/types";
 import { EVENT_TIER_LABEL, EVENT_TIER_ORDER } from "@/lib/format";
 import { hashSeed } from "@/lib/random";
@@ -10,6 +9,8 @@ import { computeRecords, placementLabel, type PlayerRecord } from "@/lib/tournam
 /**
  * The deck directory: tournament lists derived from event records plus community lists,
  * and the search/filter/sort used by /decks. Pure functions, safe on server and client.
+ * This module must not import the community deck data (lib/data/community-decks.ts): client
+ * components import it, and the write-ups would ship to the browser. The server passes them in.
  */
 
 const RARITY_RANK: Record<Rarity, number> = {
@@ -143,8 +144,8 @@ function compareNewest(a: DeckSummary, b: DeckSummary): number {
   return compareStrings(b.createdAt, a.createdAt) || placement(a) - placement(b) || compareStrings(a.id, b.id);
 }
 
-/** Tournament and community decks together, newest first. */
-export function buildDeckCatalog(tournaments: readonly Tournament[], community: readonly DeckDetail[] = COMMUNITY_DECKS): DeckDetail[] {
+/** Tournament and community decks together, newest first. The server passes COMMUNITY_DECKS (see lib/decks/repository.ts). */
+export function buildDeckCatalog(tournaments: readonly Tournament[], community: readonly DeckDetail[]): DeckDetail[] {
   return [...buildTournamentDecks(tournaments), ...community].sort(compareNewest);
 }
 
@@ -172,6 +173,11 @@ export interface DeckQuery {
   /** Author or pilot handle. */
   author?: string;
   sort?: DeckSort;
+  /**
+   * This browser's deck votes (+1 / -1 by deck id). The "votes" sort ranks by seed votes plus
+   * these, the count every deck card shows; rows themselves keep their seed count.
+   */
+  localVotes?: Readonly<Record<string, number>>;
 }
 
 export const PLACEMENT_FILTER_LABELS: Record<PlacementFilter, string> = {
@@ -239,9 +245,16 @@ function comparePlacement(a: DeckSummary, b: DeckSummary): number {
   return a.tournament ? -1 : b.tournament ? 1 : 0;
 }
 
-const SORTS: Record<DeckSort, (a: DeckSummary, b: DeckSummary) => number> = {
+type Compare = (a: DeckSummary, b: DeckSummary) => number;
+
+/** Most upvoted first, counting this browser's vote on top of the seed count. */
+function compareVotes(localVotes: Readonly<Record<string, number>> = {}): Compare {
+  const votesOf = (deck: DeckSummary) => deck.votes + (Object.hasOwn(localVotes, deck.id) ? (localVotes[deck.id] ?? 0) : 0);
+  return (a, b) => votesOf(b) - votesOf(a) || compareNewest(a, b);
+}
+
+const SORTS: Record<Exclude<DeckSort, "votes">, Compare> = {
   newest: compareNewest,
-  votes: (a, b) => b.votes - a.votes || compareNewest(a, b),
   winrate: (a, b) => (b.winRate ?? -1) - (a.winRate ?? -1) || compareNewest(a, b),
   placement: (a, b) => comparePlacement(a, b) || compareNewest(a, b),
 };
@@ -259,6 +272,8 @@ export function searchDecks<T extends DeckSummary>(decks: readonly T[], query: D
   const source = query.source ?? "all";
   const author = query.author?.toLowerCase();
   const cardIds = query.cardIds ?? [];
+  const sort = query.sort ?? "newest";
+  const compare = sort === "votes" ? compareVotes(query.localVotes) : SORTS[sort];
 
   return decks
     .filter((deck) => {
@@ -272,5 +287,5 @@ export function searchDecks<T extends DeckSummary>(decks: readonly T[], query: D
       const text = haystack(deck);
       return terms.every((term) => text.includes(` ${term}`));
     })
-    .sort(SORTS[query.sort ?? "newest"]);
+    .sort(compare);
 }
