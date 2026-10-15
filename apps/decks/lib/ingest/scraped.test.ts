@@ -122,4 +122,39 @@ describe("convertScraped", () => {
   it("keeps an unreadable date for validation to report", () => {
     expect(convertScraped({ event: { name: "X", date: "12/09/2026", tier: "SC" } }).raw!.meta.date).toBe("12/09/2026");
   });
+
+  it("skips rows with over-long values or absurd card counts, with an error each", () => {
+    const { raw, issues } = convertScraped({
+      event: { name: "X", date: "2026-08-22", tier: "SC", notes: "n".repeat(10_000) },
+      standings: [
+        { player: "Hollis Brandvold", archetype: "x".repeat(5_000) },
+        { player: "Marisol Teague", decklist: { leader: "Pain", cards: [{ quantity: 1e9, name: "Konan" }] } },
+        { player: "Ansel Kirkby", decklist: { leader: "Pain", cards: [{ quantity: "1000000000", name: "Konan" }] } },
+      ],
+      pairings: [{ round: 1, player1: "Ansel Kirkby", result: "1".repeat(5_000) }],
+    });
+    // A count given as text is left to the list parser, which rejects it.
+    expect(raw!.standings.map((s) => s.name)).toEqual(["Ansel Kirkby"]);
+    expect(raw!.pairings).toEqual([]);
+    expect(raw!.meta.notes).toHaveLength(10_000);
+    expect(issues.map((i) => [i.code, i.source, i.row, i.field])).toEqual([
+      ["cell-too-long", "standings", 1, "standings[0].archetype"],
+      ["schema", "standings", 2, "standings[1].decklist.cards[0].quantity"],
+      ["cell-too-long", "pairings", 1, "pairings[0].result"],
+    ]);
+    expect(issues.every((i) => i.severity === "error")).toBe(true);
+    const longName = convertScraped({ event: { name: "x".repeat(5_000), date: "2026-08-22" } });
+    expect(longName.raw).toBeNull();
+    expect(longName.issues.map((i) => [i.code, i.field])).toEqual([["cell-too-long", "event.name"]]);
+  });
+
+  it("removes control characters with one warning", () => {
+    const { raw, issues } = convertScraped({
+      event: { name: "Evil\u001b[2J Cup", date: "2026-08-22", tier: "SC" },
+      standings: [{ player: "Hollis\u0007 Brandvold", archetype: "Pain\u202e" }],
+    });
+    expect(raw!.meta.name).toBe("Evil[2J Cup");
+    expect(raw!.standings[0]).toMatchObject({ name: "Hollis Brandvold", archetype: "Pain" });
+    expect(issues.map((i) => [i.severity, i.code])).toEqual([["warning", "control-characters-removed"]]);
+  });
 });

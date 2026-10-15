@@ -4,6 +4,7 @@ import { formatForDate } from "@/lib/data/cards";
 import type { WLD } from "@/lib/meta/types";
 import { computeFinalPlacements, computeRecords, emptyRecord, formatRecord, matchPoints, topCutRounds } from "@/lib/tournament/standings";
 import { classifyDecklist, resolveArchetypeLabel } from "./archetypes";
+import { createCardResolver, FUZZY_CARD_LOOKUPS, type CardResolver } from "./cards";
 import { buildDecklist, parseDecklistText, parseQuantity, parseSection, type DecklistLine } from "./decklist-text";
 import { isByeToken, parseMatchResult, parseRecord, parseRoundLabel, parseStage, type ParsedMatchResult } from "./results";
 import { bracketConflicts, bracketPlacements } from "./bracket";
@@ -21,6 +22,12 @@ const SUGGESTION_FLOOR = 0.5;
  * is much cheaper: a file full of different unknown names would otherwise cost names × players.
  */
 const SUGGESTED_NAMES = 50;
+/**
+ * Name comparisons fuzzy matching may make per import (about a second of work). Real events stay
+ * far below it (512 players spelled differently in every file take about 260,000); past it,
+ * names are only matched exactly.
+ */
+const MAX_FUZZY_COMPARISONS = 3_000_000;
 /** Classifier confidence at which a list that contradicts the reported deck name is flagged. */
 const MISMATCH_CONFIDENCE = 0.8;
 
@@ -92,9 +99,20 @@ function createRoster(issues: IngestIssue[]) {
   /** The player for a name or handle; null when ambiguous, undefined when unknown. */
   const find = (text: string): Draft | null | undefined => keys.get(normalizeName(text));
   let suggested = 0;
-  const miss = (key: string): Miss => {
+  let comparisons = 0;
+  const miss = (key: string, source: IngestSource): Miss => {
     const cached = misses.get(key);
     if (cached) return cached;
+    if (comparisons >= MAX_FUZZY_COMPARISONS) return { fuzzy: null, tied: null, suggestion: null };
+    comparisons += candidates.length;
+    if (comparisons >= MAX_FUZZY_COMPARISONS) {
+      issues.push({
+        severity: "info",
+        code: "player-matching-limited",
+        message: "So many names did not match a player exactly that, from here on, names are only matched exactly (no typo matching or suggestions).",
+        source,
+      });
+    }
     const floor = suggested < SUGGESTED_NAMES ? SUGGESTION_FLOOR : PLAYER_FUZZY_THRESHOLD;
     const { best, runnerUp } = closestMatches(key, candidates, floor);
     const fuzzy = best && best.score >= PLAYER_FUZZY_THRESHOLD ? best.candidate : null;
@@ -127,7 +145,7 @@ function createRoster(issues: IngestIssue[]) {
       if (hit) return hit;
       const firstReport = !reported.has(`${source}|${key}`);
       reported.add(`${source}|${key}`);
-      const { fuzzy, tied, suggestion } = hit === undefined ? miss(key) : { fuzzy: null, tied: null, suggestion: null };
+      const { fuzzy, tied, suggestion } = hit === undefined ? miss(key, source) : { fuzzy: null, tied: null, suggestion: null };
       if (hit === null || tied) {
         if (firstReport) {
           issues.push({
@@ -277,7 +295,7 @@ export function assignArchetype(
 }
 
 /** Adds a player per standings row, skipping nameless rows and reporting duplicates. */
-function readStandings(standings: RawEvent["standings"], roster: Roster, issues: IngestIssue[]): void {
+function readStandings(standings: RawEvent["standings"], roster: Roster, cards: CardResolver, issues: IngestIssue[]): void {
   const seen = new Map<string, number>();
   for (const standing of standings) {
     const name = standing.name.trim();
@@ -310,7 +328,7 @@ function readStandings(standings: RawEvent["standings"], roster: Roster, issues:
     const [wins, losses, draws] = [standing.wins, standing.losses, standing.draws].map(parseInteger);
     const counted = wins !== undefined || losses !== undefined || draws !== undefined;
     const parsedList = standing.decklist?.trim()
-      ? parseDecklistText(standing.decklist, { ...where, field: "decklist", owner: name })
+      ? parseDecklistText(standing.decklist, { ...where, field: "decklist", owner: name, resolver: cards })
       : null;
     issues.push(...(parsedList?.issues ?? []));
     roster.add(
@@ -332,7 +350,7 @@ function readStandings(standings: RawEvent["standings"], roster: Roster, issues:
 }
 
 /** Groups long-format decklist rows by player and attaches the resulting lists. */
-function readDecklistRows(rows: RawEvent["decklistRows"], roster: Roster, issues: IngestIssue[]): void {
+function readDecklistRows(rows: RawEvent["decklistRows"], roster: Roster, cards: CardResolver, issues: IngestIssue[]): void {
   const lines = new Map<Draft, DecklistLine[]>();
   for (const row of rows) {
     if (!row.player.trim()) {
@@ -358,7 +376,7 @@ function readDecklistRows(rows: RawEvent["decklistRows"], roster: Roster, issues
     lines.set(draft, list);
   }
   for (const [draft, list] of lines) {
-    const parsed = buildDecklist(list, { source: "decklists", owner: draft.name });
+    const parsed = buildDecklist(list, { source: "decklists", owner: draft.name, resolver: cards });
     issues.push(...parsed.issues);
     if (!parsed.decklist) continue;
     if (draft.decklist) {
@@ -665,7 +683,8 @@ function crossCheckRecords(roster: Roster, matches: readonly MatchRecord[], issu
 export function assembleTournament(raw: RawEvent, issues: IngestIssue[], now?: string): IngestResult {
   const { meta } = raw;
   const roster = createRoster(issues);
-  readStandings(raw.standings, roster, issues);
+  const cards = createCardResolver();
+  readStandings(raw.standings, roster, cards, issues);
   if (raw.standings.length === 0) {
     for (const name of raw.pairings.flatMap((p) => [p.player1.trim(), p.player2.trim()])) {
       if (!isByeToken(name) && roster.find(name) === undefined) roster.add({ name, dropped: false }, name);
@@ -678,7 +697,15 @@ export function assembleTournament(raw: RawEvent, issues: IngestIssue[], now?: s
     issues.push({ severity: "error", code: "no-players", message: "No players found: add a standings file (or pairings) with player names." });
     return failed(issues);
   }
-  readDecklistRows(raw.decklistRows, roster, issues);
+  readDecklistRows(raw.decklistRows, roster, cards, issues);
+  if (cards.exhausted) {
+    issues.push({
+      severity: "info",
+      code: "card-matching-limited",
+      message: `More than ${FUZZY_CARD_LOOKUPS} different card names were not found exactly; past that, cards were matched by exact name or id only.`,
+      source: raw.decklistRows.length > 0 ? "decklists" : "standings",
+    });
+  }
 
   const pairings = readPairings(raw.pairings, roster, issues);
   const { swissRounds, topCutSize } = assignRoundsAndStages(pairings, meta, roster.drafts.length, issues);

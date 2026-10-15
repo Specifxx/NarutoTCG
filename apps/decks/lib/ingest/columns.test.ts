@@ -146,4 +146,13 @@ describe("cell", () => {
     expect(cell({ Name: "Kenji Morrow" }, mapping, "archetype")).toBe("");
     expect(cell({}, mapping, "player")).toBe("");
   });
+
+  it("reads only the row's own string values, never Object members", () => {
+    const mapping = { player: "Name", section: "isPrototypeOf", archetype: "toString", country: "__proto__" };
+    expect(cell({ Name: "Kenji" }, mapping, "section")).toBe("");
+    expect(cell({ Name: "Kenji" }, mapping, "archetype")).toBe("");
+    expect(cell({ Name: "Kenji" }, mapping, "country")).toBe("");
+    expect(cell({ Name: "Kenji" }, mapping, "constructor")).toBe("");
+    expect(cell(parseCsv("Name,isPrototypeOf\nKenji,Leader\n").rows[0]!, mapping, "section")).toBe("Leader");
+  });
 });

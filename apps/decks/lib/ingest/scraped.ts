@@ -1,7 +1,7 @@
 import type { EventLocation, EventTier } from "@naruto-tcg/types";
 import { z } from "zod";
 import { RULES } from "@/lib/rules";
-import { EventLocationSchema, EventTierSchema, MAX_EVENT_NAME_LENGTH, zodIssues } from "./schema";
+import { EventLocationSchema, EventTierSchema, zodIssues } from "./schema";
 import { MAX_CELL_LENGTH } from "./csv";
 import { normalizeDate, normalizeName, stripControlCharactersDeep } from "./text";
 import type { EventMetaInput, IngestIssue, IngestSource, RawEvent, RawPairing, RawStanding } from "./types";
@@ -47,7 +47,9 @@ export const ScrapedPairingSchema = z.object({
 });
 
 export const ScrapedEventSchema = z.object({
-  name: z.string().trim().min(1).max(MAX_EVENT_NAME_LENGTH),
+  // Not length-limited here, so the wizard can still read the file and let the name be shortened;
+  // validation rejects an over-long name in the assembled event.
+  name: z.string().trim().min(1),
   date: z.string().trim().min(1),
   tier: z.string().nullish(),
   format: z.string().nullish(),

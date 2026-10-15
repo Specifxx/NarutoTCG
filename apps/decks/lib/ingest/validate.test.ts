@@ -1,7 +1,7 @@
 import type { MatchRecord, Tournament } from "@naruto-tcg/types";
 import { describe, expect, it } from "vitest";
 import { templateTournament } from "./__fixtures__/files";
-import { isPermutation, validateTournament } from "./validate";
+import { isPermutation, MAX_ID_LENGTH, validateTournament } from "./validate";
 
 const codes = (t: Tournament) => validateTournament(t).map((issue) => `${issue.severity}:${issue.code}`);
 
@@ -94,6 +94,85 @@ describe("validateTournament", () => {
         field: "matches",
       },
     ]);
+  });
+});
+
+/** The template with two players' placements swapped. */
+function swapPlacements(a: number, b: number): Tournament {
+  const t = templateTournament();
+  return { ...t, players: t.players.map((p) => (p.placement === a ? { ...p, placement: b } : p.placement === b ? { ...p, placement: a } : p)) };
+}
+
+describe("validateTournament: placements against the bracket", () => {
+  it("warns when the placements contradict the top cut (Swiss ranks exported as placements)", () => {
+    // Juniper lost her semifinal to Kenji, who then won the final.
+    const issues = validateTournament(swapPlacements(1, 3));
+    expect(issues.map((i) => `${i.severity}:${i.code}`)).toEqual(["warning:placement-bracket-mismatch"]);
+    expect(issues[0]!.message).toContain("Kenji Morrow won the final but is placed 3.");
+    expect(issues[0]!.message).toContain("who lost in round 4");
+  });
+
+  it("names the finalist who is not placed 2nd", () => {
+    expect(validateTournament(swapPlacements(2, 4))[0]!.message).toContain("Priya Castellane lost the final but is placed 4.");
+  });
+
+  it("leaves the order within a band and outside the cut to the organizer", () => {
+    expect(validateTournament(swapPlacements(3, 4))).toEqual([]);
+    expect(validateTournament(swapPlacements(5, 8))).toEqual([]);
+  });
+
+  it("keeps a player who missed the cut out of the top places once the whole bracket is recorded", () => {
+    const issues = validateTournament(swapPlacements(4, 5));
+    expect(issues.map((i) => i.code)).toEqual(["placement-bracket-mismatch"]);
+    expect(issues[0]!.message).toContain("Odette Nwosu made the top 4 but is placed 5.");
+  });
+
+  it("only checks what a partial bracket decides", () => {
+    const t = templateTournament();
+    // Without the final, nothing says who of the two finalists won.
+    const semis = t.matches.filter((_, i) => i !== finalIndex);
+    const finalistsSwapped = swapPlacements(1, 2);
+    expect(validateTournament({ ...finalistsSwapped, matches: semis }).map((i) => i.code)).toEqual(["partial-top-cut"]);
+    // A semifinal loser still cannot be placed above a finalist.
+    expect(validateTournament({ ...swapPlacements(2, 3), matches: semis }).map((i) => i.code)).toEqual(["partial-top-cut", "placement-bracket-mismatch"]);
+  });
+
+  it("skips the check when the placements are already invalid", () => {
+    const t = templateTournament();
+    const issues = validateTournament({ ...t, players: t.players.map((p) => (p.placement === 1 ? { ...p, placement: 3 } : p)) });
+    expect(issues.map((i) => i.code)).toEqual(["invalid-placements"]);
+  });
+});
+
+describe("validateTournament: absurd values", () => {
+  it("rejects a decklist entry holding more than a whole main deck, keeping over-4 copies a warning", () => {
+    const t = templateTournament();
+    const list = t.players[0]!.decklist!;
+    const withEntry = (quantity: number) => ({
+      ...t,
+      players: t.players.map((p, i) => (i === 0 ? { ...p, decklist: { ...list, cards: [{ cardId: list.cards[0]!.cardId, quantity }, ...list.cards.slice(1)] } } : p)),
+    });
+    const absurd = validateTournament(withEntry(1_000_000_000));
+    expect(absurd.map((i) => `${i.severity}:${i.code}`)).toEqual(["error:invalid-quantity", "warning:decklist-illegal"]);
+    expect(absurd[0]!.message).toContain("1000000000 copies");
+    expect(absurd[0]!.field).toBe("players[0].decklist");
+    expect(codes(withEntry(50))).toEqual(["warning:decklist-illegal"]);
+    expect(codes(withEntry(51))).toEqual(["error:invalid-quantity", "warning:decklist-illegal"]);
+    expect(codes(withEntry(0))).toEqual(["error:invalid-quantity", "warning:decklist-illegal"]);
+  });
+
+  it("rejects over-long names and ids", () => {
+    const t = templateTournament();
+    expect(codes({ ...t, name: "N".repeat(121) })).toEqual(["error:name-too-long"]);
+    expect(codes({ ...t, name: "N".repeat(120) })).toEqual([]);
+    expect(codes({ ...t, id: `local-${"a".repeat(MAX_ID_LENGTH)}` })).toEqual(["error:id-too-long"]);
+    const longId = "p".repeat(MAX_ID_LENGTH + 1);
+    const renamed = t.players[7]!.id;
+    const players = t.players.map((p) => (p.id === renamed ? { ...p, id: longId } : p));
+    const matches = t.matches.map((m) => ({ ...m, player1Id: m.player1Id === renamed ? longId : m.player1Id, player2Id: m.player2Id === renamed ? longId : m.player2Id }));
+    const issues = validateTournament({ ...t, players, matches });
+    expect(issues.map((i) => i.code)).toEqual(["id-too-long"]);
+    expect(issues[0]!.message.length).toBeLessThan(150);
   });
 });
 

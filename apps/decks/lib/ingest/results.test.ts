@@ -121,3 +121,25 @@ describe("isByeToken", () => {
     expect(isByeToken(null)).toBe(true);
   });
 });
+
+describe("long result cells", () => {
+  const elapsed = (fn: () => unknown) => {
+    const start = performance.now();
+    fn();
+    return performance.now() - start;
+  };
+
+  // A 60,000-digit Result cell took about 9 s when the score pattern could start inside a digit run.
+  it.each([
+    ["a run of digits", "1".repeat(60_000)],
+    ["digits then spaces", `1${" ".repeat(60_000)}x`],
+    ["a score then spaces", `2 - ${" ".repeat(60_000)}x`],
+  ])("reads %s quickly", (_, raw) => {
+    expect(elapsed(() => parseMatchResult(raw))).toBeLessThan(50);
+  });
+
+  it("reads scores inside longer text as before", () => {
+    expect(parseMatchResult("won 12-3 on time")).toEqual({ outcome: "p1", games: { p1: 12, p2: 3 } });
+    expect(parseMatchResult("W 2-1")).toEqual({ outcome: "p1", games: { p1: 2, p2: 1 } });
+  });
+});

@@ -1,7 +1,7 @@
 import type { CardType, Decklist } from "@naruto-tcg/types";
 import { CARD_INDEX } from "@/lib/data/cards";
 import { RULES } from "@/lib/rules";
-import { cardLabel, describeSuggestions, resolveCard } from "./cards";
+import { cardLabel, describeSuggestions, resolveCard, type CardResolver } from "./cards";
 import { clip, normalizeName } from "./text";
 import type { IngestIssue, IngestSource } from "./types";
 
@@ -28,6 +28,8 @@ export interface DecklistContext {
   field?: string;
   /** Prefixes messages, e.g. the pilot's name. */
   owner?: string;
+  /** Shared by the lists of one import (see `createCardResolver`); plain `resolveCard` otherwise. */
+  resolver?: CardResolver;
 }
 
 export interface DecklistParseResult {
@@ -130,7 +132,7 @@ export function buildDecklist(lines: readonly DecklistLine[], context: DecklistC
   for (const line of lines) {
     const wantsLeader = line.leader === true || line.section === "leader";
     const preferType = wantsLeader ? "leader" : line.section === "main" ? undefined : line.section;
-    const resolution = resolveCard(line.card, { preferType });
+    const resolution = context.resolver ? context.resolver(line.card, preferType) : resolveCard(line.card, { preferType });
     if (!resolution.cardId) {
       const alternatives = describeSuggestions(resolution.suggestions);
       report(line, {

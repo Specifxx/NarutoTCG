@@ -64,4 +64,36 @@ describe("import wizard rendering", () => {
     expect(html).toContain('href="/decks"');
     expect(html).toContain("pnpm --filter @naruto-tcg/decks ingest -- path/to/local-");
   });
+
+  it("warns before saving a copy of a tracked event, linking to it", () => {
+    const state = csvState();
+    const result = ingestFromState(state, NOW);
+    const previewing = run([{ type: "validated", result }, { type: "next" }], state);
+    const seed = { id: "example-store-championship-riverbend", name: "Example Store Championship — Riverbend", date: "2026-09-12" };
+    const html = renderToStaticMarkup(<PreviewStep state={previewing} dispatch={noop} seedEvents={[seed]} />);
+    expect(html).toContain("This looks like");
+    expect(html).toContain(`href="/tournaments/${seed.id}"`);
+    expect(html).toContain("which is already tracked; saving adds a second copy.");
+    // The save stays possible: a corrected re-upload is legitimate.
+    expect(html).not.toMatch(/<button[^>]*disabled=""[^>]*>Save to this browser/);
+    expect(renderToStaticMarkup(<PreviewStep state={previewing} dispatch={noop} seedEvents={[]} />)).not.toContain("already tracked");
+  });
+
+  it("makes the preview's scrolling tables focusable and wraps the command", () => {
+    const state = csvState();
+    const previewing = run([{ type: "validated", result: ingestFromState(state, NOW) }, { type: "next" }], state);
+    const html = renderToStaticMarkup(<PreviewStep state={previewing} dispatch={noop} />);
+    expect(html).toContain('role="region" aria-label="Standings preview" tabindex="0"');
+    expect(html).toContain('role="region" aria-label="Archetype breakdown" tabindex="0"');
+    expect(html).toMatch(/<pre class="[^"]*whitespace-pre-wrap[^"]*"/);
+    expect(html).not.toMatch(/<pre class="[^"]*overflow-x-auto/);
+  });
+
+  it("keeps the dropzone buttons focusable and bounds the paste box", () => {
+    const html = renderToStaticMarkup(<SourceStep state={createWizardState()} dispatch={noop} />);
+    expect(html).toMatch(/<button id="import-dropzone" type="button" aria-disabled="false"/);
+    expect(html).not.toMatch(/<button[^>]*disabled=""[^>]*>Load sample data/);
+    expect(html).toContain(`maxLength="${5 * 1024 * 1024 + 1}"`);
+    expect(html).toContain("Up to 5.0 MB");
+  });
 });

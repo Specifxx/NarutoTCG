@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ARCHETYPES, ROGUE_ID } from "@/lib/data/archetypes";
 import { createRng } from "@/lib/random";
 import { templateDecklist } from "./__fixtures__/lists";
-import { classifyDecklist, CLASSIFY_THRESHOLD, resolveArchetypeLabel } from "./archetypes";
+import { classifyDecklist, CLASSIFY_THRESHOLD, MAX_LABEL_LENGTH, resolveArchetypeLabel } from "./archetypes";
 
 const TRACKED = ARCHETYPES.filter((a) => a.id !== ROGUE_ID);
 
@@ -95,5 +95,31 @@ describe("classifyDecklist", () => {
   it("handles an empty main deck", () => {
     expect(classifyDecklist({ leaderId: "NT01-L02", cards: [] })).toMatchObject({ archetypeId: "medical-ninja", confidence: 0.5 });
     expect(classifyDecklist({ leaderId: "NT04-L03", cards: [] }).archetypeId).toBe(ROGUE_ID);
+  });
+});
+
+describe("resolveArchetypeLabel on pathological labels", () => {
+  const elapsed = (fn: () => unknown) => {
+    const start = performance.now();
+    fn();
+    return performance.now() - start;
+  };
+
+  it.each([
+    ["an id-like label padded with spaces", `nt1${" ".repeat(10_000)}x`],
+    ["a 200,000-character label", "a".repeat(200_000)],
+    ["a long label of real words", "Pain ".repeat(2_000)],
+  ])("reads %s quickly as unknown", (_, label) => {
+    let result: ReturnType<typeof resolveArchetypeLabel> | undefined;
+    expect(elapsed(() => (result = resolveArchetypeLabel(label)))).toBeLessThan(50);
+    expect(result!.method).toBe("unknown");
+  });
+
+  it("still reads labels up to the length limit", () => {
+    const long = `Pain ${"deck ".repeat(30)}`.trim();
+    expect(long.length).toBeLessThanOrEqual(MAX_LABEL_LENGTH);
+    expect(resolveArchetypeLabel(long).archetypeId).toBe("akatsuki-pain");
+    expect(resolveArchetypeLabel(`Pain ${"deck ".repeat(50)}`).method).toBe("unknown");
+    expect(resolveArchetypeLabel("Lightning Sasuke Tempo").method).toBe("fuzzy");
   });
 });

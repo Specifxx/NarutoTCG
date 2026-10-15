@@ -4,6 +4,7 @@ import type { EventTier } from "@naruto-tcg/types";
 import { cx } from "@naruto-tcg/ui";
 import type { Dispatch, ReactNode } from "react";
 import { EVENT_TIER_LABEL } from "@/lib/format";
+import { MAX_EVENT_NAME_LENGTH } from "@/lib/ingest/schema";
 import { isIsoDate } from "@/lib/ingest/text";
 import type { EventMetaInput } from "@/lib/ingest/types";
 import {
@@ -112,7 +113,15 @@ export function EventStep({ state, dispatch }: { state: WizardState; dispatch: D
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <FormField id={eventFieldId("name")} label="Event name" required error={errors.name} className="sm:col-span-2">
           {(props) => (
-            <input {...props} type="text" autoComplete="off" value={form.name} onChange={(e) => edit({ name: e.target.value })} className={FIELD} />
+            <input
+              {...props}
+              type="text"
+              autoComplete="off"
+              maxLength={MAX_EVENT_NAME_LENGTH}
+              value={form.name}
+              onChange={(e) => edit({ name: e.target.value })}
+              className={FIELD}
+            />
           )}
         </FormField>
 

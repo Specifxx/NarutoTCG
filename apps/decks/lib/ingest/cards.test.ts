@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CARDS } from "@/lib/data/cards";
-import { cardLabel, describeSuggestions, FUZZY_THRESHOLD, parseCardId, resolveCard } from "./cards";
+import { cardLabel, createCardResolver, describeSuggestions, FUZZY_THRESHOLD, MAX_CARD_TEXT_LENGTH, parseCardId, resolveCard } from "./cards";
 
 describe("parseCardId", () => {
   it.each([
@@ -137,5 +137,71 @@ describe("labels", () => {
         { cardId: "NT02-011", name: "Preta Path", score: 0.5 },
       ]),
     ).toBe("Konan (NT02-009), Asura Path (NT02-010) or Preta Path (NT02-011)");
+  });
+});
+
+/** Milliseconds `fn` takes. */
+function elapsed(fn: () => unknown): number {
+  const start = performance.now();
+  fn();
+  return performance.now() - start;
+}
+
+describe("pathological input", () => {
+  // These took seconds to minutes when the id pattern let whitespace be split between quantifiers.
+  it.each([
+    ["nt1 + 10,000 spaces + x", `nt1${" ".repeat(10_000)}x`],
+    ["nt12 + 100,000 spaces + x", `nt12${" ".repeat(100_000)}x`],
+    ["nt1 + 2,000 tabs + x", `nt1${"\t".repeat(2_000)}x`],
+    ["a + 40,000 spaces + b", `a${" ".repeat(40_000)}b`],
+    ["a + 40,000 spaces + (b", `a${" ".repeat(40_000)}(b`],
+    ["nt11 + 40,000 spaces + x", `nt11${" ".repeat(40_000)}x`],
+    ["5 KB of id-like text", "NT02 - ".repeat(700)],
+  ])("resolves %s quickly to nothing", (_, input) => {
+    let result: ReturnType<typeof resolveCard> | undefined;
+    expect(elapsed(() => (result = resolveCard(input)))).toBeLessThan(50);
+    expect(result!.cardId).toBeNull();
+    expect(elapsed(() => parseCardId(input))).toBeLessThan(50);
+  });
+
+  it("still reads ids and names once their whitespace is collapsed", () => {
+    expect(resolveCard("  Konan   (NT02-009)  ").cardId).toBe("NT02-009");
+    expect(resolveCard("Konan    [nt02  -  009]").cardId).toBe("NT02-009");
+    expect(parseCardId("NT02 - L 2")).toBe("NT02-L02");
+    expect(parseCardId("nt02.001")).toBe("NT02-001");
+    expect(parseCardId(`NT02-001${" ".repeat(30)}`)).toBe("NT02-001");
+    expect(parseCardId(`NT02${" ".repeat(30)}001`)).toBeNull();
+  });
+
+  it("ignores text longer than any card name", () => {
+    expect(resolveCard(`Konan ${"x".repeat(MAX_CARD_TEXT_LENGTH)}`).cardId).toBeNull();
+    expect(resolveCard(`Konan (NT02-009) ${"x".repeat(MAX_CARD_TEXT_LENGTH)}`).cardId).toBeNull();
+  });
+});
+
+describe("createCardResolver", () => {
+  it("resolves like resolveCard, once per text", () => {
+    const resolve = createCardResolver();
+    expect(resolve("Konnan")).toEqual(resolveCard("Konnan"));
+    expect(resolve("Konnan")).toBe(resolve("Konnan"));
+    expect(resolve("Sasuke Uchiha", "leader").cardId).toBe("NT02-L01");
+    expect(resolve.exhausted).toBe(false);
+  });
+
+  it("stops typo matching past its limit, still matching names and ids exactly", () => {
+    const resolve = createCardResolver(1);
+    expect(resolve("Konnan").cardId).toBe("NT02-009");
+    expect(resolve("Gamabuntaa").cardId).toBeNull();
+    expect(resolve.exhausted).toBe(true);
+    expect(resolve("Konan").cardId).toBe("NT02-009");
+    expect(resolve("NT02-014").cardId).toBe("NT02-014");
+  });
+
+  it("keeps thousands of different unknown names fast", () => {
+    const resolve = createCardResolver();
+    const time = elapsed(() => {
+      for (let i = 0; i < 5_000; i++) resolve(`Mystery Ninja Card ${i}`);
+    });
+    expect(time).toBeLessThan(1_000);
   });
 });

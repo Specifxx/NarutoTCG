@@ -76,8 +76,12 @@ Headers are matched through synonyms, card names are fuzzy-matched to the card p
 resolve through aliases ("Sage Naruto" → Uzumaki Sage Mode) or are classified from the decklist, and
 standings without pairings are accepted (matchup stats then skip the event). Every import is
 validated: duplicate or unknown players, double-booked rounds, bracket gaps, illegal decklists and
-records that disagree with the pairings are reported as errors or warnings. Imported events are
-saved in the visitor's browser only; `/meta?imports=1` folds them into the meta.
+records that disagree with the pairings are reported as errors or warnings; placements that
+contradict the recorded top cut are recomputed from the bracket, and a re-import of an event the
+site already tracks is flagged (and never counted twice). Input is bounded: cells over 4 KB,
+quantities over 50 and event names over 120 characters are rejected, and fuzzy matching is capped,
+so a hostile file cannot freeze the page. Imported events are saved in the visitor's browser only;
+`/meta?imports=1` folds them into the meta.
 
 To collect results from a public results page with Claude in Chrome, use the prompt in
 [`docs/chrome-extension-scraper-prompt.md`](docs/chrome-extension-scraper-prompt.md) and import the

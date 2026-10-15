@@ -9,10 +9,12 @@ import {
   ACCEPT_ATTRIBUTE,
   analyzeText,
   checkFileBeforeRead,
+  checkPasteBeforeRead,
   CSV_KIND_LABEL,
   formatBytes,
   kindWarning,
   MAX_FILE_BYTES,
+  MAX_PASTE_LENGTH,
   readErrorMessage,
   rejectFile,
   type AnalyzedInput,
@@ -57,6 +59,9 @@ const PASTE_KINDS: ReadonlyArray<{ value: PasteKind; label: string }> = [
 
 const NOTICE_LABEL: Record<Notice["tone"], string> = { error: "Not added", warning: "Check", info: "Note" };
 
+/** Look of a dropzone button while files are being read (it stays focusable; see aria-disabled). */
+const BUSY_LOOK = "aria-disabled:cursor-not-allowed aria-disabled:opacity-50";
+
 async function readFile(file: File): Promise<AnalyzedInput> {
   const problem = checkFileBeforeRead(file.name, file.size);
   if (problem) return rejectFile(file.name, problem);
@@ -97,6 +102,7 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
   };
 
   const loadSample = async () => {
+    if (busy !== null) return;
     setBusy("sample");
     try {
       const analyzed = await Promise.all(
@@ -123,10 +129,20 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
   const addPaste = () => {
     if (!pasteText.trim()) return;
     const name = pasteKind === "auto" ? "Pasted text" : pasteKind === "json" ? "Pasted JSON" : `Pasted ${pasteKind}`;
-    dispatch({
-      type: "addFiles",
-      files: [analyzeText(name, pasteText, { size: new Blob([pasteText]).size, origin: "paste", kind: pasteKind })],
-    });
+    // The same limit as uploads: parsing more on the main thread would freeze the page.
+    const tooLarge = checkPasteBeforeRead(pasteText);
+    if (tooLarge) {
+      // The text stays in the box so it can be trimmed.
+      dispatch({ type: "addFiles", files: [rejectFile(name, tooLarge)] });
+      return;
+    }
+    let analyzed: AnalyzedInput;
+    try {
+      analyzed = analyzeText(name, pasteText, { size: new Blob([pasteText]).size, origin: "paste", kind: pasteKind });
+    } catch {
+      analyzed = rejectFile(name, "The pasted text couldn't be parsed. Compare it with the templates, or export it again.");
+    }
+    dispatch({ type: "addFiles", files: [analyzed] });
     setPasteText("");
     // The button disables itself once the text is cleared; keep focus where the next paste goes.
     pasteRef.current?.focus();
@@ -215,10 +231,19 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
           <span className="font-semibold text-white">Drag and drop</span> {isCsv ? "your CSV files" : "a JSON file"} here, or
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <button id={DROPZONE_ID} type="button" onClick={() => inputRef.current?.click()} disabled={busy !== null} className={BUTTON_PRIMARY}>
+          {/* aria-disabled rather than disabled: a disabled button drops keyboard focus to the page. */}
+          <button
+            id={DROPZONE_ID}
+            type="button"
+            onClick={() => {
+              if (busy === null) inputRef.current?.click();
+            }}
+            aria-disabled={busy !== null}
+            className={cx(BUTTON_PRIMARY, BUSY_LOOK)}
+          >
             Choose files
           </button>
-          <button type="button" onClick={() => void loadSample()} disabled={busy !== null} className={BUTTON_GHOST}>
+          <button type="button" onClick={() => void loadSample()} aria-disabled={busy !== null} className={cx(BUTTON_GHOST, BUSY_LOOK)}>
             Load sample data
           </button>
         </div>
@@ -288,11 +313,16 @@ export function SourceStep({ state, dispatch }: { state: WizardState; dispatch: 
               id={`${ids}-paste`}
               rows={6}
               spellCheck={false}
+              maxLength={MAX_PASTE_LENGTH}
+              aria-describedby={`${ids}-paste-hint`}
               value={pasteText}
               onChange={(event) => setPasteText(event.target.value)}
               placeholder={isCsv ? "Placement,Player,Deck,Record\n1,Kenji Morrow,Sage Naruto,4-1" : '{ "event": { "name": "…", "date": "…" }, "standings": [ … ] }'}
               className={CODE_TEXTAREA}
             />
+            <p id={`${ids}-paste-hint`} className={HINT}>
+              Up to {formatBytes(MAX_FILE_BYTES)}; use the command-line importer for larger exports.
+            </p>
           </div>
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1.5">

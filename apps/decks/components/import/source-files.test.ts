@@ -1,6 +1,16 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { analyzeText, checkFileBeforeRead, formatBytes, kindFromName, kindWarning, MAX_FILE_BYTES, readErrorMessage } from "./source-files";
+import {
+  analyzeText,
+  checkFileBeforeRead,
+  checkPasteBeforeRead,
+  formatBytes,
+  kindFromName,
+  kindWarning,
+  MAX_FILE_BYTES,
+  MAX_PASTE_LENGTH,
+  readErrorMessage,
+} from "./source-files";
 
 const template = (name: string) => readFileSync(new URL(`../../public/templates/${name}`, import.meta.url), "utf8");
 
@@ -126,5 +136,20 @@ describe("review fixes", () => {
     expect(kindWarning({ ...info, kind: "pairings" })).toBeNull();
     expect(kindWarning({ kind: "standings", kindFrom: "headers", detectedKind: "standings", confidence: 0.4 })).toMatch(/don't clearly match/);
     expect(kindWarning({ kind: "standings", kindFrom: "headers", detectedKind: "standings", confidence: 0.9 })).toBeNull();
+  });
+});
+
+describe("checkPasteBeforeRead", () => {
+  it("applies the upload limit to pasted text, in bytes", () => {
+    expect(checkPasteBeforeRead("Player\nKenji Morrow")).toBeNull();
+    expect(checkPasteBeforeRead("x".repeat(MAX_FILE_BYTES))).toBeNull();
+    // Multi-byte text counts by its encoded size.
+    expect(checkPasteBeforeRead("é".repeat(MAX_FILE_BYTES / 2 + 1))).toBe(
+      "The pasted text is 5.0 MB; the browser importer takes up to 5.0 MB. Save it as a file and use the command-line importer.",
+    );
+  });
+
+  it("rejects text the paste box cut off at its limit instead of reading a truncated file", () => {
+    expect(checkPasteBeforeRead("x".repeat(MAX_PASTE_LENGTH))).toMatch(/^The pasted text is over 5\.0 MB;/);
   });
 });

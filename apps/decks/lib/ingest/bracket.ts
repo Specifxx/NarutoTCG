@@ -48,7 +48,8 @@ function recordedFinal(matches: readonly MatchRecord[], swissRounds: number, top
   if (topCutSize < 2) return null;
   const finalRound = swissRounds + topCutRounds(topCutSize);
   const cut = matches.filter((m) => m.stage === "top-cut");
-  if (cut.length === 0 || Math.max(...cut.map((m) => m.round)) !== finalRound) return null;
+  const lastRound = cut.reduce((max, m) => Math.max(max, m.round), Number.NEGATIVE_INFINITY);
+  if (lastRound !== finalRound) return null;
   const final = cut.filter((m) => m.round === finalRound);
   const match = final[0];
   if (final.length !== 1 || !match || match.player2Id === null || (match.outcome !== "p1" && match.outcome !== "p2")) return null;
@@ -82,15 +83,25 @@ export function bracketConflicts(tournament: {
   if (winner && winner.placement !== 1) conflicts.push(`${winner.name} won the final but is placed ${winner.placement}.`);
   if (loser && loser.placement !== 2) conflicts.push(`${loser.name} lost the final but is placed ${loser.placement}.`);
 
-  // A player eliminated in round e must be placed below everyone who survived round e.
-  const rounds = [...new Set(runs.flatMap(({ run }) => (run.lostIn !== undefined ? [run.lostIn] : [])))].sort((a, b) => b - a);
-  for (const round of rounds) {
-    const out = runs.filter(({ run }) => run.lostIn === round);
-    const through = runs.filter(({ run }) => depth(run) > round);
-    if (through.length === 0) continue;
-    const best = out.reduce((a, b) => (b.player.placement < a.player.placement ? b : a));
-    const worst = through.reduce((a, b) => (b.player.placement > a.player.placement ? b : a));
-    if (worst.player.placement > best.player.placement) {
+  // A player eliminated in round e must be placed below everyone who survived round e. Rounds are
+  // swept from the last one back, so the survivors only ever grow (linear after the sort).
+  type Entry = (typeof runs)[number];
+  const bestOut = new Map<number, Entry>();
+  for (const entry of runs) {
+    const round = entry.run.lostIn;
+    if (round === undefined) continue;
+    const current = bestOut.get(round);
+    if (!current || entry.player.placement < current.player.placement) bestOut.set(round, entry);
+  }
+  const byDepth = [...runs].sort((a, b) => depth(b.run) - depth(a.run));
+  let next = 0;
+  let worst: Entry | null = null;
+  for (const round of [...bestOut.keys()].sort((a, b) => b - a)) {
+    for (; next < byDepth.length && depth(byDepth[next]!.run) > round; next++) {
+      if (!worst || byDepth[next]!.player.placement > worst.player.placement) worst = byDepth[next]!;
+    }
+    const best = bestOut.get(round)!;
+    if (worst && worst.player.placement > best.player.placement) {
       conflicts.push(
         `${worst.player.name} (placed ${worst.player.placement}) went further in the top cut than ${best.player.name} (placed ${best.player.placement}), who lost in round ${round}.`,
       );

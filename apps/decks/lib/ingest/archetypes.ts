@@ -67,7 +67,8 @@ export function resolveArchetypeLabel(label: string): ArchetypeLabelResolution {
   const byAlias = LABELS.find((l) => l.aliases.includes(query));
   if (byAlias) return { archetypeId: byAlias.archetype.id, method: "alias", confidence: 0.95 };
 
-  const leader = resolveCard(label, { preferType: "leader" });
+  // Only an exact Leader name counts, so typo matching (the costly part) is skipped.
+  const leader = resolveCard(label, { preferType: "leader", fuzzy: false });
   if (leader.cardId && leader.method !== "fuzzy" && CARD_INDEX.get(leader.cardId)?.type === "leader") {
     const owner = ARCHETYPES.find((a) => a.leaderIds.includes(leader.cardId!));
     if (owner) return { archetypeId: owner.id, method: "alias", confidence: 0.9 };

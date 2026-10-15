@@ -109,6 +109,20 @@ export function checkFileBeforeRead(name: string, size: number): string | null {
   return null;
 }
 
+/**
+ * Characters the paste box takes: one past the upload limit, so text cut off at it is still over
+ * the limit and rejected, never silently truncated into a smaller file that reads as valid.
+ */
+export const MAX_PASTE_LENGTH = MAX_FILE_BYTES + 1;
+
+/** Why pasted text cannot be read (more than an upload may hold), or null when it is fine. */
+export function checkPasteBeforeRead(text: string): string | null {
+  const size = new Blob([text]).size;
+  if (size <= MAX_FILE_BYTES) return null;
+  const amount = text.length >= MAX_PASTE_LENGTH ? `over ${formatBytes(MAX_FILE_BYTES)}` : formatBytes(size);
+  return `The pasted text is ${amount}; the browser importer takes up to ${formatBytes(MAX_FILE_BYTES)}. Save it as a file and use the command-line importer.`;
+}
+
 /** Friendly message for a file the browser could not read. */
 export function readErrorMessage(error: unknown): string {
   const reason = error instanceof Error && error.message ? ` (${error.message})` : "";

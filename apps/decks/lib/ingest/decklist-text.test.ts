@@ -162,3 +162,72 @@ describe("parseSection / parseQuantity", () => {
     expect(parseQuantity("four")).toBeNaN();
   });
 });
+
+describe("long lines", () => {
+  const elapsed = (fn: () => unknown) => {
+    const start = performance.now();
+    fn();
+    return performance.now() - start;
+  };
+
+  // Each of these backtracked quadratically before: a 60,000-character cell took about 10 s.
+  it.each([
+    ["a run of spaces inside a card name", `a${" ".repeat(60_000)}b`],
+    ["a run of spaces after Leader", `leader${" ".repeat(60_000)}x`],
+    ["a run of spaces before a stray slash", `4 Konan${" ".repeat(60_000)}/x`],
+    ["a run of spaces before a trailing x", `Konan${" ".repeat(60_000)}x`],
+    ["a run of spaces before a quantity in parentheses", `Konan${" ".repeat(60_000)}(4`],
+    ["many short words", `4 ${"a ".repeat(30_000)}`],
+  ])("parses %s quickly", (_, text) => {
+    expect(elapsed(() => parseDecklistText(text))).toBeLessThan(100);
+  });
+
+  it("strips trailing comments only after whitespace, keeping URLs", () => {
+    expect(parseDecklistText("Leader: Pain // the deck\n4 Konan   // main attacker").decklist).toEqual({
+      leaderId: "NT02-L02",
+      cards: [{ cardId: "NT02-009", quantity: 4 }],
+    });
+    const [issue] = parseDecklistText("Leader: Pain\n4 Konan https://example.com/konan").issues;
+    expect(issue!.message).toContain('"Konan https://example.com/konan"');
+  });
+
+  it("still reads quantities written last and Leader lines with a count", () => {
+    expect(parseDecklistText("Leader (1): Pain\nKonan   x4\nAlmighty Push (3)").decklist).toEqual({
+      leaderId: "NT02-L02",
+      cards: [
+        { cardId: "NT02-009", quantity: 4 },
+        { cardId: "NT02-014", quantity: 3 },
+      ],
+    });
+  });
+
+  it("quotes at most 80 characters of an unknown card", () => {
+    const [issue] = parseDecklistText(`Leader: Pain\n4 ${"Zz".repeat(100)}`).issues;
+    expect(issue!.code).toBe("unknown-card");
+    expect(issue!.message.length).toBeLessThan(120);
+  });
+});
+
+describe("absurd quantities", () => {
+  it("rejects a line holding more copies than a whole main deck, as an error", () => {
+    const { decklist, issues } = parseDecklistText("Leader: Pain\n1000000000 Konan\n50 Almighty Push\n51 Asura Path");
+    expect(decklist).toEqual({ leaderId: "NT02-L02", cards: [{ cardId: "NT02-014", quantity: 50 }] });
+    expect(issues.map((i) => [i.severity, i.code])).toEqual([
+      ["error", "invalid-quantity"],
+      ["error", "invalid-quantity"],
+    ]);
+    expect(issues[0]!.message).toContain("1000000000 copies of Konan");
+  });
+
+  it("still only warns about zero or unreadable quantities", () => {
+    const { issues } = buildDecklist([
+      { quantity: 1, card: "Pain", leader: true },
+      { quantity: 0, card: "Konan" },
+      { quantity: Number.NaN, card: "Asura Path" },
+    ]);
+    expect(issues.map((i) => [i.severity, i.code])).toEqual([
+      ["warning", "invalid-quantity"],
+      ["warning", "invalid-quantity"],
+    ]);
+  });
+});

@@ -1,5 +1,6 @@
 import type { EventLocation, EventTier } from "@naruto-tcg/types";
 import { formatForDate } from "@/lib/data/cards";
+import { MAX_EVENT_NAME_LENGTH } from "@/lib/ingest/schema";
 import { isIsoDate } from "@/lib/ingest/text";
 import type { EventMetaInput } from "@/lib/ingest/types";
 
@@ -148,6 +149,9 @@ export function formToMeta(form: EventForm): EventMetaInput {
 export function validateEventForm(form: EventForm): EventFormErrors {
   const errors: EventFormErrors = {};
   if (!form.name.trim()) errors.name = "Enter the event name.";
+  else if (form.name.trim().length > MAX_EVENT_NAME_LENGTH) {
+    errors.name = `Shorten the event name to ${MAX_EVENT_NAME_LENGTH} characters or fewer (it has ${form.name.trim().length}).`;
+  }
   if (!form.date.trim()) errors.date = "Enter the date of the final day.";
   else if (!isIsoDate(form.date.trim())) errors.date = "Enter a real date as YYYY-MM-DD.";
   const hasPlace = [form.venue, form.city, form.region, form.country].some((part) => part.trim());

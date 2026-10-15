@@ -152,6 +152,18 @@ export function stripControlCharacters(text: string): string {
   return text.replace(CONTROL_CHARACTERS, "");
 }
 
+/** Every C0 and C1 control character (tab and line breaks included) and the bidi overrides and isolates. */
+const PRINT_UNSAFE = /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g;
+
+/**
+ * `text` with every control character and bidi override written as an escape such as `\u001b`,
+ * for printing untrusted values to a terminal: they can then neither drive it (clear the
+ * screen, set the title) nor hide or reorder the surrounding output.
+ */
+export function escapeControlCharacters(text: string): string {
+  return text.replace(PRINT_UNSAFE, (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, "0")}`);
+}
+
 /** Nesting below which {@link stripControlCharactersDeep} leaves values alone; parsed records are far shallower. */
 const MAX_CLEAN_DEPTH = 16;
 

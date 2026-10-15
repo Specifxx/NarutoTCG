@@ -1,5 +1,6 @@
 import type { Tournament } from "@naruto-tcg/types";
 import { CHARTED_ARCHETYPES, getArchetype } from "@/lib/data/archetypes";
+import { normalizeName } from "@/lib/ingest/text";
 import { OTHER_SERIES_ID, seriesIdFor } from "@/lib/meta/share";
 import { computeRecords, emptyRecord, formatRecord } from "@/lib/tournament/standings";
 
@@ -100,6 +101,28 @@ export function archetypeBreakdown(tournament: Tournament): BreakdownRow[] {
     if (a.seriesId === OTHER_SERIES_ID || b.seriesId === OTHER_SERIES_ID) return a.seriesId === OTHER_SERIES_ID ? 1 : -1;
     return b.players - a.players || order(a.seriesId) - order(b.seriesId);
   });
+}
+
+/** A tracked (seed) event, as the import page hands it to the wizard: just enough to spot a copy. */
+export interface SeedEventRef {
+  id: string;
+  name: string;
+  date: string;
+}
+
+/** Prefix the wizard gives every imported event id (see `asLocalImport`). */
+const LOCAL_PREFIX = "local-";
+
+/**
+ * The tracked event an import duplicates, or null: the same id once the "local-" prefix is
+ * stripped (a re-imported "Download JSON"), or the same name (ignoring case, accents and
+ * punctuation) on the same date (the same event from the organizer's exports).
+ */
+export function seedTwinOf(tournament: Pick<Tournament, "id" | "name" | "date">, seeds: readonly SeedEventRef[]): SeedEventRef | null {
+  const id = tournament.id.startsWith(LOCAL_PREFIX) ? tournament.id.slice(LOCAL_PREFIX.length) : tournament.id;
+  const name = normalizeName(tournament.name);
+  const date = tournament.date.slice(0, 10);
+  return seeds.find((seed) => seed.id === id || (name !== "" && normalizeName(seed.name) === name && seed.date.slice(0, 10) === date)) ?? null;
 }
 
 /** File name for the normalized download, e.g. "local-riverbend-sc-2026-09-12.json". */

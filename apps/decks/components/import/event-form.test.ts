@@ -35,6 +35,12 @@ describe("validateEventForm", () => {
     expect(validateEventForm(filled)).toEqual({});
   });
 
+  it("limits the event name to what an id and the pages can carry", () => {
+    expect(validateEventForm({ ...filled, name: ` ${"N".repeat(120)} ` })).toEqual({});
+    expect(validateEventForm({ ...filled, name: "N".repeat(121) }).name).toBe("Shorten the event name to 120 characters or fewer (it has 121).");
+    expect(EventMetaSchema.safeParse(formToMeta({ ...filled, name: "N".repeat(121) })).success).toBe(false);
+  });
+
   it("checks Swiss rounds only when given", () => {
     expect(validateEventForm({ ...filled, swissRounds: "" })).toEqual({});
     expect(validateEventForm({ ...filled, swissRounds: "2.5" }).swissRounds).toMatch(/whole number/);

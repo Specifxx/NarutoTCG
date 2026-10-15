@@ -49,7 +49,7 @@ function nameHeaders(raw: readonly string[]) {
  * "toString" is an ordinary own key holding a string.
  */
 export function parseCsv(text: string): CsvTable {
-  const result = Papa.parse<string[]>(text.replace(/^﻿/, ""), {
+  const result = Papa.parse<string[]>(text.replace(/^\uFEFF/, ""), {
     header: false,
     skipEmptyLines: "greedy",
     delimitersToGuess: [",", ";", "\t"],

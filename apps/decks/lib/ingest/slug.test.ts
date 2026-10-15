@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng, pick, randInt } from "@/lib/random";
-import { isSlug, slugify, uniqueSlug } from "./slug";
+import { idSlug, isSlug, MAX_SLUG_LENGTH, slugify, uniqueSlug } from "./slug";
 
 describe("slugify", () => {
   it.each([
@@ -58,5 +58,26 @@ describe("isSlug", () => {
     expect(isSlug("-a")).toBe(false);
     expect(isSlug("A")).toBe(false);
     expect(isSlug("")).toBe(false);
+  });
+});
+
+describe("idSlug", () => {
+  it("is slugify for names of usual length", () => {
+    expect(idSlug("Example Store Championship — Riverbend", "event")).toBe("example-store-championship-riverbend");
+    expect(idSlug("うずまき")).toBe("player");
+  });
+
+  it("caps long slugs with a stable hash that keeps them distinct", () => {
+    const long = "Konoha Open ".repeat(1_800);
+    const id = idSlug(long, "event");
+    expect(id.length).toBeLessThanOrEqual(MAX_SLUG_LENGTH);
+    expect(isSlug(id)).toBe(true);
+    expect(id).toMatch(/^konoha-open-konoha-open-.*-[0-9a-z]{6}$/);
+    expect(idSlug(long, "event")).toBe(id);
+    expect(idSlug(`${long}!`, "event")).toBe(id);
+    expect(idSlug(`${long} 2`, "event")).not.toBe(id);
+    const unbroken = idSlug("x".repeat(500));
+    expect(unbroken.length).toBe(MAX_SLUG_LENGTH);
+    expect(isSlug(unbroken)).toBe(true);
   });
 });

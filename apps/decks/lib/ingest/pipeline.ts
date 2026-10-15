@@ -1,5 +1,5 @@
-import { getArchetype } from "@/lib/data/archetypes";
 import type { Tournament } from "@naruto-tcg/types";
+import { getArchetype } from "@/lib/data/archetypes";
 import { assembleTournament, assignArchetype, canonicalOrder, failed, summarize } from "./assemble";
 import { bracketConflicts, bracketPlacements } from "./bracket";
 import { autoMapColumns, cell, COLUMN_FIELDS, describeFields, missingRequiredFields } from "./columns";
@@ -30,6 +30,19 @@ export interface IngestJsonOptions {
   /** Event fields that replace the file's (e.g. a corrected date from the wizard). */
   metaOverrides?: Partial<EventMetaInput>;
   now?: string;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
+
+/**
+ * The parsed file with an overriding event name applied before validation, so a name the file
+ * gets wrong (too long, say) can be corrected in the wizard instead of failing the schema.
+ */
+function withNameOverride(value: unknown, overrides: Partial<EventMetaInput> | undefined): unknown {
+  const name = overrides?.name;
+  if (name === undefined || !isRecord(value)) return value;
+  if (isRecord(value.event)) return { ...value, event: { ...value.event, name } };
+  return { ...value, name };
 }
 
 /** Event meta with every defined override applied. */
@@ -222,6 +235,7 @@ export function ingestJson(text: string, options: IngestJsonOptions = {}): Inges
     const reason = error instanceof Error ? error.message : String(error);
     return failed([{ severity: "error", code: "invalid-json", message: `Not valid JSON: ${reason}`, source: "json" }]);
   }
+  value = withNameOverride(value, options.metaOverrides);
   switch (detectJsonFormat(value)) {
     case "canonical":
       return ingestCanonical(value, options);

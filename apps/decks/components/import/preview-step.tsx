@@ -17,9 +17,11 @@ import {
   normalizedFileName,
   normalizedJson,
   previewPlayers,
+  seedTwinOf,
   STANDINGS_PREVIEW_LIMIT,
   type BreakdownRow,
   type PreviewPlayer,
+  type SeedEventRef,
 } from "./preview";
 import { SeverityIcon } from "./status";
 import { BUTTON_DANGER, BUTTON_GHOST, BUTTON_GHOST_SM, BUTTON_PRIMARY, FOCUS_RING, HINT, INLINE_LINK, PANEL } from "./styles";
@@ -87,7 +89,7 @@ function StandingsPreview({ tournament, players }: { tournament: Tournament; pla
           {players.length > shown.length ? `Top ${shown.length} of ${formatNumber(players.length)} players` : pluralize(players.length, "player")}
         </p>
       </div>
-      <DataTable>
+      <DataTable label="Standings preview">
         <THead>
           <tr>
             <Th>Place</Th>
@@ -132,7 +134,7 @@ function ArchetypeBreakdown({ rows, topCutSize }: { rows: BreakdownRow[]; topCut
       <h3 id={headingId} className="text-base font-bold text-white">
         Archetype breakdown
       </h3>
-      <DataTable>
+      <DataTable label="Archetype breakdown">
         <THead>
           <tr>
             <Th>Archetype</Th>
@@ -235,7 +237,8 @@ function CliSnippet({ fileName }: { fileName: string }) {
         importer from the repository root:
       </p>
       <div className="flex min-w-0 items-stretch overflow-hidden rounded-md border border-shadow-600 bg-shadow-950">
-        <pre className="min-w-0 flex-1 relative overflow-x-auto px-3 py-2.5 text-xs text-ash-100">
+        {/* Wraps instead of scrolling, so no keyboard user has to scroll it; copying keeps it on one line. */}
+        <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all px-3 py-2.5 text-xs text-ash-100">
           <code>{command}</code>
         </pre>
         <button
@@ -304,7 +307,16 @@ function SavedPanel({ id, name, onReset }: { id: string; name: string; onReset: 
   );
 }
 
-export function PreviewStep({ state, dispatch }: { state: WizardState; dispatch: Dispatch<WizardAction> }) {
+export function PreviewStep({
+  state,
+  dispatch,
+  seedEvents = [],
+}: {
+  state: WizardState;
+  dispatch: Dispatch<WizardAction>;
+  /** Tracked events, to warn when the import is a copy of one. */
+  seedEvents?: readonly SeedEventRef[];
+}) {
   const imported = useImportedTournaments();
   const [confirming, setConfirming] = useState(false);
   const saveRef = useRef<HTMLButtonElement>(null);
@@ -328,6 +340,7 @@ export function PreviewStep({ state, dispatch }: { state: WizardState; dispatch:
 
   const blocked = hasErrors(result.issues);
   const existing = imported.find((t) => t.id === tournament.id);
+  const twin = seedTwinOf(tournament, seedEvents);
   const players = previewPlayers(tournament);
   const fileName = normalizedFileName(tournament.id);
 
@@ -367,6 +380,18 @@ export function PreviewStep({ state, dispatch }: { state: WizardState; dispatch:
             <p className="flex items-center gap-2 text-sm text-ash-200">
               <SeverityIcon severity="error" />
               Errors remain; go back to Validate.
+            </p>
+          )}
+          {twin && (
+            <p className="flex items-start gap-2 text-sm text-ash-300">
+              <SeverityIcon severity="warning" className="mt-0.5" />
+              <span>
+                <span className="font-semibold text-ash-100">Warning:</span> This looks like{" "}
+                <Link href={eventHref(twin.id)} className={INLINE_LINK}>
+                  {twin.name}
+                </Link>
+                , which is already tracked; saving adds a second copy.
+              </span>
             </p>
           )}
           {existing && !confirming && !blocked && (

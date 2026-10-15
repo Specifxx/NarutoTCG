@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseCsv } from "./csv";
+import { MAX_CELL_LENGTH, parseCsv } from "./csv";
 
 const BOM = String.fromCharCode(0xfeff);
 
@@ -77,5 +77,38 @@ describe("parseCsv", () => {
   it("warns about empty files", () => {
     expect(parseCsv("").issues.map((i) => i.code)).toEqual(["empty-file"]);
     expect(parseCsv("Player,Deck\n").issues.map((i) => i.code)).toEqual(["empty-file"]);
+  });
+
+  it.each(["__proto__", "constructor", "toString", "isPrototypeOf", "hasOwnProperty", "valueOf"])(
+    "reads a %s column as an ordinary string column, short rows included",
+    (header) => {
+      const table = parseCsv(`Player,${header}\nAlice,foo\nBob\n`);
+      expect(table.headers).toEqual(["Player", header]);
+      expect(table.rows.map((row) => Object.hasOwn(row, header))).toEqual([true, true]);
+      expect(table.rows.map((row) => row[header])).toEqual(["foo", ""]);
+      expect(table.rows.every((row) => Object.getPrototypeOf(row) === Object.prototype)).toBe(true);
+    },
+  );
+
+  it("empties cells longer than the limit with an error, listing a few", () => {
+    const long = "x".repeat(MAX_CELL_LENGTH + 1);
+    const table = parseCsv(`Player,Deck\nAlice,${long}\nBob,Pain\n`);
+    expect(table.rows).toEqual([
+      { Player: "Alice", Deck: "" },
+      { Player: "Bob", Deck: "Pain" },
+    ]);
+    expect(table.issues).toEqual([expect.objectContaining({ severity: "error", code: "cell-too-long", row: 1, field: "Deck" })]);
+    expect(parseCsv(`Player,Deck\nAlice,${"x".repeat(MAX_CELL_LENGTH)}\n`).issues).toEqual([]);
+
+    const many = parseCsv(`Player\n${Array.from({ length: 8 }, () => long).join("\n")}\n`);
+    expect(many.issues.map((i) => i.code)).toEqual(Array(6).fill("cell-too-long"));
+    expect(many.issues.at(-1)!.message).toMatch(/^3 more cells/);
+  });
+
+  it("removes control characters from headers and cells with a warning, keeping line breaks", () => {
+    const table = parseCsv('Pla\u001byer,Deck\n"Ken\u001b[2Jji\u202e","line\none"\n');
+    expect(table.headers).toEqual(["Player", "Deck"]);
+    expect(table.rows).toEqual([{ Player: "Ken[2Jji", Deck: "line\none" }]);
+    expect(table.issues.map((i) => [i.severity, i.code])).toEqual([["warning", "control-characters-removed"]]);
   });
 });

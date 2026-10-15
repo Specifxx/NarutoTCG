@@ -462,3 +462,169 @@ describe("ingestJson", () => {
     expect(result.tournament).toMatchObject({ date: "2026-09-13", id: "local-example-store-championship-riverbend-2026-09-13" });
   });
 });
+
+describe("placements that contradict the bracket", () => {
+  /** The template standings with Kenji (who won the final) and Juniper (a semifinal loser) swapped, as a Swiss-rank export would have them. */
+  const swissOrder = () => mapLines(standingsCsv(), (cells) => [cells[0] === "1" ? "3" : cells[0] === "3" ? "1" : cells[0]!, ...cells.slice(1)]);
+
+  it("re-places the top cut from a CSV placement column, with a warning", () => {
+    const result = ingestTemplates({ standings: { text: swissOrder() } });
+    expect(codes(result.issues)).toEqual(["placements-recomputed"]);
+    const [issue] = result.issues;
+    expect(issue).toMatchObject({ severity: "warning", source: "standings", field: "placement" });
+    expect(issue!.message).toContain("Kenji Morrow won the final but is placed 3.");
+    expect(result.tournament!.players).toEqual(expected().players);
+  });
+
+  it("keeps the column's order inside a band and outside the cut", () => {
+    const text = mapLines(standingsCsv(), (cells) => [({ "3": "4", "4": "3", "5": "8", "8": "5" } as Record<string, string>)[cells[0]!] ?? cells[0]!, ...cells.slice(1)]);
+    const result = ingestTemplates({ standings: { text } });
+    expect(result.issues).toEqual([]);
+    expect(result.tournament!.players.map((p) => [p.id, p.placement])).toEqual(
+      expect.arrayContaining([["junipera", 4], ["odette", 3], ["bram-o", 8], ["dhalvorsen", 5]]),
+    );
+  });
+
+  it("re-places a canonical record's top cut so it never names the wrong winner", () => {
+    const source = templateTournament();
+    const players = source.players.map((p) => (p.placement === 1 ? { ...p, placement: 3 } : p.placement === 3 ? { ...p, placement: 1 } : p));
+    const result = ingestJson(JSON.stringify({ ...source, players }), { now: NOW });
+    expect(codes(result.issues)).toEqual(["placements-recomputed"]);
+    expect(result.issues[0]).toMatchObject({ severity: "warning", source: "json", field: "players" });
+    expect(result.tournament!.players).toEqual(expected().players);
+  });
+
+  it("leaves a partial bracket's undecided places alone", () => {
+    const source = templateTournament();
+    const finalists = source.players.map((p) => (p.placement === 1 ? { ...p, placement: 2 } : p.placement === 2 ? { ...p, placement: 1 } : p));
+    const result = ingestJson(JSON.stringify({ ...source, players: finalists, matches: source.matches.filter((m) => m.round !== 5) }), { now: NOW });
+    expect(codes(result.issues)).toEqual(["partial-top-cut"]);
+    expect(result.tournament!.players[0]!.id).toBe("priya-c");
+  });
+});
+
+describe("bounded input", () => {
+  const elapsed = (fn: () => unknown) => {
+    const start = performance.now();
+    fn();
+    return performance.now() - start;
+  };
+
+  it("matches misspelled names in a large event quickly: 300 players, 2,000 pairing rows", () => {
+    const first = ["Kenji", "Priya", "Juniper", "Odette", "Bram", "Zoe", "Felix", "Dmitri", "Marisol", "Hollis", "Wren", "Soren", "Ines", "Tobias", "Anika"];
+    const last = ["Morrow", "Castellane", "Aldana", "Nwosu", "Ohlsson", "Marchetti", "Arkwright", "Halvorsen", "Teague", "Brandvold", "Ishikawa", "Lindqvist", "Okafor", "Varga", "Duarte", "Moreau", "Quill", "Haddad", "Renner", "Kirkby"];
+    const names = Array.from({ length: 300 }, (_, i) => `${first[i % first.length]} ${last[Math.floor(i / first.length)]}`);
+    // Every pairing name is misspelled (one letter changed), and some are not in the standings at all.
+    const misspell = (name: string) => name.replace(/[aeiou](?=[^aeiou]*$)/, "y");
+    const rows = Array.from({ length: 2_000 }, (_, i) => {
+      const round = Math.floor(i / 150) + 1;
+      const a = names[(2 * i) % 300]!;
+      const b = i % 50 === 0 ? `Stranger ${i}` : names[(2 * i + 1) % 300]!;
+      return `${round},${misspell(a)},${misspell(b)},2-1`;
+    });
+    let result: IngestResult | undefined;
+    const time = elapsed(() => {
+      result = ingestCsv({
+        meta: { ...templateMeta(), swissRounds: 14, topCutSize: 0 },
+        standings: { text: `Player\n${names.join("\n")}\n` },
+        pairings: { text: `Round,Player 1,Player 2,Result\n${rows.join("\n")}\n` },
+        now: NOW,
+      });
+    });
+    expect(time).toBeLessThan(2_000);
+    // Each misspelling is matched (and reported) once, each unknown name reported once.
+    const fuzzy = result!.issues.filter((i) => i.code === "player-fuzzy-match");
+    expect(new Set(fuzzy.map((i) => i.message)).size).toBe(fuzzy.length);
+    expect(result!.issues.filter((i) => i.code === "unknown-player")).toHaveLength(40);
+    expect(result!.tournament!.matches.length).toBe(2_000 - 40);
+  });
+
+  it("keeps a file of thousands of different unknown names fast", () => {
+    const standings = `Player\n${Array.from({ length: 2_000 }, (_, i) => `Player Number ${i}`).join("\n")}\n`;
+    const unknownName = (n: number) => `Unknown Number ${5_000 + n}`;
+    const pairings = `Round,Player 1,Player 2,Result\n${Array.from({ length: 2_000 }, (_, i) => `1,${unknownName(2 * i)},${unknownName(2 * i + 1)},2-0`).join("\n")}\n`;
+    let result: IngestResult | undefined;
+    expect(elapsed(() => (result = ingestCsv({ meta: templateMeta(), standings: { text: standings }, pairings: { text: pairings }, now: NOW })))).toBeLessThan(2_000);
+    const unknown = result!.issues.filter((i) => i.code === "unknown-player");
+    expect(unknown).toHaveLength(4_000);
+    // The first names get a "Did you mean"; past a limit only close matches are looked for.
+    expect(unknown[0]!.suggestion).toMatch(/^Did you mean "Player Number/);
+    expect(unknown.at(-1)!.suggestion).toBeUndefined();
+    expect(codes(result!.issues, "info")).toContain("player-matching-limited");
+  });
+
+  it("does not hang on over-long cells", () => {
+    const standings = `Player,Deck,Decklist\nAlice,nt1${" ".repeat(250)}x,"a${" ".repeat(3_000)}b"\nBob,Pain,\n`;
+    const pairings = `Round,Player 1,Player 2,Result\n1,Alice,Bob,${"1".repeat(4_000)}\n`;
+    let result: IngestResult | undefined;
+    expect(elapsed(() => (result = ingestTemplates({ standings: { text: standings }, pairings: { text: pairings }, decklists: undefined })))).toBeLessThan(500);
+    expect(codes(result!.issues, "error")).toEqual(["unknown-card", "missing-leader", "invalid-result"]);
+
+    const tooLong = `Player,Deck\nAlice,${"x".repeat(5_000)}\nBob,Pain\n`;
+    const capped = ingestCsv({ meta: templateMeta(), standings: { text: tooLong }, now: NOW });
+    expect(capped.issues.filter((i) => i.severity === "error")).toEqual([expect.objectContaining({ code: "cell-too-long", source: "standings", row: 1, field: "Deck" })]);
+  });
+
+  it("caps ids built from long names, stably", () => {
+    const name = "Konoha Open ".repeat(10).trim();
+    const result = ingestTemplates({ meta: { ...templateMeta(), name } });
+    const id = result.tournament!.id;
+    expect(id.length).toBeLessThan(80);
+    expect(id).toMatch(/^local-konoha-open-[a-z0-9-]+-[0-9a-z]{6}-2026-09-12$/);
+    expect(ingestTemplates({ meta: { ...templateMeta(), name } }).tournament!.id).toBe(id);
+
+    const longId = ingestJson(JSON.stringify({ ...templateTournament(), id: "riverbend-".repeat(2_000) }), { now: NOW }).tournament!;
+    expect(longId.id.length).toBeLessThanOrEqual(66);
+
+    const longNames = `Player\n${"Uzumaki ".repeat(40)}A\n${"Uzumaki ".repeat(40)}B\n`;
+    const players = ingestCsv({ meta: templateMeta(), standings: { text: longNames }, now: NOW }).tournament!.players;
+    expect(players.every((p) => p.id.length <= 60)).toBe(true);
+    expect(new Set(players.map((p) => p.id)).size).toBe(2);
+  });
+
+  it("rejects an over-long event name, unless the wizard overrides it", () => {
+    const name = "N".repeat(121);
+    expect(codes(ingestTemplates({ meta: { ...templateMeta(), name } }).issues, "error")).toEqual(["name-too-long"]);
+    const canonical = JSON.stringify({ ...templateTournament(), name });
+    expect(ingestJson(canonical, { now: NOW }).issues.map((i) => i.code)).toEqual(["schema"]);
+    expect(ingestJson(canonical, { now: NOW, metaOverrides: { name: "Short" } }).issues).toEqual([]);
+    const scraped = JSON.parse(readTemplate("scraped-template.json")) as { event: { name: string } };
+    scraped.event.name = name;
+    expect(codes(ingestJson(JSON.stringify(scraped), { now: NOW }).issues, "error")).toEqual(["name-too-long"]);
+    expect(ingestJson(JSON.stringify(scraped), { now: NOW, metaOverrides: { name: "Short" } }).issues).toEqual([]);
+  });
+
+  it("rejects absurd card quantities on every path", () => {
+    const source = templateTournament();
+    const list = source.players[0]!.decklist!;
+    const absurd = { ...source, players: source.players.map((p, i) => (i === 0 ? { ...p, decklist: { ...list, cards: [{ ...list.cards[0]!, quantity: 1e9 }] } } : p)) };
+    const canonical = ingestJson(JSON.stringify(absurd), { now: NOW });
+    expect(canonical.tournament).toBeNull();
+    expect(canonical.issues[0]!.field).toBe("players[0].decklist.cards[0].quantity");
+
+    const decklists = mapLines(decklistsCsv(), (cells) => (cells[0] === "Kenji Morrow" && cells[1] === "Character" ? [cells[0], cells[1], "1234567890", ...cells.slice(3)] : cells));
+    expect(codes(ingestTemplates({ decklists: { text: decklists } }).issues, "error")).toContain("invalid-quantity");
+  });
+
+  it("removes control characters from imported names", () => {
+    const source = templateTournament();
+    const players = source.players.map((p, i) => (i === 0 ? { ...p, name: "Kenji\u001b[2J Morrow" } : p));
+    const result = ingestJson(JSON.stringify({ ...source, name: "Evil\u001b]0;title\u0007 Cup", players }), { now: NOW });
+    expect(codes(result.issues)).toEqual(["control-characters-removed"]);
+    expect(result.tournament!.name).toBe("Evil]0;title Cup");
+    expect(result.tournament!.players[0]!.name).toBe("Kenji[2J Morrow");
+
+    const standings = standingsCsv().replace("Kenji Morrow", "Kenji\u001b Morrow");
+    const csv = ingestTemplates({ standings: { text: standings } });
+    expect(codes(csv.issues)).toEqual(["control-characters-removed"]);
+    expect(csv.tournament!.players[0]!.name).toBe("Kenji Morrow");
+  });
+
+  it("imports CSV columns named after Object members without crashing", () => {
+    const decklists = "Player,Quantity,Card,isPrototypeOf\nKenji Morrow,1,Naruto Uzumaki — Sage Mode\nKenji Morrow,4,Fukasaku & Shima,Character\n";
+    const result = ingestCsv({ meta: templateMeta(), standings: { text: standingsCsv() }, decklists: { text: decklists }, now: NOW });
+    expect(result.tournament).not.toBeNull();
+    const proto = ingestCsv({ meta: templateMeta(), standings: { text: "Player,__proto__,toString\nKenji Morrow,Pain\nBram Ohlsson\n", mapping: { player: "Player", archetype: "__proto__", country: "toString" } }, now: NOW });
+    expect(proto.tournament!.players.map((p) => p.archetypeId)).toEqual(["akatsuki-pain", "rogue"]);
+  });
+});

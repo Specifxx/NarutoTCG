@@ -5,6 +5,7 @@ import { useEffect, useReducer, useRef } from "react";
 import { BlockerSummary } from "./blocker-summary";
 import { EventStep } from "./event-step";
 import { MappingStep } from "./mapping-step";
+import type { SeedEventRef } from "./preview";
 import { PreviewStep } from "./preview-step";
 import { SourceStep } from "./source-step";
 import { Stepper } from "./stepper";
@@ -34,8 +35,11 @@ function nextLabel(target: StepId): string {
   return target === "validate" ? "Validate" : `Next: ${STEP_LABEL[target]}`;
 }
 
-/** The TO import wizard: source → event details → column mapping (CSV) → validate → preview & save. */
-export function ImportWizard() {
+/**
+ * The TO import wizard: source → event details → column mapping (CSV) → validate → preview & save.
+ * `seedEvents` lists the tracked events (id, name and date only), so a copy of one is flagged.
+ */
+export function ImportWizard({ seedEvents = [] }: { seedEvents?: readonly SeedEventRef[] }) {
   const [state, dispatch] = useReducer(wizardReducer, undefined, createWizardState);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const shownStep = useRef(state.step);
@@ -80,7 +84,7 @@ export function ImportWizard() {
         {state.step === "event" && <EventStep state={state} dispatch={dispatch} />}
         {state.step === "mapping" && <MappingStep state={state} dispatch={dispatch} />}
         {state.step === "validate" && <ValidateStep state={state} dispatch={dispatch} onRerun={validate} />}
-        {state.step === "preview" && <PreviewStep state={state} dispatch={dispatch} />}
+        {state.step === "preview" && <PreviewStep state={state} dispatch={dispatch} seedEvents={seedEvents} />}
 
         {state.attempted === state.step && blockers.length > 0 && <BlockerSummary blockers={blockers} attempts={state.attempts} />}
 

@@ -23,6 +23,8 @@ export interface CardResolution {
 export interface ResolveCardOptions {
   /** Breaks ties between cards sharing a name, e.g. `"leader"` on a "Leader:" line. */
   preferType?: CardType;
+  /** False to stop after ids and exact or normalized names (no typo matching, no suggestions). */
+  fuzzy?: boolean;
 }
 
 /** Similarity a misspelled name needs to resolve on its own; below it only suggestions are returned. */
@@ -127,7 +129,7 @@ export function resolveCard(input: string, options: ResolveCardOptions = {}): Ca
   const name = stripTrailingGroup(text) || text;
   const query = normalizeName(name);
   if (!query) return none;
-  const { preferType } = options;
+  const { preferType, fuzzy = true } = options;
 
   const candidates = INDEX.flatMap(({ card, forms }) => {
     const hits = forms.filter((form) => form.key === query);
@@ -147,16 +149,23 @@ export function resolveCard(input: string, options: ResolveCardOptions = {}): Ca
     };
   }
 
+  if (!fuzzy) return none;
   const words = query.split(" ");
+  // Only the best few scores are used (the match and its suggestions), and only from the
+  // suggestion floor up: a score that cannot reach them is not computed exactly.
+  const top: number[] = [];
   const scored = INDEX.map(({ card, forms }) => {
+    const floor = Math.max(SUGGESTION_FLOOR, top[MAX_SUGGESTIONS] ?? 0);
     let score = 0;
     for (const form of forms) {
-      // Scores under the suggestion floor are never used, so a form that cannot reach it is skipped.
-      if (similarityBound(query.length, form.key.length) >= SUGGESTION_FLOOR) {
-        score = Math.max(score, similarity(query, form.key, Math.max(SUGGESTION_FLOOR, score)));
-      }
       const formWords = form.key.split(" ");
       if (words.every((word) => formWords.includes(word))) score = Math.max(score, WORD_MATCH_SCORE);
+      const needed = Math.max(floor, score);
+      if (similarityBound(query.length, form.key.length) >= needed) score = Math.max(score, similarity(query, form.key, needed));
+    }
+    if (score >= floor) {
+      top.push(score);
+      top.sort((a, b) => b - a).splice(MAX_SUGGESTIONS + 1);
     }
     return { card, score };
   }).sort((a, b) => b.score - a.score || typeRank(b.card, preferType) - typeRank(a.card, preferType));
@@ -175,6 +184,42 @@ export function resolveCard(input: string, options: ResolveCardOptions = {}): Ca
     };
   }
   return { ...none, suggestions: near.slice(0, MAX_SUGGESTIONS).map((s) => suggestion(s.card, s.score)) };
+}
+
+/** {@link resolveCard} for one import: remembers each text's result and limits typo matching. */
+export interface CardResolver {
+  (text: string, preferType?: CardType): CardResolution;
+  /** True once typo matching was skipped for some text because the limit was reached. */
+  readonly exhausted: boolean;
+}
+
+/** Distinct texts per import that get typo matching; the rest are matched by id or name only. */
+export const FUZZY_CARD_LOOKUPS = 500;
+
+/**
+ * A resolver for one import. Repeated texts are resolved once, and typo matching (the costly
+ * part, a comparison with every card) runs for at most `fuzzyLimit` distinct texts, so a file of
+ * thousands of different unknown names stays fast.
+ */
+export function createCardResolver(fuzzyLimit = FUZZY_CARD_LOOKUPS): CardResolver {
+  const memo = new Map<string, CardResolution>();
+  let left = fuzzyLimit;
+  let exhausted = false;
+  const resolve = (text: string, preferType?: CardType): CardResolution => {
+    const key = `${preferType ?? ""}|${text}`;
+    const cached = memo.get(key);
+    if (cached) return cached;
+    let result = resolveCard(text, { preferType, fuzzy: false });
+    if (!result.cardId) {
+      if (left > 0) {
+        left--;
+        result = resolveCard(text, { preferType });
+      } else exhausted = true;
+    }
+    memo.set(key, result);
+    return result;
+  };
+  return Object.defineProperty(resolve, "exhausted", { get: () => exhausted }) as CardResolver;
 }
 
 /** "Konan (NT02-009) or Asura Path (NT02-010)" for issue messages; empty when none. */

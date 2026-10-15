@@ -215,6 +215,15 @@ describe("sanitizeTournament: players", () => {
       expect(withList(broken)).not.toHaveProperty("decklist");
     }
   });
+
+  it("drops card rows holding more copies than a whole main deck, as stored before imports were bounded", () => {
+    const withList = (decklist: unknown) => sanitized(stored({ players: [{ ...first, decklist }, ...rest] })).players[0]!;
+    const absurd = [...first.decklist!.cards, { cardId: "NT01-001", quantity: 1_000_000_000 }, { cardId: "NT01-002", quantity: 51 }];
+    expect(withList({ ...first.decklist, cards: absurd }).decklist).toEqual(first.decklist);
+    // A whole main deck of one card is the most an entry can hold, and it is kept.
+    const full = { leaderId: first.decklist!.leaderId, cards: [{ cardId: "NT01-001", quantity: 50 }] };
+    expect(withList(full).decklist).toEqual(full);
+  });
 });
 
 describe("sanitizeTournament: matches", () => {

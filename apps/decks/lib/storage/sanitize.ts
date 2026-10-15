@@ -1,6 +1,7 @@
 import type { Decklist, EventLocation, EventTier, MatchOutcome, MatchRecord, Tournament, TournamentPlayer } from "@naruto-tcg/types";
 import { ROGUE_ID, getArchetype } from "@/lib/data/archetypes";
 import { EVENT_TIER_ORDER } from "@/lib/format";
+import { RULES } from "@/lib/rules";
 
 /**
  * The one sanitizer for tournaments read back from this browser's storage. Stored records can be
@@ -28,6 +29,8 @@ const text = (value: unknown, fallback: string) => (isText(value) ? value : fall
 /** A non-negative integer count; anything else counts as 0. */
 const count = (value: unknown) => (typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0);
 const isPositiveInt = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 1;
+/** A card count one entry can hold: 1 up to a whole main deck (anything larger is a broken record). */
+const isQuantity = (value: unknown): value is number => isPositiveInt(value) && value <= RULES.mainDeckSize;
 const isScore = (value: unknown) => typeof value === "number" && Number.isInteger(value) && value >= 0;
 const isOptional = (value: unknown, type: "string" | "number" | "boolean") =>
   value === undefined || (typeof value === type && (type !== "number" || Number.isFinite(value)));
@@ -50,7 +53,7 @@ function sanitizeLocation(value: unknown): EventLocation {
 /** The list itself, a copy without its broken card rows, or undefined when it is unusable. */
 function sanitizeDecklist(value: unknown): Decklist | undefined {
   if (!isRecord(value) || !isId(value.leaderId) || !Array.isArray(value.cards)) return undefined;
-  const cards = value.cards.filter((entry) => isRecord(entry) && isId(entry.cardId) && isPositiveInt(entry.quantity));
+  const cards = value.cards.filter((entry) => isRecord(entry) && isId(entry.cardId) && isQuantity(entry.quantity));
   return cards.length === value.cards.length ? (value as unknown as Decklist) : { leaderId: value.leaderId, cards: cards as Decklist["cards"] };
 }
 
@@ -140,7 +143,8 @@ const sameItems = <T>(a: readonly T[], b: readonly unknown[]) => a.length === b.
  *   id wins; a missing or blank name becomes the id; a missing or unknown archetype becomes
  *   rogue; players without a valid placement rank after the known ones, in list order; a
  *   non-string country is dropped; a decklist without a leader or a card array is dropped,
- *   and broken card rows are filtered out of the others.
+ *   and broken card rows (no card id, or a quantity that is not 1 to a whole main deck) are
+ *   filtered out of the others.
  * - **Matches**: dropped when they cannot be read (no first player, no positive round or an
  *   unknown outcome); a match without a second player, or marked as one, is a bye with
  *   `player2Id: null`; an unknown stage reads as Swiss; a non-numeric table and an unreadable

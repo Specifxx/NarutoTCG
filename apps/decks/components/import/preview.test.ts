@@ -2,7 +2,9 @@ import { readFileSync } from "node:fs";
 import type { Tournament } from "@naruto-tcg/types";
 import { describe, expect, it } from "vitest";
 import { OTHER_SERIES_ID } from "@/lib/meta/share";
-import { archetypeBreakdown, cliCommand, normalizedFileName, normalizedJson, previewPlayers, standingsPreview, topCutPreview } from "./preview";
+import { SEED_TOURNAMENTS } from "@/lib/data/tournaments";
+import { ingestJson } from "@/lib/ingest/pipeline";
+import { archetypeBreakdown, cliCommand, normalizedFileName, normalizedJson, previewPlayers, seedTwinOf, standingsPreview, topCutPreview } from "./preview";
 
 const sample = (): Tournament =>
   JSON.parse(readFileSync(new URL("../../public/templates/tournament-template.json", import.meta.url), "utf8")) as Tournament;
@@ -50,5 +52,28 @@ describe("download helpers", () => {
     expect(normalizedFileName("odd/id")).toBe("odd-id.json");
     expect(normalizedJson(sample()).endsWith("}\n")).toBe(true);
     expect(cliCommand("x.json")).toBe("pnpm --filter @naruto-tcg/decks ingest -- path/to/x.json");
+  });
+});
+
+describe("seedTwinOf", () => {
+  const seeds = SEED_TOURNAMENTS.map(({ id, name, date }) => ({ id, name, date }));
+  const seed = SEED_TOURNAMENTS.find((t) => t.id === "leaf-village-sc-chicago-2026-10")!;
+
+  it("spots a tracked event re-imported from its own Download JSON", () => {
+    const imported = ingestJson(JSON.stringify(seed), { now: "2026-10-14T00:00:00.000Z" }).tournament!;
+    expect(imported.id).toBe(`local-${seed.id}`);
+    expect(seedTwinOf(imported, seeds)).toEqual({ id: seed.id, name: seed.name, date: seed.date });
+  });
+
+  it("spots the same event from other exports by name and date, ignoring case and punctuation", () => {
+    const fromCsv = { id: "local-whatever-2026-10-03", name: `  ${seed.name.toUpperCase()}!`, date: seed.date };
+    expect(seedTwinOf(fromCsv, seeds)?.id).toBe(seed.id);
+    expect(seedTwinOf({ ...fromCsv, date: "2025-01-01" }, seeds)).toBeNull();
+  });
+
+  it("leaves other events alone", () => {
+    expect(seedTwinOf(sample(), seeds)).toBeNull();
+    expect(seedTwinOf({ ...sample(), id: `local-${seed.id}-2` }, seeds)).toBeNull();
+    expect(seedTwinOf({ id: `local-${seed.id}`, name: seed.name, date: seed.date }, [])).toBeNull();
   });
 });
