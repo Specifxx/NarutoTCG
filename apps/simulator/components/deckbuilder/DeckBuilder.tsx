@@ -138,7 +138,7 @@ export function DeckBuilder() {
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
         <section className="panel min-w-0 p-4" aria-label="Card pool">
           <CardBrowser cards={cards} db={db} deck={deck} readOnly={readOnly} onAdd={add} onRemove={(c) => remove(c)} />
         </section>

@@ -101,7 +101,7 @@ export function RulesGuide() {
   const Active = PHASES[phase].icon;
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-8 px-4 pb-24 pt-8 sm:px-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+    <main className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-24 pt-8 sm:px-6 lg:grid-cols-[200px_minmax(0,1fr)]">
       <nav className="hidden lg:block" aria-label="Rules sections">
         <ul className="sticky top-20 space-y-1 text-sm">
           {SECTIONS.map((s) => (
@@ -288,7 +288,7 @@ export function RulesGuide() {
             Card abilities are compiled from their text. Paste a card&apos;s text to see whether the engine automates it — useful when importing scraped
             cards into <code className="text-chakra-300">public/data/cards.json</code>.
           </p>
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-2">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}

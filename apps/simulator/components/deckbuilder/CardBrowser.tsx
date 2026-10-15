@@ -82,14 +82,16 @@ export function CardBrowser({
           </Chip>
         ))}
       </FilterGroup>
+      {cards.some((c) => c.element !== "neutral") && (
       <FilterGroup label="Element / Chakra">
-        {ELEMENTS.map((e) => (
+        {ELEMENTS.filter((e) => cards.some((c) => c.element === e)).map((e) => (
           <Chip key={e} active={f.elements.includes(e)} color={ELEMENT_META[e].color} onClick={() => setF({ ...f, elements: toggle(f.elements, e) })}>
             <span style={{ color: ELEMENT_META[e].color }}>{ELEMENT_META[e].kanji}</span>
             {ELEMENT_META[e].label}
           </Chip>
         ))}
       </FilterGroup>
+      )}
       <FilterGroup label="Chakra cost">
         {COSTS.map((c) => (
           <button

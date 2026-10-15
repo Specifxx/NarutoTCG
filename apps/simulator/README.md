@@ -40,4 +40,12 @@ Every game is reproducible from its seed (mulberry32 RNG stored in state).
 
 ## Card data
 
-`public/data/cards.json` is loaded at runtime and validated by `lib/cards/normalize.ts` against the contract in `public/data/cards.schema.json`. The bundled cards are an original seed set (`set: "SIM"`). To add real or scraped cards, append entries with the same schema — keep the `SIM` leaders and missions if your source has none. Ability text written in the grammar shown on `/learn` (Card text lab) is automated; other lines are displayed and flagged as manual.
+`public/data/cards.json` holds the official Naruto Mythos TCG card list (Set 1 Konoha Shidō and Set 2 Shinobi Shiren, one entry per card) with thumbnails in `public/cards/`. It is loaded at runtime and validated against `public/data/cards.schema.json`.
+
+Refresh it (e.g. when a new set is released) from the official card gallery feed:
+
+```bash
+cd apps/simulator && python3 scripts/import_official_cards.py   # needs Pillow
+```
+
+The importer keeps the 7 placeholder Leaders (`set: "SIM"`) because Mythos has no Leader cards. Official images are the publisher's watermarked "SAMPLE" previews; card names, text and images are © their respective owners. Ability lines written in the grammar shown on `/learn` (Card text lab) are automated; the rest are shown and flagged as manual.

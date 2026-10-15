@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import { ELEMENT_META, RARITY_META, TYPE_META } from "@/lib/cards/meta";
 import type { SimCard } from "@/lib/cards/types";
 import { cx } from "../ui/Button";
@@ -36,6 +36,26 @@ export function CardFace({
   const meta = ELEMENT_META[card.element];
   const rarity = RARITY_META[card.rarity];
   const box = cardBox(size);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (card.imageUrl && !imageFailed) {
+    return (
+      <div
+        className={cx("relative shrink-0 select-none overflow-hidden bg-shadow-950", className)}
+        style={{ ...box, borderRadius: "0.6em", boxShadow: glow ?? "0 0.6em 1.6em -0.8em rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.08)" }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- static thumbnails, sized by the card box */}
+        <img
+          src={card.imageUrl}
+          alt={card.title ? `${card.name} — ${card.title}` : card.name}
+          loading="lazy"
+          draggable={false}
+          onError={() => setImageFailed(true)}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+      </div>
+    );
+  }
   const showText = size === "md" || size === "lg";
   const isUnit = card.type === "character";
   const hasCost = card.type !== "leader" && card.type !== "mission";

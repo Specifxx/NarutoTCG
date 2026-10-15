@@ -23,6 +23,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="text-ash-200">
         <TopNav />
         <div className="relative z-10">{children}</div>
+        <footer className="relative z-10 border-t border-white/5 px-4 py-6 text-center text-[11px] leading-relaxed text-ash-500">
+          Unofficial fan project in beta — not affiliated with or endorsed by the publishers of the Naruto Mythos TCG. Card names, text and
+          images are © their respective owners and shown from the official card gallery.
+        </footer>
         <ToastViewport />
       </body>
     </html>

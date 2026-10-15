@@ -13,13 +13,11 @@ export interface AutoBuildSpec {
 }
 
 export const STARTER_SPECS: AutoBuildSpec[] = [
-  { id: "starter-will-of-fire", name: "Will of Fire", description: "Leaf Village squads that buff each other.", leaderName: "Hiruzen Sarutobi", groups: ["Leaf Village"] },
-  { id: "starter-sand-siblings", name: "Sand Siblings", description: "Gaara's Sand Village and its puppeteers.", leaderName: "Rasa", groups: ["Sand Village"] },
-  { id: "starter-hidden-mist", name: "Hidden Mist Ambush", description: "Swordsmen waiting face-down in the mist.", leaderName: "Mei Terumi", groups: ["Mist Village", "Water"] },
-  { id: "starter-akatsuki", name: "Akatsuki Shadows", description: "S-rank rogues that hunt hidden cards.", leaderName: "Nagato", groups: ["Akatsuki"] },
-  { id: "starter-lightning-storm", name: "Lightning Storm", description: "Cloud Village power and Edge pressure.", leaderName: "A", groups: ["Cloud Village", "Lightning"] },
-  { id: "starter-sound-of-the-snake", name: "Sound of the Snake", description: "The Sound Four and Orochimaru's removal.", leaderName: "Orochimaru", groups: ["Sound Village"] },
-  { id: "starter-stone-fortress", name: "Stone Fortress", description: "Earth walls and Jinchuriki ramp.", leaderName: "Onoki", groups: ["Stone Village", "Earth"] },
+  { id: "starter-will-of-fire", name: "Will of Fire", description: "Leaf Village shinobi — Team 7 and friends.", leaderName: "Hiruzen Sarutobi", groups: ["Leaf Village"] },
+  { id: "starter-sand-siblings", name: "Sand Siblings", description: "Gaara, Temari, Kankuro and the Sand Village.", leaderName: "Rasa", groups: ["Sand Village"] },
+  { id: "starter-sound-of-the-snake", name: "Sound of the Snake", description: "Orochimaru and the Sound Village.", leaderName: "Orochimaru", groups: ["Sound Village"] },
+  { id: "starter-akatsuki", name: "Akatsuki Shadows", description: "S-rank rogues of the Akatsuki.", leaderName: "Nagato", groups: ["Akatsuki"] },
+  { id: "starter-rogue-ninja", name: "Rogue Ninja", description: "Independent shinobi and mercenaries.", leaderName: "A", groups: ["Independent"] },
 ];
 
 function affinity(card: SimCard, groups: string[]): number {

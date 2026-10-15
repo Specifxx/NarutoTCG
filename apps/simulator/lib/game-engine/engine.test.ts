@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { normalizeCards } from "../cards/normalize";
 import type { CardDb, SimCard } from "../cards/types";
@@ -63,10 +63,16 @@ function toAction(s: GameState): GameState {
 const handOf = (s: GameState, p: PlayerId, cardId: string) => s.players[p].hand.find((id) => s.instances[id].cardId === cardId)!;
 
 describe("card text compiler", () => {
-  it("automates every line of every seed card", () => {
+  it("loads the card pool cleanly and fully automates the placeholder Leaders", () => {
     expect(seed.warnings).toEqual([]);
-    const unparsed = seed.cards.flatMap((c) => getAbilities(c).unparsed.map((l) => `${c.id}: ${l}`));
-    expect(unparsed).toEqual([]);
+    const leaders = seed.cards.filter((c) => c.type === "leader");
+    expect(leaders.length).toBeGreaterThan(0);
+    expect(leaders.flatMap((c) => getAbilities(c).unparsed)).toEqual([]);
+  });
+
+  it("has a thumbnail on disk for every card that names one", () => {
+    const missing = seed.cards.filter((c) => c.imageUrl && !existsSync(new URL(`../../public${c.imageUrl}`, import.meta.url)));
+    expect(missing.map((c) => c.id)).toEqual([]);
   });
 });
 

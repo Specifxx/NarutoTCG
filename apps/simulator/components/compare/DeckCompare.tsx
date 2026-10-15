@@ -34,18 +34,18 @@ export function DeckCompare() {
       <h1 className="font-display text-2xl font-bold uppercase tracking-[0.1em] text-ash-50">Deck vs deck</h1>
       <p className="mt-1 text-sm text-ash-400">Curves, card overlap and a head-to-head AI matchup simulation.</p>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
         <Picker label="Deck A" color={A_COLOR} decks={all} value={aId} onChange={setA} />
         <Picker label="Deck B" color={B_COLOR} decks={all} value={bId} onChange={setB} />
       </div>
 
       {a && b ? (
         <>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
             <Summary deck={a} db={db} color={A_COLOR} />
             <Summary deck={b} db={db} color={B_COLOR} />
           </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="panel p-4">
               <CurveOverlay a={a} b={b} db={db} />
             </div>
@@ -360,7 +360,7 @@ function Overlap({ a, b, db }: { a: Deck; b: Deck; db: CardDb }) {
           Similarity <span className="font-bold text-ash-50">{Math.round(data.similarity * 100)}%</span>
         </span>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-3">
         <CardColumn title={`Only in A (${data.onlyA.length})`} color={A_COLOR} rows={data.onlyA.map((r) => ({ card: r.card, label: `×${r.a}` }))} />
         <CardColumn title={`Shared (${data.shared.length})`} color="#9aa0b4" rows={data.shared.map((r) => ({ card: r.card, label: `${r.a} / ${r.b}` }))} />
         <CardColumn title={`Only in B (${data.onlyB.length})`} color={B_COLOR} rows={data.onlyB.map((r) => ({ card: r.card, label: `×${r.b}` }))} />

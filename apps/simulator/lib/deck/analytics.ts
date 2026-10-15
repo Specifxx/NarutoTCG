@@ -186,7 +186,7 @@ export function classifyArchetype(deck: Deck, db: CardDb): ArchetypeReport {
     .sort((a, b) => b.score - a.score);
 
   const stats = deckStats(deck, db);
-  const topElement = [...stats.elements].sort((a, b) => b.count - a.count)[0];
+  const topElement = [...stats.elements].filter((e) => e.element !== "neutral").sort((a, b) => b.count - a.count)[0];
   const topVillage = stats.villages[0];
   const identity = [topElement ? ELEMENT_META[topElement.element].label : null, topVillage?.village].filter(Boolean).join(" · ");
 
