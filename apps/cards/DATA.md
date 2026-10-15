@@ -75,7 +75,7 @@ re-sorted by debut set release date and collector number.
 - `variant`: `standard` (default), `parallel`, `alt-art`, `promo`.
 - `setId` + `number` + `variant` must be unique across all cards.
 - `setId` + `number` belongs to one card. That card's own parallels and alt-arts may share it, but a different card may not.
-- **Order:** the debut printing comes first. It is a warning when a printing's set was released strictly earlier than the first printing's set. Either way, the app stable-sorts every card's printings by set release date, so `printings[0]` is always from the earliest set. Same-day sets and variants within one set keep their listed order. `printings[0]` sets the card's debut set, canonical sort order, breadcrumbs, pager and spoiler grouping.
+- **Order:** list the debut printing first. The debut is the printing whose `number` equals the card `id` (ids are debut collector numbers); when none matches, it is the printing from the earliest-released set. Listing another printing first is a warning. Either way, the app (and `merge:cards`) stable-sorts every card's printings into that order, so a pre-release promo dated earlier never takes over the debut. Same-day sets and variants within one set keep their listed order. `printings[0]` sets the card's debut set, canonical sort order, breadcrumbs, pager and spoiler grouping.
 
 **Reveal:** `{ "date": "2026-10-13", "source": "Outlet name", "url": "https://…" }`
 
