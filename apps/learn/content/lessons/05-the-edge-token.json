@@ -1,0 +1,145 @@
+{
+  "$schema": "../tutorial-lesson.schema.json",
+  "schemaVersion": 1,
+  "id": "the-edge-token",
+  "order": 5,
+  "title": "Winning with the Edge Token",
+  "subtitle": "One small token decides who goes first, who wins ties and who wins a drawn game.",
+  "summary": "The Edge token is the tie-breaker of Mythos. Learn its three powers, how passing first claims it, and how to time your pass so ties break your way.",
+  "emblem": "edge",
+  "accent": "chakra",
+  "estMinutes": 6,
+  "steps": [
+    {
+      "id": "three-powers",
+      "title": "The Edge's three powers",
+      "body": "Whoever holds the [[Edge token]] **takes the first turn** of the Action phase, **wins every tied mission** in Mission evaluation, and **wins the game** if the final scores are level after Round 4. In a game decided by a point or two, those ties are often the whole game, so the Edge deserves as much thought as any card in your hand.",
+      "bullets": [
+        "Leads: takes the first turn of the Round",
+        "Wins tied missions",
+        "Wins a tied game"
+      ],
+      "visual": {
+        "kind": "edge-token",
+        "holder": "you",
+        "caption": "You hold the Edge: first turn, tied missions, tied game."
+      },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 16, "section": "Edge token" }
+    },
+    {
+      "id": "random-at-setup",
+      "title": "It starts at random",
+      "body": "At setup, a randomly chosen first player takes the Edge. That player's Missions sit 1st and 3rd in the Mission deck, they decide first on a [[mulligan]], and they take the first turn of Round 1. That is the only time luck decides it. From then on, the Edge changes hands one way only: by [[passing]].",
+      "visual": {
+        "kind": "edge-token",
+        "holder": "opp",
+        "caption": "Setup: a random first player starts with the Edge."
+      },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 8, "section": "Setup" }
+    },
+    {
+      "id": "first-to-pass",
+      "title": "First to pass takes it",
+      "body": "During the [[Action phase]], the first player to [[pass]] gains the Edge token, or keeps it if they already had it. Passing ends your Action phase for the Round, and the other player then takes **successive turns** until they pass too. The Edge you claim applies straight away, in this Round's Mission evaluation, and again for the first turn of the next Round.",
+      "callout": {
+        "tone": "rule",
+        "text": "First to pass gains or keeps the Edge. After that, the other player keeps taking turns until they also pass."
+      },
+      "visual": {
+        "kind": "turn-order",
+        "sequence": [
+          { "side": "you", "action": "play" },
+          { "side": "opp", "action": "play" },
+          { "side": "you", "action": "hidden" },
+          { "side": "opp", "action": "pass" },
+          { "side": "you", "action": "play" },
+          { "side": "you", "action": "reveal" },
+          { "side": "you", "action": "pass" }
+        ]
+      },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Action phase" }
+    },
+    {
+      "id": "the-trade-off",
+      "title": "The trade-off",
+      "body": "Passing early locks in the tie-breaks, but it hands your opponent a free run: they can play card after card while you watch, adding Power exactly where it beats you by one. The Edge only matters on a tie. Passing late keeps your options open, but if your opponent passes first, every tie this Round and the first turn of the next one go to them.",
+      "callout": {
+        "tone": "warning",
+        "text": "The Edge never beats more Power. If they finish one ahead, your tie-break is worth nothing."
+      },
+      "visual": { "kind": "power-clash", "you": 3, "opp": 4, "edge": "you", "label": "You passed first; they added just enough" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Action phase" }
+    },
+    {
+      "id": "when-to-pass",
+      "title": "Reading the board",
+      "body": "Pass first when the board already favours you: if every mission you care about is level or ahead and your opponent has little Chakra left, the Edge turns those draws into wins. Keep playing when you're behind on a mission that matters, or when they still have the Chakra and cards to answer. Count their Chakra: with 3 left, they can't reveal a 4-cost Kakashi.",
+      "bullets": [
+        "Level or ahead everywhere? Pass and take the ties",
+        "Behind where it matters? Keep playing",
+        "Count their Chakra before you pass"
+      ],
+      "visual": { "kind": "power-clash", "you": 5, "opp": 5, "edge": "you", "label": "Level board + the Edge = a win" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 16, "section": "Edge token" }
+    },
+    {
+      "id": "the-final-tie-break",
+      "title": "The final tie-break",
+      "body": "After Round 4, compare [[Mission points]]. The higher total wins, and if the totals are level the Edge holder wins the game. That makes the last pass a double prize: the first player to pass in Round 4 wins every tied mission, including the new A-rank mission worth base + 4, **and** a tied game.",
+      "callout": {
+        "tone": "tip",
+        "text": "Going into Round 4, track the score. If you're level or one point behind, the Edge might be worth more than any card you could play."
+      },
+      "visual": { "kind": "mission-ladder", "highlight": "A" },
+      "source": { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 21, "section": "Winning the game" }
+    }
+  ],
+  "widget": {
+    "id": "edge-duel",
+    "title": "Edge Duel",
+    "brief": "Win a series of duels decided by the [[Edge token]] and the timing of your [[pass]]. Read each board, choose whether to keep playing or pass, and make sure the ties break your way."
+  },
+  "quiz": [
+    {
+      "id": "who-holds-edge",
+      "prompt": "Your opponent starts the Round holding the Edge. This Round you pass first. Who holds the Edge during Mission evaluation?",
+      "choices": [
+        "You, because the first player to pass gains the Edge",
+        "Your opponent; the holder keeps it for the whole game",
+        "Nobody until the next Start phase",
+        "Whoever has more total Power"
+      ],
+      "answerIndex": 0,
+      "explanation": "The first player to [[pass]] gains (or keeps) the [[Edge token]], and it applies to this Round's ties straight away."
+    },
+    {
+      "id": "after-you-pass",
+      "prompt": "You pass first. Your opponent still has 6 Chakra and several cards. What can they do?",
+      "choices": [
+        "Play one more card, then the Round ends",
+        "Nothing; the Action phase ends when anyone passes",
+        "Only reveal hidden cards",
+        "Take successive turns, one card at a time, until they pass"
+      ],
+      "answerIndex": 3,
+      "explanation": "Once you've passed, your opponent keeps taking turns one after another until they [[pass]] too. That free run is the price of taking the Edge early."
+    },
+    {
+      "id": "tied-game",
+      "prompt": "After Round 4 the score is 15 to 15. Who wins?",
+      "choices": [
+        "The player who won the A-rank mission",
+        "The player holding the Edge token",
+        "Nobody; it's a draw",
+        "The player with more characters in play"
+      ],
+      "answerIndex": 1,
+      "explanation": "A tied game goes to whoever holds the [[Edge token]] at the end, which is the player who passed first in Round 4."
+    }
+  ],
+  "sources": [
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 10, "section": "Action phase" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 16, "section": "Edge token" },
+    { "document": "NARUTO Mythos TCG Rulebook (EN)", "page": 21, "section": "Winning the game" }
+  ]
+}

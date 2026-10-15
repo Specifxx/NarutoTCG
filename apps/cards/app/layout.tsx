@@ -1,4 +1,4 @@
-import { ReleaseRoadmap, SiteHeader } from "@naruto-tcg/ui";
+import { ReleaseRoadmap, SiteHeader, resolveSiteUrls, visibleSiteApps } from "@naruto-tcg/ui";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { CardsNav } from "@/components/CardsNav";
@@ -19,16 +19,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // The /cards page sets data-cards-pending on <html> before hydration (see PendingResults).
     <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-md focus:bg-chakra-500 focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-shadow-950"
-        >
-          Skip to content
-        </a>
-        <SiteHeader current="cards">
+        <SiteHeader current="cards" urls={resolveSiteUrls(process.env)} apps={visibleSiteApps("cards", process.env)}>
           <CardsNav />
         </SiteHeader>
-        <main id="main" className="flex-1">
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           {children}
         </main>
         <ReleaseRoadmap current="cards" />

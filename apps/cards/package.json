@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3004",
+    "dev": "next dev --port 3005",
     "build": "next build",
-    "start": "next start --port 3004",
+    "start": "next start --port 3005",
     "typecheck": "node -e \"require('fs').rmSync('.next/types',{recursive:true,force:true})\" && next typegen && tsc --noEmit",
     "test": "vitest run",
     "validate:data": "vitest run tests/data.test.ts",

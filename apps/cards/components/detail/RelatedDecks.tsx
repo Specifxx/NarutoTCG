@@ -1,5 +1,5 @@
 import type { NarutoCard } from "@naruto-tcg/types";
-import { platformHref } from "@naruto-tcg/ui";
+import { resolveSiteUrls } from "@naruto-tcg/ui";
 import Link from "next/link";
 import { CardImage } from "@/components/CardImage";
 import { ElementIcon } from "@/components/ElementIcon";
@@ -182,7 +182,7 @@ export function RelatedDecks({
   total: number;
 }) {
   const hidden = Math.max(0, total - decks.length);
-  const decksAppHref = platformHref("decks");
+  const decksAppHref = resolveSiteUrls(process.env).decks;
   return (
     <section aria-labelledby="decks-heading" className="scroll-mt-4">
       <SectionHeading id="decks-heading" eyebrow="In the meta" title="Related decks">

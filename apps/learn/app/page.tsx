@@ -1,9 +1,12 @@
-import { Card, PageShell } from "@naruto-tcg/ui";
+import { DojoHub } from "@/components/hub/dojo-hub";
+import { buildHubData } from "@/components/hub/hub-data";
 
-export default function Home() {
+/** The Dojo: landing page of the Learn portal. */
+export default function DojoPage() {
+  const data = buildHubData();
   return (
-    <PageShell title="Learn" tagline="Learn the rules of the Naruto TCG.">
-      <Card>Coming soon.</Card>
-    </PageShell>
+    <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+      <DojoHub data={data} />
+    </div>
   );
 }

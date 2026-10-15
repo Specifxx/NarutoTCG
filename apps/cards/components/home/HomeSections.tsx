@@ -1,5 +1,5 @@
 import type { CardSet, CardType, ChakraElement, NarutoCard } from "@naruto-tcg/types";
-import { platformHref } from "@naruto-tcg/ui";
+import { resolveSiteUrls } from "@naruto-tcg/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CardImage } from "@/components/CardImage";
@@ -150,7 +150,7 @@ export function StatTiles({ stats }: { stats: HomeStats }) {
           detail="Built with these cards"
           icon={<DeckIcon />}
           link={
-            <a href={platformHref("decks")} className={`rounded-sm hover:text-chakra-500 ${STRETCHED} after:rounded-2xl`}>
+            <a href={resolveSiteUrls(process.env).decks} className={`rounded-sm hover:text-chakra-500 ${STRETCHED} after:rounded-2xl`}>
               Browse decks
             </a>
           }

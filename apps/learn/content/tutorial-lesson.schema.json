@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:naruto-tcg:learn:tutorial-lesson:1",
+  "title": "Tutorial lesson (schema v1)",
+  "description": "One lesson of the Learn app (content/lessons/*.json). Mirrors TutorialLesson in content/schema.ts; parseLesson() re-validates every file at build time and additionally checks that step ids and quiz ids are unique and that every cardId exists in lib/game/cards.ts PRACTICE_CARDS. Text fields accept markup: **bold**, [[keyword]] and [[keyword|label]], where keyword is an id, term or alias from content/keywords.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "order", "title", "subtitle", "summary", "emblem", "accent", "estMinutes", "steps", "widget", "quiz"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional pointer to this schema for editor support. Ignored by parseLesson."
+    },
+    "schemaVersion": { "const": 1 },
+    "id": { "$ref": "#/$defs/kebabId", "description": "URL slug, e.g. \"deck-setup\" → /learn/how-to-play/deck-setup." },
+    "order": { "type": "integer", "minimum": 1, "description": "Position in the curriculum (1-based)." },
+    "title": { "$ref": "#/$defs/text" },
+    "subtitle": { "$ref": "#/$defs/richText", "description": "One punchy line under the title." },
+    "summary": { "$ref": "#/$defs/richText", "description": "Two sentences for lesson cards and the lesson header." },
+    "emblem": { "$ref": "#/$defs/emblem" },
+    "accent": { "$ref": "#/$defs/accent" },
+    "estMinutes": { "type": "integer", "minimum": 1 },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/step" },
+      "description": "5–7 steps recommended. Step ids must be unique within the lesson."
+    },
+    "widget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "brief"],
+      "properties": {
+        "id": { "$ref": "#/$defs/widgetId" },
+        "title": { "$ref": "#/$defs/text" },
+        "brief": { "$ref": "#/$defs/richText", "description": "Tells the learner the widget's challenge goal." }
+      }
+    },
+    "quiz": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/quizQuestion" },
+      "description": "Quiz ids must be unique within the lesson."
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" },
+      "description": "Lesson-level references (official rulebook, FAQ…)."
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Non-empty string (not only whitespace)."
+    },
+    "richText": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Non-empty string with optional markup: **bold**, [[keyword]], [[keyword|label]]."
+    },
+    "kebabId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "practiceCardId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A key of PRACTICE_CARDS in lib/game/cards.ts (checked by parseLesson).",
+      "examples": [
+        "naruto-genin",
+        "naruto-sage",
+        "kakashi-copy",
+        "sakura-medic",
+        "sasuke-avenger",
+        "hinata-byakugan",
+        "shikamaru-shadow",
+        "rock-lee",
+        "choji-akimichi",
+        "ino-yamanaka",
+        "tsunade-hokage",
+        "gaara-sand",
+        "temari-wind",
+        "kankuro-puppet",
+        "zabuza-demon",
+        "haku-ice",
+        "neji-gentle-fist",
+        "itachi-akatsuki",
+        "kisame-shark",
+        "orochimaru-sannin"
+      ]
+    },
+    "emblem": {
+      "enum": [
+        "spiral",
+        "leaf",
+        "shuriken",
+        "kunai",
+        "scroll",
+        "flame",
+        "wave",
+        "bolt",
+        "gourd",
+        "eye",
+        "seal",
+        "edge",
+        "mask",
+        "cloud",
+        "kage",
+        "fist",
+        "fang",
+        "lotus",
+        "target",
+        "chakra"
+      ]
+    },
+    "accent": { "enum": ["gold", "energy", "mist", "blood", "chakra", "leaf"] },
+    "widgetId": { "enum": ["deck-forge", "chakra-charger", "hidden-card-sim", "mission-evaluator", "edge-duel"] },
+    "phase": { "enum": ["start", "action", "mission", "end"] },
+    "turnAction": { "enum": ["play", "hidden", "reveal", "upgrade", "pass"] },
+    "side": { "enum": ["you", "opp"] },
+    "rank": { "enum": ["D", "C", "B", "A"] },
+    "calloutTone": { "enum": ["tip", "rule", "warning"] },
+    "nonNegativeInteger": { "type": "integer", "minimum": 0 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document"],
+      "properties": {
+        "document": { "$ref": "#/$defs/text", "description": "e.g. \"NARUTO Mythos TCG Rulebook (EN)\"." },
+        "page": {
+          "anyOf": [{ "type": "number" }, { "type": "string", "minLength": 1 }],
+          "description": "Page number, or a range such as \"18–20\"."
+        },
+        "section": { "$ref": "#/$defs/text" },
+        "url": { "$ref": "#/$defs/text" }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "body"],
+      "properties": {
+        "id": { "$ref": "#/$defs/kebabId" },
+        "title": { "$ref": "#/$defs/text" },
+        "body": { "$ref": "#/$defs/richText", "description": "40–90 words recommended, in your own words." },
+        "bullets": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/richText" },
+          "description": "Up to 4 recommended (8 allowed)."
+        },
+        "callout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tone", "text"],
+          "properties": {
+            "tone": { "$ref": "#/$defs/calloutTone" },
+            "text": { "$ref": "#/$defs/richText" }
+          }
+        },
+        "visual": { "$ref": "#/$defs/visual" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "visual": {
+      "description": "Animated illustration beside the step, dispatched on `kind`.",
+      "oneOf": [
+        {
+          "title": "phase-track",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "active"],
+          "properties": {
+            "kind": { "const": "phase-track" },
+            "active": { "$ref": "#/$defs/phase" }
+          }
+        },
+        {
+          "title": "deck-stack",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "deckSize", "missions", "hand"],
+          "properties": {
+            "kind": { "const": "deck-stack" },
+            "deckSize": { "type": "integer", "minimum": 1 },
+            "missions": { "$ref": "#/$defs/nonNegativeInteger" },
+            "hand": { "$ref": "#/$defs/nonNegativeInteger" }
+          }
+        },
+        {
+          "title": "chakra-formula",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "base", "characters"],
+          "properties": {
+            "kind": { "const": "chakra-formula" },
+            "base": { "$ref": "#/$defs/nonNegativeInteger" },
+            "characters": { "$ref": "#/$defs/nonNegativeInteger" },
+            "bonus": { "$ref": "#/$defs/nonNegativeInteger", "description": "CHAKRA +X total. Omit to hide the bonus term." }
+          }
+        },
+        {
+          "title": "card",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "cardId"],
+          "properties": {
+            "kind": { "const": "card" },
+            "cardId": { "$ref": "#/$defs/practiceCardId" },
+            "face": { "enum": ["up", "hidden", "flip"], "description": "Default \"up\". \"flip\" loops hidden → revealed (AMBUSH)." },
+            "tokens": { "$ref": "#/$defs/nonNegativeInteger", "description": "Power tokens that drop onto the card." }
+          }
+        },
+        {
+          "title": "mission-ladder",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": { "const": "mission-ladder" },
+            "highlight": { "$ref": "#/$defs/rank" }
+          }
+        },
+        {
+          "title": "power-clash",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "you", "opp", "edge"],
+          "properties": {
+            "kind": { "const": "power-clash" },
+            "you": { "type": "number", "minimum": 0 },
+            "opp": { "type": "number", "minimum": 0 },
+            "edge": { "$ref": "#/$defs/side", "description": "Who holds the Edge token (wins ties)." },
+            "label": { "$ref": "#/$defs/text" }
+          }
+        },
+        {
+          "title": "edge-token",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "holder"],
+          "properties": {
+            "kind": { "const": "edge-token" },
+            "holder": { "$ref": "#/$defs/side" },
+            "caption": { "$ref": "#/$defs/text" }
+          }
+        },
+        {
+          "title": "upgrade-stack",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "fromCardId", "toCardId"],
+          "properties": {
+            "kind": { "const": "upgrade-stack" },
+            "fromCardId": { "$ref": "#/$defs/practiceCardId" },
+            "toCardId": { "$ref": "#/$defs/practiceCardId", "description": "Same name as fromCardId with a strictly higher cost." }
+          }
+        },
+        {
+          "title": "turn-order",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "sequence"],
+          "properties": {
+            "kind": { "const": "turn-order" },
+            "sequence": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 12,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["side", "action"],
+                "properties": {
+                  "side": { "$ref": "#/$defs/side" },
+                  "action": { "$ref": "#/$defs/turnAction" }
+                }
+              },
+              "description": "Start with the Edge holder; the first \"pass\" is shown taking the Edge."
+            }
+          }
+        }
+      ]
+    },
+    "quizQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "prompt", "choices", "answerIndex", "explanation"],
+      "properties": {
+        "id": { "$ref": "#/$defs/kebabId" },
+        "prompt": { "$ref": "#/$defs/richText" },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/text" },
+          "description": "Plain text recommended: choices render inside buttons, so avoid [[keyword]] chips here."
+        },
+        "answerIndex": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "explanation": { "$ref": "#/$defs/richText" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "choices": { "type": "array", "maxItems": 2 } } },
+          "then": { "properties": { "answerIndex": { "type": "integer", "maximum": 1 } } }
+        },
+        {
+          "if": { "properties": { "choices": { "type": "array", "maxItems": 3 } } },
+          "then": { "properties": { "answerIndex": { "type": "integer", "maximum": 2 } } }
+        }
+      ]
+    }
+  }
+}

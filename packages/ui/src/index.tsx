@@ -1,5 +1,8 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 
+export { SITE_APPS, SiteHeader, resolveSiteUrls, visibleSiteApps } from "./site-header";
+export type { SiteApp, SiteAppId, SiteHeaderProps, SiteUrls } from "./site-header";
+
 const cx = (...c: Array<string | false | undefined>) => c.filter(Boolean).join(" ");
 
 export function Button({
@@ -43,7 +46,7 @@ export function Badge({ className, ...props }: HTMLAttributes<HTMLSpanElement>) 
 
 export function PageShell({ title, tagline, children }: { title: string; tagline?: string; children?: ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 px-6 py-16">
+    <main id="main-content" className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-4xl flex-col gap-6 px-6 py-16">
       <header>
         <Badge>Naruto TCG</Badge>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-white">{title}</h1>
@@ -65,6 +68,4 @@ export {
   type ReleasePhase,
   type ReleaseStatus,
 } from "./release-schedule";
-export { PLATFORM_APPS, SiteHeader, platformHref } from "./platform";
-export type { PlatformAppKey } from "./platform";
 export { ScrollFadeNav } from "./scroll-fade-nav";

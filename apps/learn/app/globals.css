@@ -1,2 +1,182 @@
 @import "@naruto-tcg/ui/theme.css";
 @source "../../../packages/ui/src";
+
+/* Learn-app palette on top of the shared dark ninja theme. */
+@theme {
+  --color-shadow-600: #2a2a3d;
+  --color-chakra-100: #fff1e3;
+  --color-chakra-200: #ffd8b0;
+  --color-chakra-300: #ffa95c;
+  --color-blood-400: #ef4060;
+  --color-blood-600: #8f0f20;
+
+  /* Blue chakra energy: gauges, Chakra costs. */
+  --color-energy-200: #cdf3ff;
+  --color-energy-300: #7ddcff;
+  --color-energy-400: #38c4ff;
+  --color-energy-500: #0ea5e9;
+  --color-energy-600: #0369a1;
+  --color-energy-900: #082f49;
+
+  /* Mist violet: hidden cards and AMBUSH. */
+  --color-mist-200: #ddd6fe;
+  --color-mist-300: #c4b5fd;
+  --color-mist-400: #a78bfa;
+  --color-mist-500: #8b5cf6;
+  --color-mist-600: #6d28d9;
+  --color-mist-900: #2e1065;
+
+  /* Leaf green: success, cleared states. */
+  --color-leaf-300: #86efac;
+  --color-leaf-400: #4ade80;
+  --color-leaf-500: #22c55e;
+  --color-leaf-600: #15803d;
+
+  /* Gold: XP, ranks, the Edge token. */
+  --color-gold-200: #fdeaa8;
+  --color-gold-300: #fcd96a;
+  --color-gold-400: #f5c542;
+  --color-gold-500: #d9a514;
+  --color-gold-600: #a16207;
+
+  --font-display: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --animate-shimmer: shimmer 2.6s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-spin-slow: spin 14s linear infinite;
+  --animate-pulse-glow: pulse-glow 2.4s ease-in-out infinite;
+  --animate-drift: drift 18s ease-in-out infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.55;
+      filter: blur(14px);
+    }
+    50% {
+      opacity: 1;
+      filter: blur(20px);
+    }
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(2%, -3%, 0) scale(1.06);
+    }
+  }
+}
+
+/* Frosted panel used for most surfaces. */
+@utility panel {
+  border-radius: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  background: linear-gradient(180deg, rgb(21 21 33 / 0.82), rgb(13 13 20 / 0.82));
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.04) inset,
+    0 24px 48px -24px rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(14px);
+}
+
+/* Upper-case eyebrow label. */
+@utility eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* Glowing gradient text for hero headings. */
+@utility text-chakra-gradient {
+  background: linear-gradient(100deg, #fff1e3 0%, #ffa95c 35%, #ff7a1a 60%, #ef4060 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gold-gradient {
+  background: linear-gradient(100deg, #fdeaa8 0%, #f5c542 50%, #d9a514 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 3D helpers for card flips. */
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+@utility backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+@utility perspective-1000 {
+  perspective: 1000px;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  /* clip (not hidden) so stray particle bursts can't widen the page or create a scroll container. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: var(--font-display);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgb(255 122 26 / 0.35);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-chakra-400);
+    outline-offset: 2px;
+  }
+  [id] {
+    scroll-margin-top: 7.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

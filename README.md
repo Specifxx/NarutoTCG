@@ -9,14 +9,14 @@ Release phases and target dates for each app are in [SCHEDULE.md](SCHEDULE.md).
 | `apps/simulator` | 3000 | Play-test the game |
 | `apps/decks` | 3001 | Build and share decks |
 | `apps/compare` | 3002 | Compare card prices |
-| `apps/learn` | 3003 | Learn how to play |
-| `apps/cards` | 3004 | Card database, spoilers and set checklists |
-| `apps/events` | 3005 | Events (planned; linked from the shared header) |
+| `apps/learn` | 3003 | Learn how to play (served under `/learn`) |
+| `apps/events` | 3004 | Event calendar, store locator, tournaments |
+| `apps/cards` | 3005 | Card database, spoiler center and set checklists ([data contract](apps/cards/DATA.md)) |
 
 | Package | Purpose |
 | --- | --- |
-| `@naruto-tcg/ui` | Shared Tailwind components, dark ninja theme, `SiteHeader` platform nav |
-| `@naruto-tcg/types` | Shared types: `NarutoCard`, `CardSet`, `Deck`, `PriceRecord` |
+| `@naruto-tcg/ui` | Shared Tailwind components, dark ninja theme, `SiteHeader` navigation |
+| `@naruto-tcg/types` | Shared types: `NarutoCard`, `CardSet`, `Deck`, `PriceRecord`, events |
 
 ```bash
 pnpm install
@@ -25,5 +25,40 @@ pnpm build
 pnpm typecheck
 ```
 
-Cross-app links in the shared header default to the local ports above. In deployed
-environments set `NEXT_PUBLIC_{LEARN,EVENTS,CARDS,DECKS,SIMULATOR,COMPARE}_URL`.
+## Shared navigation
+
+Every app renders `SiteHeader` from `@naruto-tcg/ui`, linking Learn, Events, Cards, Decks, Simulator and Compare.
+Links default to the local dev ports; override them at build time for deployments:
+
+| Variable | Default |
+| --- | --- |
+| `NEXT_PUBLIC_SIMULATOR_URL` | `http://localhost:3000` |
+| `NEXT_PUBLIC_DECKS_URL` | `http://localhost:3001` |
+| `NEXT_PUBLIC_COMPARE_URL` | `http://localhost:3002` |
+| `NEXT_PUBLIC_LEARN_URL` | `http://localhost:3003/learn` |
+| `NEXT_PUBLIC_EVENTS_URL` | `http://localhost:3004` |
+| `NEXT_PUBLIC_CARDS_URL` | `http://localhost:3005` |
+
+In production the header only lists apps whose URL variable is set, so a single-app deploy shows no dead links.
+To deploy the Learn site on Vercel, see [docs/deploy-with-claude-in-chrome.md](docs/deploy-with-claude-in-chrome.md); for the Cards site, see [docs/deploy-cards-with-claude-in-chrome.md](docs/deploy-cards-with-claude-in-chrome.md).
+
+## Learn portal (`apps/learn`)
+
+Gamified onboarding for the NARUTO Mythos TCG rules, built with Framer Motion.
+The app uses `basePath: "/learn"`, so it can be mounted as a zone of a larger site.
+
+| Route | What it is |
+| --- | --- |
+| `/learn` | The Dojo: rank, XP and progress hub |
+| `/learn/how-to-play` | Five animated lessons, each with a Learn → Train → Test flow and a mini-widget |
+| `/learn/puzzles` | Lethal Puzzles: find the one winning sequence in a final Round |
+| `/learn/keywords` | Searchable keyword glossary with animated tooltips |
+
+```bash
+pnpm --filter @naruto-tcg/learn dev             # http://localhost:3003/learn
+pnpm --filter @naruto-tcg/learn test            # engine + content tests
+pnpm --filter @naruto-tcg/learn verify:puzzles  # prove each puzzle has exactly one winning line
+```
+
+Lessons are JSON files in `apps/learn/content/lessons/`, validated against
+`apps/learn/content/schema.ts` at build time. See `apps/learn/content/README.md`.
