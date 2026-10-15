@@ -1,0 +1,287 @@
+/*
+ * Effects for the card database that need plain CSS: element glows driven by
+ * a per-tile custom property, foil sheen, list virtualization hints, and the
+ * off-canvas filter drawer. Colors fall back to the theme hex values.
+ */
+
+/* ---------- Page header backdrop ---------- */
+
+.hero {
+  background:
+    radial-gradient(60rem 22rem at 8% -30%, rgb(242 92 0 / 0.2), transparent 62%),
+    radial-gradient(38rem 18rem at 92% -20%, rgb(59 157 255 / 0.1), transparent 60%),
+    linear-gradient(180deg, rgb(13 13 20 / 0.9), rgb(7 7 11 / 0));
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, black, transparent 85%);
+}
+
+/* ---------- Results waiting for the URL state ---------- */
+
+/*
+ * The static HTML holds the unfiltered default results. While a full page
+ * load of a filtered URL (or a stored list view) waits for the app to apply
+ * it, PendingResults flags <html>: the results, their count and "Show more"
+ * stay hidden instead of flashing the wrong cards.
+ */
+:global(html[data-cards-pending]) .pending {
+  visibility: hidden;
+}
+
+/*
+ * Hidden content still gets laid out, and laid-out lazy images load. Taking
+ * the results out of layout keeps their art from downloading; the reserved
+ * height stops the footer from jumping up meanwhile.
+ */
+:global(html[data-cards-pending]) .pendingResults {
+  min-height: 100vh;
+}
+
+:global(html[data-cards-pending]) .pendingResults > * {
+  display: none;
+}
+
+/* ---------- Grid cells ---------- */
+
+/*
+ * Skip layout and paint for tiles far off-screen once many results are
+ * loaded. `overflow-clip-margin` lets the hover glow escape the paint
+ * containment that `content-visibility` implies.
+ */
+.cell {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 20rem;
+  overflow-clip-margin: 2rem;
+}
+
+.tile {
+  --el: #ff7a1a;
+  outline: none;
+}
+
+.art {
+  position: relative;
+  border-radius: 4.6% / 3.3%;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.04) inset,
+    0 10px 24px -14px rgb(0 0 0 / 0.9);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms ease;
+}
+
+.tile:hover .art,
+.tile:focus-visible .art {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--el) 55%, transparent),
+    0 16px 34px -12px color-mix(in srgb, var(--el) 60%, transparent),
+    0 0 42px -10px color-mix(in srgb, var(--el) 45%, transparent);
+}
+
+.tile:focus-visible .art {
+  box-shadow:
+    0 0 0 2px #07070b,
+    0 0 0 4px #ff7a1a,
+    0 16px 34px -12px color-mix(in srgb, var(--el) 60%, transparent);
+}
+
+/* Foil sheen for rare printings, swept across on hover. */
+.art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.18) 45%,
+    rgb(255 255 255 / 0.32) 50%,
+    rgb(255 255 255 / 0.18) 55%,
+    transparent 70%
+  );
+  background-size: 250% 250%;
+  background-position: 100% 100%;
+  mix-blend-mode: soft-light;
+}
+
+.tile[data-foil="holo"] .art::after {
+  background:
+    linear-gradient(
+      115deg,
+      transparent 25%,
+      rgb(255 120 220 / 0.32) 40%,
+      rgb(120 220 255 / 0.32) 50%,
+      rgb(255 230 120 / 0.32) 60%,
+      transparent 75%
+    );
+  background-size: 250% 250%;
+  background-position: 100% 100%;
+  mix-blend-mode: color-dodge;
+}
+
+.tile[data-foil="gold"] .art::after {
+  background: linear-gradient(
+    115deg,
+    transparent 28%,
+    rgb(255 214 120 / 0.38) 45%,
+    rgb(255 248 210 / 0.5) 50%,
+    rgb(255 214 120 / 0.38) 55%,
+    transparent 72%
+  );
+  background-size: 250% 250%;
+  background-position: 100% 100%;
+  mix-blend-mode: color-dodge;
+}
+
+.tile:not([data-foil="none"]):hover .art::after,
+.tile:not([data-foil="none"]):focus-visible .art::after {
+  opacity: 1;
+  animation: sheen 1.1s cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes sheen {
+  from {
+    background-position: 100% 100%;
+  }
+  to {
+    background-position: 0% 0%;
+  }
+}
+
+.newBadge {
+  background: linear-gradient(135deg, #ff7a1a, #f25c00 60%, #c44700);
+  box-shadow:
+    0 0 0 1px rgb(7 7 11 / 0.6),
+    0 4px 14px -4px rgb(242 92 0 / 0.8);
+}
+
+/* ---------- List view ---------- */
+
+.row {
+  position: relative;
+}
+
+.thumb {
+  transition: transform 160ms ease;
+}
+
+.row:hover .thumb {
+  transform: scale(1.06);
+}
+
+/* ---------- Filter drawer (native <dialog>) ---------- */
+
+.drawer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+  color: inherit;
+}
+
+.drawer::backdrop {
+  background: rgb(7 7 11 / 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.drawerPanel {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(22rem, 88vw);
+  background: var(--color-shadow-900, #0d0d14);
+  border-right: 1px solid var(--color-shadow-700, #1f1f2e);
+  box-shadow: 24px 0 60px -20px rgb(0 0 0 / 0.85);
+}
+
+.drawer[open] .drawerPanel {
+  animation: drawer-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.drawer[open]::backdrop {
+  animation: fade-in 240ms ease-out;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Thin scrollbars for the sticky sidebar ---------- */
+
+.scrollArea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-shadow-500, #4a4a63) transparent;
+}
+
+/* Fade the sidebar's bottom edge so a clipped section reads as scrollable. */
+.sidebar {
+  mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
+}
+
+/* Box-shadow focus rings vanish in forced-colors mode; fall back to an outline. */
+@media (forced-colors: active) {
+  .tile:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .art,
+  .thumb {
+    transition: none;
+  }
+
+  .tile:hover .art,
+  .tile:focus-visible .art,
+  .row:hover .thumb {
+    transform: none;
+  }
+
+  .tile:not([data-foil="none"]):hover .art::after,
+  .tile:not([data-foil="none"]):focus-visible .art::after {
+    animation: none;
+    opacity: 0.6;
+    background-position: 50% 50%;
+  }
+
+  .drawer[open] .drawerPanel,
+  .drawer[open]::backdrop {
+    animation: none;
+  }
+}

@@ -1,0 +1,180 @@
+/*
+ * Set checklist layout and print stylesheet. Plain CSS only.
+ * Mobile rows stack name over a wrapping meta line; wide screens align every
+ * attribute into columns (the meta wrapper becomes `display: contents`).
+ */
+
+.row,
+.header {
+  display: grid;
+  grid-template-columns: 1.75rem 2.75rem minmax(0, 1fr);
+  grid-template-areas:
+    "check thumb name"
+    "check thumb meta";
+  column-gap: 0.875rem;
+  row-gap: 0.375rem;
+  align-items: center;
+}
+
+.row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 84px;
+}
+
+.cellCheck {
+  grid-area: check;
+}
+
+.cellThumb {
+  grid-area: thumb;
+}
+
+.cellName {
+  grid-area: name;
+  min-width: 0;
+}
+
+.cellMeta {
+  grid-area: meta;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+  min-width: 0;
+}
+
+.header {
+  display: none;
+}
+
+/* Matches Tailwind's `lg` breakpoint so `max-lg:` utilities line up with it. */
+@media (min-width: 64rem) {
+  .row,
+  .header {
+    grid-template-columns: 1.75rem 6rem 2.75rem minmax(0, 1fr) 5.5rem 7rem 8.25rem 7rem;
+    grid-template-areas: "check num thumb name type element rarity variant";
+    column-gap: 0.875rem;
+  }
+
+  .row {
+    contain-intrinsic-size: auto 78px;
+  }
+
+  .header {
+    display: grid;
+  }
+
+  .cellMeta {
+    display: contents;
+  }
+
+  .cellNum {
+    grid-area: num;
+  }
+
+  .cellType {
+    grid-area: type;
+  }
+
+  .cellElement {
+    grid-area: element;
+  }
+
+  .cellRarity {
+    grid-area: rarity;
+  }
+
+  .cellVariant {
+    grid-area: variant;
+  }
+}
+
+/* Visible only on paper. */
+.printOnly {
+  display: none;
+}
+
+@media print {
+  :global(body):has(.printRoot) {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Hide the site chrome (skip link, header, roadmap, footer) around <main>. */
+  :global(body):has(.printRoot) > :global(:not(main)) {
+    display: none !important;
+  }
+
+  .noPrint {
+    display: none !important;
+  }
+
+  .printOnly {
+    display: inline;
+  }
+
+  .printRoot,
+  .printRoot * {
+    color: #000 !important;
+    background: transparent !important;
+    border-color: #999 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  .printRoot {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .list {
+    border: 0 !important;
+    columns: 2;
+    column-gap: 2rem;
+  }
+
+  .row {
+    content-visibility: visible;
+    break-inside: avoid;
+    grid-template-columns: auto 5.5rem minmax(0, 1fr) auto;
+    grid-template-areas: "check num name rarity";
+    column-gap: 0.5rem;
+    padding: 0.2rem 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid #bbb !important;
+    border-radius: 0 !important;
+    font-size: 9pt;
+  }
+
+  .header,
+  .cellThumb,
+  .cellType,
+  .cellElement,
+  .cellVariant,
+  .screenOnly {
+    display: none !important;
+  }
+
+  .cellMeta {
+    display: contents;
+  }
+
+  .cellNum {
+    grid-area: num;
+  }
+
+  .cellRarity {
+    grid-area: rarity;
+  }
+
+  /* The custom checkbox prints as an empty square, or a ticked one when owned. */
+  .checkbox {
+    width: 0.85rem !important;
+    height: 0.85rem !important;
+    border: 1.5px solid #000 !important;
+    border-radius: 2px !important;
+  }
+}

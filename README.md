@@ -11,11 +11,12 @@ Release phases and target dates for each app are in [SCHEDULE.md](SCHEDULE.md).
 | `apps/compare` | 3002 | Compare card prices |
 | `apps/learn` | 3003 | Learn how to play (served under `/learn`) |
 | `apps/events` | 3004 | Event calendar, store locator, tournaments |
+| `apps/cards` | 3005 | Card database, spoiler center and set checklists ([data contract](apps/cards/DATA.md)) |
 
 | Package | Purpose |
 | --- | --- |
 | `@naruto-tcg/ui` | Shared Tailwind components, dark ninja theme, `SiteHeader` navigation |
-| `@naruto-tcg/types` | Shared types: `NarutoCard`, `Deck`, `PriceRecord` |
+| `@naruto-tcg/types` | Shared types: `NarutoCard`, `CardSet`, `Deck`, `PriceRecord`, events |
 
 ```bash
 pnpm install
@@ -26,7 +27,7 @@ pnpm typecheck
 
 ## Shared navigation
 
-Every app renders `SiteHeader` from `@naruto-tcg/ui`, linking Simulator, Decks, Compare, Events and Learn.
+Every app renders `SiteHeader` from `@naruto-tcg/ui`, linking Learn, Events, Cards, Decks, Simulator and Compare.
 Links default to the local dev ports; override them at build time for deployments:
 
 | Variable | Default |
@@ -36,9 +37,10 @@ Links default to the local dev ports; override them at build time for deployment
 | `NEXT_PUBLIC_COMPARE_URL` | `http://localhost:3002` |
 | `NEXT_PUBLIC_LEARN_URL` | `http://localhost:3003/learn` |
 | `NEXT_PUBLIC_EVENTS_URL` | `http://localhost:3004` |
+| `NEXT_PUBLIC_CARDS_URL` | `http://localhost:3005` |
 
 In production the header only lists apps whose URL variable is set, so a single-app deploy shows no dead links.
-To deploy the Learn site on Vercel, see [docs/deploy-with-claude-in-chrome.md](docs/deploy-with-claude-in-chrome.md).
+To deploy the Learn site on Vercel, see [docs/deploy-with-claude-in-chrome.md](docs/deploy-with-claude-in-chrome.md); for the Cards site, see [docs/deploy-cards-with-claude-in-chrome.md](docs/deploy-cards-with-claude-in-chrome.md).
 
 ## Learn portal (`apps/learn`)
 

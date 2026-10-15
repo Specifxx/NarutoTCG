@@ -1,0 +1,3725 @@
+[
+  {
+    "id": "ST01-001",
+    "name": "Naruto Uzumaki",
+    "title": "Number One Hyperactive Ninja",
+    "type": "leader",
+    "element": "wind",
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Uzumaki Clan",
+      "Jinchuriki"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] [Once Per Turn] Rest 2 of your chakra: Up to 1 of your {Team 7} characters gains +1000 power until the end of your turn.",
+    "flavor": "I'm not gonna run away, and I never go back on my word!",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-001",
+        "rarity": "super-rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-002",
+    "name": "Sasuke Uchiha",
+    "title": "Last of the Uchiha",
+    "type": "character",
+    "element": "lightning",
+    "cost": 4,
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Uchiha Clan"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with 3000 power or less.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-002",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "PR01",
+        "number": "P-007",
+        "rarity": "promo",
+        "variant": "promo"
+      }
+    ]
+  },
+  {
+    "id": "ST01-003",
+    "name": "Sakura Haruno",
+    "title": "Quick Study",
+    "type": "character",
+    "element": "earth",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Medical Ninja"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Look at the top 3 cards of your deck; reveal up to 1 {Team 7} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-003",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-004",
+    "name": "Kakashi Hatake",
+    "title": "Copy Ninja",
+    "type": "character",
+    "element": "lightning",
+    "cost": 5,
+    "power": 6000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Jonin"
+    ],
+    "keywords": [
+      "Sharingan"
+    ],
+    "effect": "[When Attacking] If you control 2 or more {Team 7} characters, draw 1 card.",
+    "flavor": "Those who abandon their friends are worse than scum.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-004",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-005",
+    "name": "Naruto Uzumaki",
+    "title": "Shadow Clone Specialist",
+    "type": "character",
+    "element": "wind",
+    "cost": 3,
+    "power": 4000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Uzumaki Clan",
+      "Jinchuriki"
+    ],
+    "keywords": [
+      "Substitution"
+    ],
+    "effect": "[On Play] If your leader is [Naruto Uzumaki], up to 1 of your characters gains +1000 power until the end of your turn.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-005",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-006",
+    "name": "Iruka Umino",
+    "title": "Academy Instructor",
+    "type": "character",
+    "element": "water",
+    "cost": 1,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Chunin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On K.O.] Draw 1 card.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-006",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-007",
+    "name": "Konohamaru Sarutobi",
+    "title": "Honorable Grandson",
+    "type": "character",
+    "element": "fire",
+    "cost": 1,
+    "power": 1000,
+    "traits": [
+      "Leaf Village",
+      "Genin"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[When Attacking] If your leader has the {Uzumaki Clan} trait, this character gains +1000 power during this battle.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-007",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-008",
+    "name": "Hiruzen Sarutobi",
+    "title": "The Third Hokage",
+    "type": "character",
+    "element": "fire",
+    "cost": 6,
+    "power": 7000,
+    "traits": [
+      "Leaf Village",
+      "Hokage"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Play] Up to 2 of your {Leaf Village} characters gain +1000 power until the end of your opponent's next turn.",
+    "flavor": "Where the leaves dance, fire will burn.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-008",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-009",
+    "name": "Pakkun",
+    "title": "Ninja Hound",
+    "type": "character",
+    "element": "earth",
+    "cost": 1,
+    "power": 1000,
+    "traits": [
+      "Leaf Village",
+      "Summon"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Look at the top 5 cards of your deck; reveal up to 1 [Kakashi Hatake] and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-009",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-010",
+    "name": "Tazuna",
+    "title": "Master Bridge Builder",
+    "type": "character",
+    "element": "water",
+    "cost": 2,
+    "power": 1000,
+    "traits": [
+      "Land of Waves",
+      "Civilian"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Rest this character: Add up to 1 chakra from your chakra deck and rest it.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-010",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-011",
+    "name": "Rasengan",
+    "type": "jutsu",
+    "element": "wind",
+    "cost": 2,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Up to 1 of your characters gains +2000 power until the end of your turn. If that character is [Naruto Uzumaki], it also gains [Double Attack] until the end of your turn.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-011",
+        "rarity": "rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "PR01",
+        "number": "P-008",
+        "rarity": "promo",
+        "variant": "promo"
+      }
+    ]
+  },
+  {
+    "id": "ST01-012",
+    "name": "Chidori",
+    "type": "jutsu",
+    "element": "lightning",
+    "cost": 3,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] K.O. up to 1 of your opponent's characters with 4000 power or less. If you control [Sasuke Uchiha] or [Kakashi Hatake], K.O. up to 1 of your opponent's characters with 5000 power or less instead.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-012",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-013",
+    "name": "Shadow Clone Jutsu",
+    "type": "jutsu",
+    "element": "wind",
+    "cost": 1,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [
+      "Counter"
+    ],
+    "effect": "[Counter] Up to 1 of your leader or characters gains +2000 power during this battle. If your leader is [Naruto Uzumaki], it gains +3000 power instead.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-013",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-014",
+    "name": "Substitution Jutsu",
+    "type": "jutsu",
+    "element": "earth",
+    "cost": 1,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [
+      "Counter"
+    ],
+    "effect": "[Counter] Up to 1 of your characters can't be K.O.'d during this battle.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-014",
+        "rarity": "common",
+        "variant": "standard"
+      },
+      {
+        "setId": "PR01",
+        "number": "P-009",
+        "rarity": "promo",
+        "variant": "promo"
+      }
+    ]
+  },
+  {
+    "id": "ST01-015",
+    "name": "Protect the Bridge Builder",
+    "type": "mission",
+    "element": "water",
+    "cost": 2,
+    "traits": [
+      "C-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When one of your {Team 7} characters attacks, place 1 progress counter on this Mission. Then, if this Mission has 3 or more progress counters, draw 2 cards and trash this Mission.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-015",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST01-016",
+    "name": "The Bell Test",
+    "type": "mission",
+    "element": "lightning",
+    "cost": 1,
+    "traits": [
+      "D-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Trash this Mission: If you control 3 or more {Team 7} characters with different names, draw 2 cards.",
+    "flavor": "Get a bell before noon, or no lunch.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "ST01",
+        "number": "ST01-016",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-001",
+    "name": "Gaara",
+    "title": "Wall of Living Sand",
+    "type": "leader",
+    "element": "earth",
+    "power": 5000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings",
+      "Jinchuriki"
+    ],
+    "keywords": [],
+    "effect": "[Opponent's Turn] [Once Per Turn] When one of your {Sand Village} characters blocks, you may rest 1 of your chakra: That character gains +2000 power during this battle.",
+    "flavor": "The sand rises before he ever lifts a hand.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-001",
+        "rarity": "super-rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-002",
+    "name": "Temari",
+    "title": "Eldest of the Sand Siblings",
+    "type": "character",
+    "element": "wind",
+    "cost": 4,
+    "power": 5000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Rest up to 1 of your opponent's characters with a cost of 4 or less. Then, if you control [Kankuro], draw 1 card.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-002",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "PR01",
+        "number": "P-010",
+        "rarity": "promo",
+        "variant": "promo"
+      }
+    ]
+  },
+  {
+    "id": "ST02-003",
+    "name": "Kankuro",
+    "title": "Master of Three Puppets",
+    "type": "character",
+    "element": "earth",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Look at the top 5 cards of your deck; reveal up to 1 {Puppet} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-003",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-004",
+    "name": "Crow",
+    "title": "Hidden Blade Puppet",
+    "type": "character",
+    "element": "lightning",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Sand Village",
+      "Puppet"
+    ],
+    "keywords": [],
+    "effect": "[When Attacking] If you control [Kankuro], this character gains +2000 power during this battle.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-004",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-005",
+    "name": "Black Ant",
+    "title": "Capture Puppet",
+    "type": "character",
+    "element": "lightning",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Sand Village",
+      "Puppet"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Block] If you control [Crow], K.O. up to 1 of your opponent's characters with 3000 power or less.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-005",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-006",
+    "name": "Salamander",
+    "title": "Shield Puppet",
+    "type": "character",
+    "element": "water",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Sand Village",
+      "Puppet"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[Opponent's Turn] If you control [Kankuro], this character gains +2000 power.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-006",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-007",
+    "name": "Baki",
+    "title": "Sand Siblings' Instructor",
+    "type": "character",
+    "element": "wind",
+    "cost": 5,
+    "power": 6000,
+    "traits": [
+      "Sand Village",
+      "Jonin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] K.O. up to 1 of your opponent's rested characters with 4000 power or less.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-007",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-008",
+    "name": "Rasa",
+    "title": "The Fourth Kazekage",
+    "type": "character",
+    "element": "lightning",
+    "cost": 6,
+    "power": 6000,
+    "traits": [
+      "Sand Village",
+      "Kazekage"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Play] Rest up to 1 of your opponent's characters with a cost of 5 or less. Then, if your leader has the {Sand Village} trait, your opponent rests up to 1 of their active chakra.",
+    "flavor": "Gold dust bends only to the Kazekage's will.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-008",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-009",
+    "name": "Yashamaru",
+    "title": "Guardian Behind the Mask",
+    "type": "character",
+    "element": "fire",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Sand Village",
+      "Medical Ninja"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On K.O.] K.O. up to 1 of your opponent's characters with 2000 power or less.",
+    "flavor": "He smiled until the very last tag was lit.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-009",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-010",
+    "name": "Pakura",
+    "title": "Hero of the Hidden Sand",
+    "type": "character",
+    "element": "fire",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Sand Village",
+      "Jonin"
+    ],
+    "keywords": [],
+    "effect": "[When Attacking] K.O. up to 1 of your opponent's characters with 3000 power or less.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-010",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-011",
+    "name": "Matsuri",
+    "title": "Gaara's First Student",
+    "type": "character",
+    "element": "water",
+    "cost": 1,
+    "power": 2000,
+    "traits": [
+      "Sand Village",
+      "Genin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-011",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-012",
+    "name": "Sand Coffin",
+    "type": "jutsu",
+    "element": "earth",
+    "cost": 3,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] K.O. up to 1 of your opponent's rested characters with a cost of 5 or less. If your leader is [Gaara], K.O. up to 1 of your opponent's rested characters with a cost of 6 or less instead.",
+    "flavor": "First the sand closes. Then it tightens.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-012",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-013",
+    "name": "Sand Shield",
+    "type": "jutsu",
+    "element": "earth",
+    "cost": 1,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [
+      "Counter"
+    ],
+    "effect": "[Counter] Up to 1 of your leader or characters gains +2000 power during this battle. If you control 2 or more {Sand Siblings} characters, it gains +4000 power instead.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-013",
+        "rarity": "common",
+        "variant": "standard"
+      },
+      {
+        "setId": "PR01",
+        "number": "P-011",
+        "rarity": "promo",
+        "variant": "promo"
+      }
+    ]
+  },
+  {
+    "id": "ST02-014",
+    "name": "Wind Scythe Jutsu",
+    "type": "jutsu",
+    "element": "wind",
+    "cost": 2,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Rest up to 2 of your opponent's characters with a cost of 3 or less. If you control [Temari], rest up to 2 of your opponent's characters with a cost of 5 or less instead.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-014",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-015",
+    "name": "Guard the Oasis Caravan",
+    "type": "mission",
+    "element": "water",
+    "cost": 2,
+    "traits": [
+      "C-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Opponent's Turn] [Once Per Turn] When one of your {Sand Village} characters blocks, place 1 progress counter on this Mission. Then, if this Mission has 3 or more progress counters, draw 2 cards and trash this Mission.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-015",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "ST02-016",
+    "name": "Desert Survival Training",
+    "type": "mission",
+    "element": "fire",
+    "cost": 1,
+    "traits": [
+      "D-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Trash this Mission: If you control 2 or more {Sand Village} characters with [Blocker], draw 2 cards.",
+    "flavor": "The sun is the first enemy every Sand genin learns to outlast.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "ST02",
+        "number": "ST02-016",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-001",
+    "name": "Tsunade",
+    "title": "Legendary Slug Princess",
+    "type": "leader",
+    "element": "earth",
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Sannin",
+      "Senju Clan",
+      "Medical Ninja"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] [Once Per Turn] Rest 3 of your chakra: If you have 2 or less life cards, add up to 1 card from the top of your deck to the top of your life cards.",
+    "flavor": "The worst luck at the tables. The surest hands in the hospital.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-001",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-001",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-002",
+    "name": "Jiraiya",
+    "title": "Gallant Toad Sage",
+    "type": "leader",
+    "element": "fire",
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Sannin",
+      "Sage"
+    ],
+    "keywords": [
+      "Sage Mode"
+    ],
+    "effect": "[Sage Mode] [When Attacking] Look at the top 3 cards of your deck; reveal up to 1 {Summon} or {Sannin} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "flavor": "He writes the legends, then goes out and lives them.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-002",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-002",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-003",
+    "name": "Might Guy",
+    "title": "Blazing Green Beast",
+    "type": "leader",
+    "element": "fire",
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Jonin"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When you activate a {Taijutsu} Jutsu, up to 1 of your leader or {Team Guy} characters gains +2000 power until the end of your turn.",
+    "flavor": "Youth is a fire you keep lit by running one more lap.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-003",
+        "rarity": "rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-003",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-004",
+    "name": "Hashirama Senju",
+    "title": "The First Hokage",
+    "type": "character",
+    "element": "earth",
+    "cost": 8,
+    "power": 8000,
+    "traits": [
+      "Leaf Village",
+      "Hokage",
+      "Senju Clan"
+    ],
+    "keywords": [
+      "Resilient"
+    ],
+    "effect": "[On Play] Rest up to 2 of your opponent's characters with a cost of 6 or less. Then, if your leader has the {Senju Clan} trait, draw 1 card.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-004",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-004",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-005",
+    "name": "Tobirama Senju",
+    "title": "The Second Hokage",
+    "type": "character",
+    "element": "water",
+    "cost": 6,
+    "power": 6000,
+    "traits": [
+      "Leaf Village",
+      "Hokage",
+      "Senju Clan"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Return up to 1 of your opponent's characters with a cost of 5 or less to the owner's hand. Then, if you control another {Hokage} character, draw 1 card.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-005",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-006",
+    "name": "Minato Namikaze",
+    "title": "The Fourth Hokage",
+    "type": "character",
+    "element": "lightning",
+    "cost": 6,
+    "power": 6000,
+    "traits": [
+      "Leaf Village",
+      "Hokage"
+    ],
+    "keywords": [
+      "Ambush"
+    ],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with 5000 power or less.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-006",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-006",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-007",
+    "name": "Sakumo Hatake",
+    "title": "White Fang of the Leaf",
+    "type": "character",
+    "element": "lightning",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Leaf Village",
+      "Jonin"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[On K.O.] Look at the top 5 cards of your deck; reveal up to 1 [Kakashi Hatake] and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-007",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-008",
+    "name": "Kakashi Hatake",
+    "title": "Hound of the Anbu",
+    "type": "character",
+    "element": "lightning",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Anbu"
+    ],
+    "keywords": [
+      "Sharingan",
+      "Ambush"
+    ],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with 3000 power or less.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-008",
+        "rarity": "rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-008",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-009",
+    "name": "Orochimaru",
+    "title": "Seeker of Forbidden Jutsu",
+    "type": "character",
+    "element": "wind",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Sannin",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Substitution"
+    ],
+    "effect": "[On Play] You may trash 1 card from your hand: K.O. up to 1 of your opponent's characters with a cost of 5 or less.",
+    "flavor": "He wanted every jutsu in the world, and all the time in it to learn them.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-009",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-010",
+    "name": "Shizune",
+    "title": "Faithful Attendant",
+    "type": "character",
+    "element": "water",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Medical Ninja"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Play] If your leader is [Tsunade], draw 1 card.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-010",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-011",
+    "name": "Katsuyu",
+    "title": "Queen of the Slugs",
+    "type": "character",
+    "element": "water",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Summon"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[Opponent's Turn] If your leader is [Tsunade], all of your {Leaf Village} characters gain +1000 power.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-011",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-012",
+    "name": "Gamabunta",
+    "title": "Boss Toad of Mount Myoboku",
+    "type": "character",
+    "element": "water",
+    "cost": 7,
+    "power": 8000,
+    "traits": [
+      "Summon"
+    ],
+    "keywords": [],
+    "effect": "[On Play] If your leader is [Jiraiya], K.O. up to 1 of your opponent's characters with 6000 power or less.",
+    "flavor": "He doesn't take orders. He takes requests, and only from the brave.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-012",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-013",
+    "name": "Rock Lee",
+    "title": "Lotus in Full Bloom",
+    "type": "character",
+    "element": "fire",
+    "cost": 4,
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Genin"
+    ],
+    "keywords": [
+      "Rush",
+      "Combo"
+    ],
+    "effect": "[Combo] [When Attacking] This character gains +2000 power and [Double Attack] during this battle.",
+    "flavor": "No ninjutsu. No genjutsu. No excuses.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-013",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-013",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-014",
+    "name": "Neji Hyuga",
+    "title": "Prodigy of the Gentle Fist",
+    "type": "character",
+    "element": "earth",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Hyuga Clan",
+      "Genin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[When Attacking] Your opponent rests up to 1 of their active chakra. [On Block] This character gains +1000 power during this battle.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-014",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-015",
+    "name": "Tenten",
+    "title": "Mistress of a Thousand Blades",
+    "type": "character",
+    "element": "wind",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Look at the top 3 cards of your deck; reveal up to 1 {Team Guy} or {Taijutsu} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-015",
+        "rarity": "common",
+        "variant": "standard"
+      },
+      {
+        "setId": "PR01",
+        "number": "P-012",
+        "rarity": "promo",
+        "variant": "promo"
+      }
+    ]
+  },
+  {
+    "id": "NR01-016",
+    "name": "Kurenai Yuhi",
+    "title": "Weaver of Illusions",
+    "type": "character",
+    "element": "water",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team 8",
+      "Jonin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Up to 1 of your opponent's characters gets -2000 power until the end of your turn. If you control 2 or more other {Team 8} characters, that character gets -3000 power instead.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-016",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-017",
+    "name": "Hinata Hyuga",
+    "title": "Quiet Resolve",
+    "type": "character",
+    "element": "water",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Team 8",
+      "Hyuga Clan",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Look at the top 3 cards of your deck; reveal up to 1 {Team 8} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-017",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-018",
+    "name": "Kiba Inuzuka",
+    "title": "Wild Pack Leader",
+    "type": "character",
+    "element": "earth",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team 8",
+      "Inuzuka Clan",
+      "Genin"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[When Attacking] If you control [Akamaru], this character gains +2000 power during this battle.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-018",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-019",
+    "name": "Akamaru",
+    "title": "Faithful Ninja Pup",
+    "type": "character",
+    "element": "wind",
+    "cost": 1,
+    "power": 1000,
+    "traits": [
+      "Leaf Village",
+      "Team 8",
+      "Inuzuka Clan"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Look at the top 5 cards of your deck; reveal up to 1 [Kiba Inuzuka] or [Fang Over Fang] and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "flavor": "Small enough to ride in a hood. Brave enough to bite a giant.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-019",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-020",
+    "name": "Shino Aburame",
+    "title": "Silent Swarm",
+    "type": "character",
+    "element": "earth",
+    "cost": 2,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team 8",
+      "Aburame Clan",
+      "Genin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "",
+    "flavor": "By the time you notice the insects, your chakra is already theirs.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-020",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-021",
+    "name": "Asuma Sarutobi",
+    "title": "Guardian of the King",
+    "type": "character",
+    "element": "wind",
+    "cost": 5,
+    "power": 6000,
+    "traits": [
+      "Leaf Village",
+      "Team 10",
+      "Jonin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] If you control 2 or more other {Team 10} characters, draw 2 cards.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-021",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-022",
+    "name": "Shikamaru Nara",
+    "title": "Two Hundred Moves Ahead",
+    "type": "character",
+    "element": "earth",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team 10",
+      "Nara Clan",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Rest up to 1 of your opponent's characters with a cost of 5 or less. Then, if you control [Ino Yamanaka] and [Choji Akimichi], draw 2 cards.",
+    "flavor": "He'd rather be watching clouds. So would you, once he starts playing.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-022",
+        "rarity": "rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR01",
+        "number": "NR01-022",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR01-023",
+    "name": "Ino Yamanaka",
+    "title": "Flower of the Yamanaka",
+    "type": "character",
+    "element": "water",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Team 10",
+      "Yamanaka Clan",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Look at the top 3 cards of your deck; reveal up to 1 {Team 10} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-023",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-024",
+    "name": "Choji Akimichi",
+    "title": "Heart of the Akimichi",
+    "type": "character",
+    "element": "earth",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team 10",
+      "Akimichi Clan",
+      "Genin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Block] If you control [Shikamaru Nara] or [Ino Yamanaka], this character gains +2000 power during this battle.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-024",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-025",
+    "name": "Danzo Shimura",
+    "title": "Root of the Leaf",
+    "type": "character",
+    "element": "wind",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Leaf Village",
+      "Anbu"
+    ],
+    "keywords": [],
+    "effect": "[On Play] You may K.O. 1 of your other characters: K.O. up to 1 of your opponent's characters with a cost of 4 or less.",
+    "flavor": "Every tree needs roots that never see the sun.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-025",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-026",
+    "name": "Anbu Black Ops",
+    "title": "Masked Sentinel",
+    "type": "character",
+    "element": "lightning",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Anbu"
+    ],
+    "keywords": [
+      "Ambush"
+    ],
+    "effect": "[On Play] Draw 1 card, then trash 1 card from your hand.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-026",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-027",
+    "name": "Eight Gates Release",
+    "type": "jutsu",
+    "element": "fire",
+    "cost": 2,
+    "traits": [
+      "Taijutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Up to 1 of your {Team Guy} characters gains +2000 power until the end of your turn. Then, you may trash 1 card from your hand: That character also gains [Double Attack] until the end of your turn.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-027",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-028",
+    "name": "Eight Trigrams Sixty-Four Palms",
+    "type": "jutsu",
+    "element": "earth",
+    "cost": 3,
+    "traits": [
+      "Taijutsu",
+      "Kekkei Genkai"
+    ],
+    "keywords": [],
+    "effect": "[Main] Your opponent rests up to 2 of their active chakra. Then, if you control a {Hyuga Clan} character, K.O. up to 1 of your opponent's characters with 3000 power or less.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-028",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-029",
+    "name": "Shadow Possession Jutsu",
+    "type": "jutsu",
+    "element": "earth",
+    "cost": 1,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [
+      "Counter",
+      "Trigger"
+    ],
+    "effect": "[Counter] Up to 1 of your opponent's leader or characters gets -2000 power during this battle. If you control a {Nara Clan} character, it gets -3000 power instead. [Trigger] Rest up to 1 of your opponent's characters with a cost of 4 or less.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-029",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-030",
+    "name": "Mind Transfer Jutsu",
+    "type": "jutsu",
+    "element": "water",
+    "cost": 2,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Look at your opponent's hand and choose up to 1 Jutsu card in it; your opponent trashes that card. Then, if you control [Ino Yamanaka], draw 1 card.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-030",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-031",
+    "name": "Expansion Jutsu",
+    "type": "jutsu",
+    "element": "earth",
+    "cost": 1,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [
+      "Counter"
+    ],
+    "effect": "[Counter] Up to 1 of your leader or characters gains +2000 power during this battle. If that character is [Choji Akimichi], it gains +4000 power instead.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-031",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-032",
+    "name": "Fang Over Fang",
+    "type": "jutsu",
+    "element": "wind",
+    "cost": 3,
+    "traits": [
+      "Taijutsu"
+    ],
+    "keywords": [
+      "Trigger"
+    ],
+    "effect": "[Main] K.O. up to 1 of your opponent's characters with 3000 power or less. If you control [Kiba Inuzuka] and [Akamaru], K.O. up to 1 of your opponent's characters with 5000 power or less instead. [Trigger] Activate this card's [Main] effect.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-032",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-033",
+    "name": "Blood Pact Summoning",
+    "type": "jutsu",
+    "element": "fire",
+    "cost": 1,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Look at the top 5 cards of your deck; reveal up to 1 {Summon} card and add it to your hand. Then, place the rest at the bottom of your deck in any order. Then, if your leader has the {Sannin} trait, draw 1 card.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-033",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-034",
+    "name": "Tracking the Slug Princess",
+    "type": "mission",
+    "element": "wind",
+    "cost": 2,
+    "traits": [
+      "B-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When your {Sannin} leader attacks, place 1 progress counter on this Mission. Then, if this Mission has 2 or more progress counters, draw 2 cards and trash this Mission.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-034",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-035",
+    "name": "Anbu Night Patrol",
+    "type": "mission",
+    "element": "lightning",
+    "cost": 1,
+    "traits": [
+      "C-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Opponent's Turn] [Once Per Turn] When you play an {Anbu} character, draw 1 card.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-035",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-036",
+    "name": "Five Hundred Laps Around the Leaf",
+    "type": "mission",
+    "element": "fire",
+    "cost": 1,
+    "traits": [
+      "D-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When you activate a {Taijutsu} Jutsu, place 1 progress counter on this Mission. Then, if this Mission has 2 or more progress counters, draw 2 cards and trash this Mission.",
+    "flavor": "Lee has never once stopped at four hundred ninety-nine.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-036",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-037",
+    "name": "Guard the Fire Daimyo",
+    "type": "mission",
+    "element": "lightning",
+    "cost": 2,
+    "traits": [
+      "B-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Trash this Mission: Up to 2 of your {Leaf Village} characters gain [Blocker] until the end of your opponent's next turn. Then, if you control [Asuma Sarutobi], draw 1 card.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-037",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-038",
+    "name": "Defend the Hidden Leaf",
+    "type": "mission",
+    "element": "fire",
+    "cost": 3,
+    "traits": [
+      "S-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Opponent's Turn] [Once Per Turn] When one of your {Leaf Village} characters is K.O.'d, place 1 progress counter on this Mission. Then, if this Mission has 3 or more progress counters, add up to 1 card from the top of your deck to the top of your life cards and trash this Mission.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-038",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-039",
+    "name": "Minato Namikaze",
+    "title": "Yellow Flash",
+    "type": "character",
+    "element": "lightning",
+    "cost": 7,
+    "power": 7000,
+    "traits": [
+      "Leaf Village",
+      "Hokage"
+    ],
+    "keywords": [
+      "Rush",
+      "Ambush"
+    ],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with a cost of 5 or less. [When Attacking] Your opponent can't activate [Blocker] during this battle.",
+    "flavor": "Enemy orders were simple: if you see the flash, run.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-039",
+        "rarity": "secret-rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR01-040",
+    "name": "Hashirama Senju",
+    "title": "God of Shinobi",
+    "type": "character",
+    "element": "earth",
+    "cost": 10,
+    "power": 10000,
+    "traits": [
+      "Leaf Village",
+      "Hokage",
+      "Senju Clan"
+    ],
+    "keywords": [
+      "Resilient"
+    ],
+    "effect": "[On Play] Rest all of your opponent's characters. Then, if your leader has the {Senju Clan} trait, add up to 1 card from the top of your deck to the top of your life cards.",
+    "flavor": "Where he walked, forests rose to shield the village.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR01",
+        "number": "NR01-040",
+        "rarity": "secret-rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "PR01-001",
+    "name": "Might Guy",
+    "title": "Master of Dynamic Entry",
+    "type": "character",
+    "element": "fire",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Jonin"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[When Attacking] If you control [Rock Lee], this character gains [Double Attack] until the end of your turn.",
+    "flavor": "He always arrives feet first, and never a moment late.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "PR01",
+        "number": "P-001",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "PR01-002",
+    "name": "Rock Lee",
+    "title": "Champion of Hard Work",
+    "type": "character",
+    "element": "fire",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[When Attacking] If you have not activated a Jutsu this turn, this character gains +2000 power during this battle.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "PR01",
+        "number": "P-002",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "PR01-003",
+    "name": "Gaara",
+    "title": "Eye of the Sandstorm",
+    "type": "character",
+    "element": "earth",
+    "cost": 6,
+    "power": 7000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings",
+      "Jinchuriki"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Block] K.O. up to 1 of your opponent's rested characters with a cost of 4 or less.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "PR01",
+        "number": "P-003",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "PR01-004",
+    "name": "Gamabunta",
+    "title": "Ally Against the One-Tail",
+    "type": "character",
+    "element": "water",
+    "cost": 7,
+    "power": 7000,
+    "traits": [
+      "Summon"
+    ],
+    "keywords": [],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with a cost of 4 or less. If your leader is [Naruto Uzumaki], K.O. up to 1 of your opponent's characters with a cost of 6 or less instead.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "PR01",
+        "number": "P-004",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "PR01-005",
+    "name": "Thousand Years of Death",
+    "type": "jutsu",
+    "element": "lightning",
+    "cost": 1,
+    "traits": [
+      "Taijutsu"
+    ],
+    "keywords": [
+      "Counter"
+    ],
+    "effect": "[Counter] Up to 1 of your leader or characters gains +2000 power during this battle. Then, if you control [Kakashi Hatake], rest up to 1 of your opponent's characters with a cost of 3 or less.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "PR01",
+        "number": "P-005",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "PR01-006",
+    "name": "Ichiraku Ramen Delivery",
+    "type": "mission",
+    "element": "wind",
+    "cost": 1,
+    "traits": [
+      "D-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Trash this Mission: Draw 1 card. Then, if your leader is [Naruto Uzumaki], up to 1 of your characters gains +1000 power until the end of your turn.",
+    "flavor": "One miso with extra pork, delivered at ninja speed.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "PR01",
+        "number": "P-006",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-001",
+    "name": "Orochimaru",
+    "title": "Shadow Over the Chunin Exams",
+    "type": "leader",
+    "element": "wind",
+    "power": 5000,
+    "traits": [
+      "Sound Village",
+      "Sannin",
+      "Rogue Ninja"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] [Once Per Turn] K.O. 1 of your {Sound Village} characters: Draw 1 card. Then, up to 1 of your characters gains +1000 power until the end of your turn.",
+    "flavor": "Every examinee is a pawn. Only he can see the whole board.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-001",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR02",
+        "number": "NR02-001",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR02-002",
+    "name": "Rock Lee",
+    "title": "Handsome Devil of the Leaf",
+    "type": "leader",
+    "element": "fire",
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When you activate a {Taijutsu} Jutsu, this leader gains +2000 power until the end of your turn. Then, if you have 2 or less cards in your hand, draw 1 card.",
+    "flavor": "He couldn't mold chakra, so he molded himself instead.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-002",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR02",
+        "number": "NR02-002",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR02-003",
+    "name": "Sasuke Uchiha",
+    "title": "Bearer of the Cursed Seal",
+    "type": "character",
+    "element": "lightning",
+    "cost": 5,
+    "power": 6000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Uchiha Clan",
+      "Genin"
+    ],
+    "keywords": [
+      "Sharingan"
+    ],
+    "effect": "[On Play] You may trash 1 card from your hand: K.O. up to 1 of your opponent's characters with 5000 power or less. Then, if your leader is [Orochimaru], this character gains [Rush] until the end of your turn.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-003",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR02",
+        "number": "NR02-003",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR02-004",
+    "name": "Neji Hyuga",
+    "title": "Caged Bird of the Branch House",
+    "type": "character",
+    "element": "earth",
+    "cost": 4,
+    "power": 5000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Hyuga Clan",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[When Attacking] Your opponent rests up to 1 of their active chakra. Then, if your opponent has 2 or less active chakra, this character gains +1000 power during this battle.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-004",
+        "rarity": "rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR02",
+        "number": "NR02-004",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR02-005",
+    "name": "Hinata Hyuga",
+    "title": "Heiress Who Never Yields",
+    "type": "character",
+    "element": "water",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Team 8",
+      "Hyuga Clan",
+      "Genin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Block] This character gains +2000 power during this battle. [On K.O.] If you control [Naruto Uzumaki], draw 1 card.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-005",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-006",
+    "name": "Rock Lee",
+    "title": "Opener of the Fifth Gate",
+    "type": "character",
+    "element": "fire",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team Guy",
+      "Genin"
+    ],
+    "keywords": [
+      "Rush",
+      "Combo"
+    ],
+    "effect": "[Combo] [When Attacking] This character gains +2000 power and [Double Attack] during this battle.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-006",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-007",
+    "name": "Shikamaru Nara",
+    "title": "Forfeit by Design",
+    "type": "character",
+    "element": "earth",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team 10",
+      "Nara Clan",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Rest up to 1 of your opponent's characters with a cost of 5 or less. [Activate: Main] Trash this character: Draw 2 cards, then trash 1 card from your hand.",
+    "flavor": "He won the match in every way except the one he chose.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-007",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-008",
+    "name": "Naruto Uzumaki",
+    "title": "Underdog of the Finals",
+    "type": "character",
+    "element": "wind",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Uzumaki Clan",
+      "Jinchuriki",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[When Attacking] If you have fewer life cards than your opponent, this character gains +2000 power during this battle.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-008",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-009",
+    "name": "Hiruzen Sarutobi",
+    "title": "Final Stand on the Rooftop",
+    "type": "character",
+    "element": "fire",
+    "cost": 7,
+    "power": 7000,
+    "traits": [
+      "Leaf Village",
+      "Hokage"
+    ],
+    "keywords": [],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with a cost of 6 or less. [On K.O.] Up to 2 of your {Leaf Village} characters gain +1000 power until the end of your next turn.",
+    "flavor": "One old man's will, holding back a storm of snakes.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-009",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR02",
+        "number": "NR02-009",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR02-010",
+    "name": "Anko Mitarashi",
+    "title": "Proctor of the Forest of Death",
+    "type": "character",
+    "element": "wind",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Leaf Village",
+      "Jonin"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with 2000 power or less.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-010",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-011",
+    "name": "Ibiki Morino",
+    "title": "Proctor of the Written Exam",
+    "type": "character",
+    "element": "lightning",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Leaf Village",
+      "Jonin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Your opponent trashes 1 card from their hand.",
+    "flavor": "The tenth question was never on the paper.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-011",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-012",
+    "name": "Hayate Gekko",
+    "title": "Proctor of the Preliminaries",
+    "type": "character",
+    "element": "lightning",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Leaf Village",
+      "Jonin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On K.O.] Look at the top 3 cards of your deck; reveal up to 1 {Leaf Village} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-012",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-013",
+    "name": "Gaara",
+    "title": "Untouched in the Forest of Death",
+    "type": "character",
+    "element": "earth",
+    "cost": 6,
+    "power": 7000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings",
+      "Jinchuriki",
+      "Genin"
+    ],
+    "keywords": [
+      "Resilient"
+    ],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with 5000 power or less. Then, if your leader has the {Sand Village} trait, draw 1 card.",
+    "flavor": "Three days in the forest, and not one grain of sand out of place.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-013",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR02",
+        "number": "NR02-013",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ]
+  },
+  {
+    "id": "NR02-014",
+    "name": "Temari",
+    "title": "Wind of the Finals Arena",
+    "type": "character",
+    "element": "wind",
+    "cost": 4,
+    "power": 5000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[When Attacking] Up to 1 of your opponent's characters with a cost of 4 or less can't activate [Blocker] during this battle.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-014",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-015",
+    "name": "Kankuro",
+    "title": "Puppeteer of the Preliminaries",
+    "type": "character",
+    "element": "earth",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings",
+      "Genin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Block] If you control a {Puppet} character, this character gains +2000 power during this battle.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-015",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-016",
+    "name": "Orochimaru",
+    "title": "Grass Ninja in Disguise",
+    "type": "character",
+    "element": "wind",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Sound Village",
+      "Sannin",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Ambush"
+    ],
+    "effect": "[On Play] Rest up to 1 of your opponent's characters with a cost of 5 or less. Then, if your leader is [Orochimaru], draw 1 card.",
+    "flavor": "The killing intent arrived long before the snake did.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-016",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-017",
+    "name": "Kabuto Yakushi",
+    "title": "Spy Among the Examinees",
+    "type": "character",
+    "element": "water",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Sound Village",
+      "Medical Ninja",
+      "Genin"
+    ],
+    "keywords": [
+      "Substitution"
+    ],
+    "effect": "[On Play] Look at the top 5 cards of your deck; reveal up to 1 {Sound Village} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-017",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-018",
+    "name": "Dosu Kinuta",
+    "title": "Melody Arm of the Sound",
+    "type": "character",
+    "element": "lightning",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Sound Village",
+      "Genin"
+    ],
+    "keywords": [],
+    "effect": "[On K.O.] K.O. up to 1 of your opponent's characters with 3000 power or less.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-018",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-019",
+    "name": "Zaku Abumi",
+    "title": "Air Cannon Brawler",
+    "type": "character",
+    "element": "wind",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Sound Village",
+      "Genin"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[On K.O.] Draw 1 card.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-019",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-020",
+    "name": "Kin Tsuchi",
+    "title": "Kunoichi of the Silent Bells",
+    "type": "character",
+    "element": "water",
+    "cost": 1,
+    "power": 1000,
+    "traits": [
+      "Sound Village",
+      "Genin"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On K.O.] Rest up to 1 of your opponent's characters with a cost of 3 or less.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-020",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-021",
+    "name": "Hidden Lotus",
+    "type": "jutsu",
+    "element": "fire",
+    "cost": 3,
+    "traits": [
+      "Taijutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Up to 1 of your leader or characters gains +3000 power until the end of your turn. If that card is [Rock Lee], it also gains [Double Attack] until the end of your turn.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-021",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-022",
+    "name": "Gentle Fist",
+    "type": "jutsu",
+    "element": "earth",
+    "cost": 2,
+    "traits": [
+      "Taijutsu",
+      "Kekkei Genkai"
+    ],
+    "keywords": [],
+    "effect": "[Main] Rest up to 1 of your opponent's characters with a cost of 4 or less. Then, if you control a {Hyuga Clan} character, your opponent rests up to 2 of their active chakra.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-022",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-023",
+    "name": "Cursed Seal of Heaven",
+    "type": "jutsu",
+    "element": "lightning",
+    "cost": 1,
+    "traits": [
+      "Fuinjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Up to 1 of your characters gains +3000 power until the end of your turn. Then, unless your leader is [Orochimaru], trash 1 card from your hand.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-023",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-024",
+    "name": "Temple of Nirvana Jutsu",
+    "type": "jutsu",
+    "element": "water",
+    "cost": 3,
+    "traits": [
+      "Genjutsu"
+    ],
+    "keywords": [
+      "Trigger"
+    ],
+    "effect": "[Main] Rest up to 2 of your opponent's characters with 4000 power or less. [Trigger] Activate this card's [Main] effect.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-024",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-025",
+    "name": "Reaper Death Seal",
+    "type": "jutsu",
+    "element": "fire",
+    "cost": 5,
+    "traits": [
+      "Fuinjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] K.O. up to 1 of your opponent's characters with a cost of 5 or less. Then, you may K.O. 1 of your {Hokage} characters: Your opponent's leader can't attack until the end of your opponent's next turn.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-025",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-026",
+    "name": "Striking Shadow Snakes",
+    "type": "jutsu",
+    "element": "wind",
+    "cost": 1,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [
+      "Counter"
+    ],
+    "effect": "[Counter] Up to 1 of your leader or characters gains +2000 power during this battle. If your leader has the {Sannin} trait, it gains +3000 power instead.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-026",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-027",
+    "name": "First Exam: Written Test",
+    "type": "mission",
+    "element": "lightning",
+    "cost": 1,
+    "traits": [
+      "C-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Trash this Mission: Draw 1 card. Then, if you control 2 or more {Genin} characters, draw 1 card.",
+    "flavor": "Nine questions test the mind. The tenth tests the nerve.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-027",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-028",
+    "name": "Second Exam: Heaven and Earth Scrolls",
+    "type": "mission",
+    "element": "earth",
+    "cost": 2,
+    "traits": [
+      "B-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When one of your opponent's characters is K.O.'d, place 1 progress counter on this Mission. Then, if this Mission has 2 or more progress counters, draw 2 cards and trash this Mission.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-028",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-029",
+    "name": "Third Exam: Preliminary Matches",
+    "type": "mission",
+    "element": "fire",
+    "cost": 2,
+    "traits": [
+      "A-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When one of your {Genin} characters attacks, place 1 progress counter on this Mission. Then, if this Mission has 3 or more progress counters, add up to 1 chakra from your chakra deck and rest it, and trash this Mission.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-029",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-030",
+    "name": "Operation Destroy Leaf",
+    "type": "mission",
+    "element": "water",
+    "cost": 3,
+    "traits": [
+      "S-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Once Per Turn] When one of your {Sound Village} characters is K.O.'d, place 1 progress counter on this Mission. Then, if this Mission has 3 or more progress counters, K.O. up to 1 of your opponent's characters with a cost of 6 or less and trash this Mission.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-030",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-031",
+    "name": "Gaara",
+    "title": "Shukaku Unleashed",
+    "type": "character",
+    "element": "earth",
+    "cost": 8,
+    "power": 9000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings",
+      "Jinchuriki"
+    ],
+    "keywords": [
+      "Banish"
+    ],
+    "effect": "[On Play] K.O. up to 2 of your opponent's characters with 5000 power or less. Then, if your leader is [Gaara], this character gains [Rush] until the end of your turn.",
+    "flavor": "The sand stood up, and it was laughing.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-031",
+        "rarity": "secret-rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR02-032",
+    "name": "Tobirama Senju",
+    "title": "Reanimated Second Hokage",
+    "type": "character",
+    "element": "water",
+    "cost": 7,
+    "power": 7000,
+    "traits": [
+      "Leaf Village",
+      "Hokage",
+      "Senju Clan"
+    ],
+    "keywords": [
+      "Substitution"
+    ],
+    "effect": "[On Play] Rest up to 2 of your opponent's characters with a cost of 5 or less. Then, if your leader is [Orochimaru], draw 1 card.",
+    "flavor": "Summoned from the grave to fight the village he once led.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR02",
+        "number": "NR02-032",
+        "rarity": "secret-rare",
+        "variant": "standard"
+      }
+    ]
+  },
+  {
+    "id": "NR03-001",
+    "name": "Itachi Uchiha",
+    "title": "Crimson Moon of the Akatsuki",
+    "type": "leader",
+    "element": "fire",
+    "power": 5000,
+    "traits": [
+      "Akatsuki",
+      "Uchiha Clan",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Sharingan"
+    ],
+    "effect": "[Opponent's Turn] [Once Per Turn] When your opponent activates a Jutsu, you may rest 1 of your chakra: Your opponent trashes 1 card from their hand.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-001",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR03",
+        "number": "NR03-001",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-22",
+      "source": "Shinobi Card Report",
+      "url": "https://shinobi-cards.example/news/nr03-itachi-leader-reveal"
+    }
+  },
+  {
+    "id": "NR03-002",
+    "name": "Kisame Hoshigaki",
+    "title": "Monster of the Hidden Mist",
+    "type": "character",
+    "element": "water",
+    "cost": 5,
+    "power": 6000,
+    "traits": [
+      "Akatsuki",
+      "Mist Village",
+      "Rogue Ninja",
+      "Seven Swordsmen"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[When Attacking] Your opponent rests up to 1 of their active chakra. Then, if your leader has the {Akatsuki} trait, this character gains +1000 power during this battle.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-002",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-29",
+      "source": "Leaf Village Gazette",
+      "url": "https://leaf-gazette.example/spoilers/nr03/kisame-hoshigaki"
+    }
+  },
+  {
+    "id": "NR03-003",
+    "name": "Amaterasu",
+    "type": "jutsu",
+    "element": "fire",
+    "cost": 4,
+    "traits": [
+      "Ninjutsu",
+      "Kekkei Genkai"
+    ],
+    "keywords": [],
+    "effect": "[Main] K.O. up to 1 of your opponent's characters with a cost of 5 or less. Then, if your leader has the {Uchiha Clan} trait, your opponent trashes 1 card from their hand.",
+    "flavor": "Black flames that burn for seven days and nights.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-003",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-13",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-12"
+    }
+  },
+  {
+    "id": "NR03-004",
+    "name": "Pain",
+    "title": "Leader of the Akatsuki",
+    "type": "leader",
+    "element": "water",
+    "power": 5000,
+    "traits": [
+      "Akatsuki",
+      "Rain Village",
+      "Rogue Ninja"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] [Once Per Turn] Rest 3 of your chakra: Rest up to 1 of your opponent's characters with a cost of 4 or less. Then, if you control 3 or more {Akatsuki} characters with different names, draw 1 card.",
+    "flavor": "Six bodies, one will, and a sky that never stops weeping.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-004",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR03",
+        "number": "NR03-004",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-22",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-1"
+    }
+  },
+  {
+    "id": "NR03-005",
+    "name": "Konan",
+    "title": "Angel of the Hidden Rain",
+    "type": "character",
+    "element": "wind",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Akatsuki",
+      "Rain Village",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Play] Look at the top 4 cards of your deck; reveal up to 1 {Akatsuki} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-005",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-09",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-9"
+    }
+  },
+  {
+    "id": "NR03-006",
+    "name": "Deidara",
+    "title": "Artist of the Fleeting Blast",
+    "type": "character",
+    "element": "earth",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Akatsuki",
+      "Stone Village",
+      "Rogue Ninja"
+    ],
+    "keywords": [],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with a cost of 4 or less. [On K.O.] K.O. up to 1 of your opponent's characters with 4000 power or less.",
+    "flavor": "He signs every masterpiece with a crater.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-006",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR03",
+        "number": "NR03-006",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-24",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-2"
+    }
+  },
+  {
+    "id": "NR03-007",
+    "name": "Sasori",
+    "title": "Scorpion of the Red Sand",
+    "type": "character",
+    "element": "wind",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Akatsuki",
+      "Sand Village",
+      "Rogue Ninja",
+      "Puppet"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Play up to 1 {Puppet} character with a cost of 3 or less from your trash. [Your Turn] All of your other {Puppet} characters gain +1000 power.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-007",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-01",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-5"
+    }
+  },
+  {
+    "id": "NR03-008",
+    "name": "Hidan",
+    "title": "Zealot Who Cannot Die",
+    "type": "character",
+    "element": "lightning",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Akatsuki",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Substitution"
+    ],
+    "effect": "[When Attacking] You may trash 1 card from your hand: K.O. up to 1 of your opponent's characters with 2000 power or less.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-008",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-05",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-7"
+    }
+  },
+  {
+    "id": "NR03-009",
+    "name": "Kakuzu",
+    "title": "Keeper of Five Hearts",
+    "type": "character",
+    "element": "earth",
+    "cost": 5,
+    "power": 5000,
+    "traits": [
+      "Akatsuki",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Resilient"
+    ],
+    "effect": "[Your Turn] [Once Per Turn] When one of your opponent's characters is K.O.'d, add up to 1 chakra from your chakra deck and rest it.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-009",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-05",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-7"
+    }
+  },
+  {
+    "id": "NR03-010",
+    "name": "Zetsu",
+    "title": "Spy Within the Roots",
+    "type": "character",
+    "element": "earth",
+    "cost": 2,
+    "power": 2000,
+    "traits": [
+      "Akatsuki"
+    ],
+    "keywords": [
+      "Ambush"
+    ],
+    "effect": "[On Play] Look at your opponent's hand. Then, if your leader has the {Akatsuki} trait, draw 1 card, then trash 1 card from your hand.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-010",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-29",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-4"
+    }
+  },
+  {
+    "id": "NR03-011",
+    "name": "Tobi",
+    "title": "Akatsuki's Newest Recruit",
+    "type": "character",
+    "element": "fire",
+    "cost": 1,
+    "power": 1000,
+    "traits": [
+      "Akatsuki"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On K.O.] Look at the top 3 cards of your deck; reveal up to 1 {Uchiha Clan} card and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "flavor": "Always cheerful, always lost, always somehow unharmed.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-011",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-12",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-11"
+    }
+  },
+  {
+    "id": "NR03-012",
+    "name": "Gaara",
+    "title": "The Fifth Kazekage",
+    "type": "character",
+    "element": "earth",
+    "cost": 6,
+    "power": 6000,
+    "traits": [
+      "Sand Village",
+      "Sand Siblings",
+      "Kazekage",
+      "Jinchuriki"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[Opponent's Turn] [Once Per Turn] When one of your other {Sand Village} characters would be K.O.'d, you may rest 1 of your chakra instead.",
+    "flavor": "He caught the falling sky so his village would not have to.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-012",
+        "rarity": "rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR03",
+        "number": "NR03-012",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-26",
+      "source": "Leaf Village Gazette",
+      "url": "https://leaf-gazette.example/spoilers/nr03/gaara-the-fifth-kazekage"
+    }
+  },
+  {
+    "id": "NR03-013",
+    "name": "Chiyo",
+    "title": "Elder of the Hidden Sand",
+    "type": "character",
+    "element": "water",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Sand Village",
+      "Medical Ninja"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Rest 2 of your chakra and trash this character: Play up to 1 {Sand Village} character with a cost of 6 or less from your trash.",
+    "flavor": "Her final strings were tied to the future of the Sand.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-013",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-01",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-5"
+    }
+  },
+  {
+    "id": "NR03-014",
+    "name": "Jiraiya",
+    "title": "Sage Who Faced the Rain",
+    "type": "character",
+    "element": "fire",
+    "cost": 7,
+    "power": 7000,
+    "traits": [
+      "Leaf Village",
+      "Sannin",
+      "Sage"
+    ],
+    "keywords": [
+      "Sage Mode"
+    ],
+    "effect": "[On Play] K.O. up to 1 of your opponent's characters with a cost of 4 or less. If your opponent's leader has the {Akatsuki} trait, K.O. up to 1 of your opponent's characters with a cost of 6 or less instead.",
+    "flavor": "He wrote one last chapter and sent the ending home.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-014",
+        "rarity": "super-rare",
+        "variant": "standard"
+      },
+      {
+        "setId": "NR03",
+        "number": "NR03-014",
+        "rarity": "parallel-rare",
+        "variant": "parallel"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-11",
+      "source": "Shinobi Card Report",
+      "url": "https://shinobi-cards.example/news/nr03-jiraiya-sage-who-faced-the-rain"
+    }
+  },
+  {
+    "id": "NR03-015",
+    "name": "Kakashi Hatake",
+    "title": "Leader of Team Kakashi",
+    "type": "character",
+    "element": "lightning",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Jonin"
+    ],
+    "keywords": [],
+    "effect": "[On Play] You may rest 2 of your chakra: Return up to 1 of your opponent's characters with a cost of 3 or less to the owner's hand.",
+    "artist": "Ren Okabe",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-015",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-07",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-8"
+    }
+  },
+  {
+    "id": "NR03-016",
+    "name": "Naruto Uzumaki",
+    "title": "Target of the Akatsuki",
+    "type": "character",
+    "element": "wind",
+    "cost": 5,
+    "power": 6000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Uzumaki Clan",
+      "Jinchuriki"
+    ],
+    "keywords": [],
+    "effect": "[On Play] If your opponent's leader has the {Akatsuki} trait, this character gains [Rush] until the end of your turn. [When Attacking] If you control [Kakashi Hatake], this character gains +1000 power during this battle.",
+    "artist": "Aiko Mori",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-016",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-26",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-3"
+    }
+  },
+  {
+    "id": "NR03-017",
+    "name": "Sakura Haruno",
+    "title": "Antidote Specialist",
+    "type": "character",
+    "element": "earth",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Leaf Village",
+      "Team 7",
+      "Medical Ninja"
+    ],
+    "keywords": [],
+    "effect": "[On Play] Up to 1 of your other characters gains [Resilient] until the end of your opponent's next turn. Then, if you control [Chiyo], draw 1 card.",
+    "artist": "Mika Tanabe",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-017",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-03",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-6"
+    }
+  },
+  {
+    "id": "NR03-018",
+    "name": "Explosive Clay",
+    "type": "jutsu",
+    "element": "lightning",
+    "cost": 2,
+    "traits": [
+      "Ninjutsu",
+      "Kekkei Genkai"
+    ],
+    "keywords": [
+      "Trigger"
+    ],
+    "effect": "[Main] K.O. up to 1 of your opponent's characters with 2000 power or less. If you control [Deidara], K.O. up to 1 of your opponent's characters with 4000 power or less instead. [Trigger] Activate this card's [Main] effect.",
+    "artist": "Leo Marchetti",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-018",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-09-24",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-2"
+    }
+  },
+  {
+    "id": "NR03-019",
+    "name": "Performance of a Hundred Puppets",
+    "type": "jutsu",
+    "element": "wind",
+    "cost": 3,
+    "traits": [
+      "Ninjutsu"
+    ],
+    "keywords": [],
+    "effect": "[Main] Up to 3 of your {Puppet} characters gain +2000 power until the end of your turn. Then, if you control [Chiyo] or [Sasori], draw 1 card.",
+    "artist": "Yuki Sato",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-019",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-03",
+      "source": "Hidden Mist Meta",
+      "url": "https://hidden-mist-meta.example/reveals/nr03-performance-of-a-hundred-puppets"
+    }
+  },
+  {
+    "id": "NR03-020",
+    "name": "Shinra Tensei",
+    "type": "jutsu",
+    "element": "water",
+    "cost": 5,
+    "traits": [
+      "Ninjutsu",
+      "Kekkei Genkai"
+    ],
+    "keywords": [],
+    "effect": "[Main] Return all of your opponent's characters with a cost of 2 or less to the owner's hand. If your leader is [Pain], return all of your opponent's characters with a cost of 3 or less to the owner's hand instead.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-020",
+        "rarity": "rare",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-11",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-10"
+    }
+  },
+  {
+    "id": "NR03-021",
+    "name": "Capture the Jinchuriki",
+    "type": "mission",
+    "element": "fire",
+    "cost": 3,
+    "traits": [
+      "S-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When one of your opponent's characters is K.O.'d, place 1 progress counter on this Mission. If that character had the {Jinchuriki} trait, place 2 progress counters instead. Then, if this Mission has 3 or more progress counters, draw 3 cards and trash this Mission.",
+    "artist": "Daichi Yamada",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-021",
+        "rarity": "uncommon",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-12",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-11"
+    }
+  },
+  {
+    "id": "NR03-022",
+    "name": "Collect the Bounty",
+    "type": "mission",
+    "element": "lightning",
+    "cost": 1,
+    "traits": [
+      "B-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Trash this Mission: If one of your opponent's characters was K.O.'d this turn, add up to 1 chakra from your chakra deck and rest it. Then, if your leader has the {Akatsuki} trait, draw 1 card.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-022",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-07",
+      "source": "Hidden Mist Meta",
+      "url": "https://hidden-mist-meta.example/reveals/nr03-collect-the-bounty"
+    }
+  },
+  {
+    "id": "NR03-023",
+    "name": "Infiltrate the Hidden Rain",
+    "type": "mission",
+    "element": "water",
+    "cost": 2,
+    "traits": [
+      "A-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Your Turn] [Once Per Turn] When one of your {Leaf Village} characters attacks, place 1 progress counter on this Mission. If your leader is [Jiraiya], place 2 progress counters instead. Then, if this Mission has 3 or more progress counters, draw 2 cards and trash this Mission.",
+    "artist": "Jun Hayashi",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-023",
+        "rarity": "common",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-09",
+      "source": "Leaf Village Gazette",
+      "url": "https://leaf-gazette.example/spoilers/nr03/infiltrate-the-hidden-rain"
+    }
+  },
+  {
+    "id": "NR03-024",
+    "name": "Itachi Uchiha",
+    "title": "Lord of Tsukuyomi",
+    "type": "character",
+    "element": "fire",
+    "cost": 8,
+    "power": 8000,
+    "traits": [
+      "Akatsuki",
+      "Uchiha Clan",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Resilient"
+    ],
+    "effect": "[On Play] Rest up to 2 of your opponent's characters. [When Attacking] If your leader has the {Akatsuki} trait, K.O. up to 1 of your opponent's rested characters with a cost of 5 or less.",
+    "flavor": "Three days of torment pass in a single blink.",
+    "artist": "Kaede Ono",
+    "printings": [
+      {
+        "setId": "NR03",
+        "number": "NR03-024",
+        "rarity": "secret-rare",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-13",
+      "source": "Shadows of the Akatsuki Reveal Stream",
+      "url": "https://stream.naruto-tcg.example/nr03/day-12"
+    }
+  },
+  {
+    "id": "PR02-001",
+    "name": "Itachi Uchiha",
+    "title": "Silent Guardian of the Leaf",
+    "type": "character",
+    "element": "fire",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Akatsuki",
+      "Uchiha Clan",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Sharingan"
+    ],
+    "effect": "[On Play] If your leader has the {Akatsuki} trait, rest up to 1 of your opponent's characters with a cost of 3 or less.",
+    "flavor": "He wore the enemy's cloak so the village would never have to.",
+    "artist": "Sora Ishida",
+    "printings": [
+      {
+        "setId": "PR02",
+        "number": "P2-001",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-05",
+      "source": "Shinobi Card Report",
+      "url": "https://shinobi-cards.example/news/pr02-launch-promo-itachi-uchiha"
+    }
+  },
+  {
+    "id": "PR02-002",
+    "name": "Kisame Hoshigaki",
+    "title": "Wielder of Samehada",
+    "type": "character",
+    "element": "water",
+    "cost": 4,
+    "power": 4000,
+    "traits": [
+      "Akatsuki",
+      "Mist Village",
+      "Rogue Ninja",
+      "Seven Swordsmen"
+    ],
+    "keywords": [
+      "Blocker"
+    ],
+    "effect": "[On Block] Your opponent rests up to 1 of their active chakra. Then, if you control [Itachi Uchiha], this character gains +1000 power during this battle.",
+    "artist": "Hana Kobayashi",
+    "printings": [
+      {
+        "setId": "PR02",
+        "number": "P2-002",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-07",
+      "source": "Shinobi Card Report",
+      "url": "https://shinobi-cards.example/news/pr02-launch-promo-kisame-hoshigaki"
+    }
+  },
+  {
+    "id": "PR02-003",
+    "name": "Hidan",
+    "title": "Devoted Ritualist",
+    "type": "character",
+    "element": "lightning",
+    "cost": 3,
+    "power": 3000,
+    "traits": [
+      "Akatsuki",
+      "Rogue Ninja"
+    ],
+    "keywords": [
+      "Rush"
+    ],
+    "effect": "[On K.O.] If you control [Kakuzu], add this card from your trash to your hand.",
+    "artist": "Tomas Ruiz",
+    "printings": [
+      {
+        "setId": "PR02",
+        "number": "P2-003",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-10",
+      "source": "Hidden Mist Meta",
+      "url": "https://hidden-mist-meta.example/reveals/pr02-hidan-devoted-ritualist"
+    }
+  },
+  {
+    "id": "PR02-004",
+    "name": "Recruit for the Akatsuki",
+    "type": "mission",
+    "element": "wind",
+    "cost": 1,
+    "traits": [
+      "B-Rank Mission"
+    ],
+    "keywords": [],
+    "effect": "[Activate: Main] Trash this Mission: Look at the top 5 cards of your deck; reveal up to 1 {Akatsuki} character and add it to your hand. Then, place the rest at the bottom of your deck in any order.",
+    "flavor": "Every rogue gets one invitation. Few refuse it twice.",
+    "artist": "Priya Raman",
+    "printings": [
+      {
+        "setId": "PR02",
+        "number": "P2-004",
+        "rarity": "promo",
+        "variant": "standard"
+      }
+    ],
+    "reveal": {
+      "date": "2026-10-12",
+      "source": "Hidden Mist Meta",
+      "url": "https://hidden-mist-meta.example/reveals/pr02-recruit-for-the-akatsuki"
+    }
+  }
+]

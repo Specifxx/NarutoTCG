@@ -1,0 +1,65 @@
+[
+  {
+    "id": "ST01",
+    "name": "Starter Deck 01: Team 7",
+    "shortName": "Starter Deck 01",
+    "kind": "starter",
+    "releaseDate": "2026-03-06",
+    "totalCards": 16,
+    "description": "A ready-to-play Wind and Lightning deck led by Naruto Uzumaki, built around Team 7 synergy."
+  },
+  {
+    "id": "ST02",
+    "name": "Starter Deck 02: Sand Siblings",
+    "shortName": "Starter Deck 02",
+    "kind": "starter",
+    "releaseDate": "2026-03-06",
+    "totalCards": 16,
+    "description": "Gaara and the Sand Siblings defend with Blockers and grind opponents down with Earth and Wind control."
+  },
+  {
+    "id": "NR01",
+    "name": "Booster Set 01: Will of Fire",
+    "shortName": "Will of Fire",
+    "kind": "booster",
+    "releaseDate": "2026-04-24",
+    "totalCards": 40,
+    "description": "The first booster set introduces the Hidden Leaf's legends, the Sannin, and the debut of Parallel Rares."
+  },
+  {
+    "id": "PR01",
+    "name": "Promo Pack 1",
+    "shortName": "Promo Pack 1",
+    "kind": "promo",
+    "releaseDate": "2026-05-15",
+    "totalCards": 12,
+    "description": "Tournament and store-event promos, including promo-stamped reprints of starter deck staples."
+  },
+  {
+    "id": "NR02",
+    "name": "Booster Set 02: Chunin Exams",
+    "shortName": "Chunin Exams",
+    "kind": "booster",
+    "releaseDate": "2026-07-17",
+    "totalCards": 32,
+    "description": "Genin from every village clash in the Forest of Death and the finals arena, while Orochimaru moves in the shadows."
+  },
+  {
+    "id": "NR03",
+    "name": "Booster Set 03: Shadows of the Akatsuki",
+    "shortName": "Shadows of the Akatsuki",
+    "kind": "booster",
+    "releaseDate": "2026-11-20",
+    "totalCards": 60,
+    "description": "The Akatsuki hunt the Jinchuriki. Rogue ninja, forbidden jutsu, and the set's first Secret Rares."
+  },
+  {
+    "id": "PR02",
+    "name": "Promo Pack 2",
+    "shortName": "Promo Pack 2",
+    "kind": "promo",
+    "releaseDate": "2026-12-04",
+    "totalCards": 8,
+    "description": "Launch-event promos for Shadows of the Akatsuki."
+  }
+]

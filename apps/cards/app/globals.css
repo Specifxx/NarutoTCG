@@ -1,0 +1,20 @@
+@import "@naruto-tcg/ui/theme.css";
+@source "../../../packages/ui/src";
+
+/* Height of the sticky SiteHeader (3.5rem) + CardsNav (2.75rem) + two 1px borders. */
+:root {
+  --cards-header-h: 6.375rem;
+}
+
+html {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+  /* Keeps focused elements and anchor targets clear of the sticky header;
+     section anchors only add a small scroll-mt-* on top of this. */
+  scroll-padding-top: calc(var(--cards-header-h) + 0.75rem);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-chakra-500) 45%, transparent);
+  color: white;
+}

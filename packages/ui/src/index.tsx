@@ -68,3 +68,4 @@ export {
   type ReleasePhase,
   type ReleaseStatus,
 } from "./release-schedule";
+export { ScrollFadeNav } from "./scroll-fade-nav";

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type SiteAppId = "simulator" | "decks" | "compare" | "learn" | "events";
+export type SiteAppId = "learn" | "events" | "cards" | "decks" | "simulator" | "compare";
 
 export interface SiteApp {
   id: SiteAppId;
@@ -14,25 +14,11 @@ export interface SiteApp {
 
 export const SITE_APPS: readonly SiteApp[] = [
   {
-    id: "simulator",
-    label: "Simulator",
-    blurb: "Play-test matches",
-    envKey: "NEXT_PUBLIC_SIMULATOR_URL",
-    fallback: "http://localhost:3000",
-  },
-  {
-    id: "decks",
-    label: "Decks",
-    blurb: "Build and share decks",
-    envKey: "NEXT_PUBLIC_DECKS_URL",
-    fallback: "http://localhost:3001",
-  },
-  {
-    id: "compare",
-    label: "Compare",
-    blurb: "Compare card prices",
-    envKey: "NEXT_PUBLIC_COMPARE_URL",
-    fallback: "http://localhost:3002",
+    id: "learn",
+    label: "Learn",
+    blurb: "Rules, puzzles and keywords",
+    envKey: "NEXT_PUBLIC_LEARN_URL",
+    fallback: "http://localhost:3003/learn",
   },
   {
     id: "events",
@@ -42,11 +28,32 @@ export const SITE_APPS: readonly SiteApp[] = [
     fallback: "http://localhost:3004",
   },
   {
-    id: "learn",
-    label: "Learn",
-    blurb: "Rules, puzzles and keywords",
-    envKey: "NEXT_PUBLIC_LEARN_URL",
-    fallback: "http://localhost:3003/learn",
+    id: "cards",
+    label: "Cards",
+    blurb: "Card database and spoilers",
+    envKey: "NEXT_PUBLIC_CARDS_URL",
+    fallback: "http://localhost:3005",
+  },
+  {
+    id: "decks",
+    label: "Decks",
+    blurb: "Build and share decks",
+    envKey: "NEXT_PUBLIC_DECKS_URL",
+    fallback: "http://localhost:3001",
+  },
+  {
+    id: "simulator",
+    label: "Simulator",
+    blurb: "Play-test matches",
+    envKey: "NEXT_PUBLIC_SIMULATOR_URL",
+    fallback: "http://localhost:3000",
+  },
+  {
+    id: "compare",
+    label: "Compare",
+    blurb: "Compare card prices",
+    envKey: "NEXT_PUBLIC_COMPARE_URL",
+    fallback: "http://localhost:3002",
   },
 ];
 
@@ -121,6 +128,13 @@ function AppIcon({ id }: { id: SiteAppId }) {
           <rect x="3.5" y="5" width="17" height="15" rx="2" />
           <path d="M3.5 10h17M8 3v4M16 3v4" />
           <path d="M8 14h3v3H8z" />
+        </svg>
+      );
+    case "cards":
+      return (
+        <svg {...common}>
+          <rect x="5" y="3" width="14" height="18" rx="2" />
+          <path d="M9 8h6M9 12h6M9 16h3" />
         </svg>
       );
     case "learn":
