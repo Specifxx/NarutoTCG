@@ -1,11 +1,11 @@
 "use client";
 
-import type { NarutoCard } from "@naruto-tcg/types";
+import type { CardPrinting, NarutoCard } from "@naruto-tcg/types";
 import Link from "next/link";
 import { memo, useId, type CSSProperties } from "react";
 import { CardImage } from "@/components/CardImage";
 import { ElementBadge, RarityBadge } from "@/components/badges";
-import { ELEMENT_META, RARITY_META, TYPE_META, cardHref, formatPower, primaryPrinting } from "@/lib/meta";
+import { ELEMENT_META, RARITY_META, TYPE_META, cardHref, formatPower } from "@/lib/meta";
 import type { SearchHit } from "@/lib/search";
 import { Highlight } from "./Highlight";
 import { CostIcon, PowerIcon } from "./icons";
@@ -37,6 +37,7 @@ export function CardGrid({
         <CardTile
           key={hit.card.id}
           card={hit.card}
+          printing={hit.printing}
           isNew={newIds.has(hit.card.id)}
           tokens={tokens}
           priority={i < eagerCount}
@@ -51,12 +52,15 @@ export function CardGrid({
 // skips tiles whose card and highlight tokens are unchanged.
 const CardTile = memo(function CardTile({
   card,
+  printing,
   isNew,
   tokens,
   priority,
   idPrefix,
 }: {
   card: NarutoCard;
+  /** Printing whose art, rarity and foil are shown (matches active rarity/set filters). */
+  printing: CardPrinting;
   isNew: boolean;
   tokens: readonly string[];
   priority: boolean;
@@ -66,7 +70,7 @@ const CardTile = memo(function CardTile({
   const metaId = `${idPrefix}${card.id}-meta`;
   const style: TileStyle = { "--el": ELEMENT_META[card.element].hex };
   // Badge and foil describe the printing whose art is shown.
-  const rarity = primaryPrinting(card).rarity;
+  const rarity = printing.rarity;
 
   return (
     <li className={styles.cell}>
@@ -81,7 +85,7 @@ const CardTile = memo(function CardTile({
       >
         <div className={styles.art}>
           {/* The name, number and rarity are in the tile text right below. */}
-          <CardImage card={card} priority={priority} alt="" />
+          <CardImage card={card} printing={printing} priority={priority} alt="" />
           {/* Tabs pinned above the art's top corners never cover the printed cost, name or element. */}
           {card.type === "leader" && (
             // The type is already announced with the ID below.

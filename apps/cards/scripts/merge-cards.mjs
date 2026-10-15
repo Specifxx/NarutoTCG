@@ -87,8 +87,21 @@ export function mergeCards(existing, incoming, sets) {
     (JSON.stringify(current) === before ? report.unchanged : report.updated).push(id);
   });
 
-  // Canonical order: debut set release date, then natural collector number.
   const release = new Map(sets.filter(isRecord).map((set) => [set.id, String(set.releaseDate ?? "")]));
+
+  // Debut printing first, mirroring debutComparator in lib/schema.ts: printings
+  // numbered like the card id, then by set release date; ties keep their order.
+  const touched = new Set([...report.added, ...report.updated]);
+  for (const card of cards) {
+    if (!touched.has(card.id) || !Array.isArray(card.printings)) continue;
+    const isDebut = (/** @type {Json} */ p) => Number(p.number === card.id);
+    const date = (/** @type {Json} */ p) => release.get(p.setId) ?? "9999-12-31";
+    card.printings = card.printings
+      .filter(isRecord)
+      .sort((a, b) => isDebut(b) - isDebut(a) || date(a).localeCompare(date(b)));
+  }
+
+  // Canonical order: debut set release date, then natural collector number.
   /** @param {Json} card */
   const debut = (card) => {
     const printings = Array.isArray(card.printings) ? card.printings.filter(isRecord) : [];

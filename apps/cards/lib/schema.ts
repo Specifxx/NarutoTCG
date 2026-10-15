@@ -223,16 +223,29 @@ function keywordList(obj: Json, path: string, issues: Issues): string[] {
       continue;
     }
     seen.add(folded);
-    out.push(GLOSSARY_BY_FOLD.get(folded) ?? keyword);
+    out.push(GLOSSARY_BY_FOLD.get(folded) ?? keyword.replace(/\s+/g, " "));
   }
   return out;
+}
+
+/**
+ * Root-relative path that stays on this origin. Rejects "//host" and "/\\host"
+ * (browsers treat a backslash like a slash, making it protocol-relative).
+ */
+function isSameOriginPath(value: string): boolean {
+  if (!value.startsWith("/") || value.includes("\\")) return false;
+  try {
+    return new URL(value, "https://same-origin.invalid").origin === "https://same-origin.invalid";
+  } catch {
+    return false;
+  }
 }
 
 /** Absolute http(s) URL or a root-relative path served from /public. */
 function optionalImageUrl(obj: Json, key: string, path: string, issues: Issues): string | undefined {
   const value = optionalString(obj, key, path, issues);
   if (value === undefined) return undefined;
-  if (value.startsWith("/") && !value.startsWith("//")) return value;
+  if (isSameOriginPath(value)) return value;
   if (isHttpUrl(value)) return value;
   issues.error(`${path}.${key}`, `"${value}" must be an http(s) URL or a root-relative path`);
   return undefined;
@@ -519,18 +532,15 @@ function checkIntegrity(data: Dataset, issues: Issues): void {
       numbersBySet.set(printing.setId, numbers);
     }
 
-    // printings[0] should be the debut. lib/data.ts re-sorts by release date
-    // (orderPrintingsByRelease), but out-of-order input hints at a scraper bug.
-    const debut = card.printings[0];
-    const debutRelease = debut && releaseById.get(debut.setId);
-    if (debut && debutRelease !== undefined) {
-      const earlier = card.printings.find((p) => (releaseById.get(p.setId) ?? debutRelease) < debutRelease);
-      if (earlier) {
-        issues.warn(
-          `cards[${card.id}].printings`,
-          `first entry should be the debut printing (${earlier.setId} released ${releaseById.get(earlier.setId)}, before ${debut.setId} on ${debutRelease})`,
-        );
-      }
+    // printings[0] should be the debut. lib/data.ts reorders printings
+    // (orderPrintingsByDebut), but out-of-order input hints at a scraper bug.
+    const authoredFirst = card.printings[0];
+    const debut = [...card.printings].sort(debutComparator(card, releaseById))[0];
+    if (authoredFirst && debut && debut !== authoredFirst) {
+      issues.warn(
+        `cards[${card.id}].printings`,
+        `first entry should be the debut printing ${debut.setId} ${debut.number} (listed first: ${authoredFirst.setId} ${authoredFirst.number})`,
+      );
     }
   }
 
@@ -566,19 +576,26 @@ function checkIntegrity(data: Dataset, issues: Issues): void {
 }
 
 /**
- * Stable-sorts each card's printings by set release date, so printings[0] is
- * the debut printing whatever order the data lists them in. Unknown sets sort
- * last; ties (same-day sets, variants within one set) keep their listed order.
+ * Debut-first ordering for one card's printings: printings whose collector
+ * number equals the card id come first (ids are debut numbers by convention,
+ * so an earlier-dated pre-release promo does not take over), then by set
+ * release date. Unknown sets sort last; ties keep their listed order.
  */
-export function orderPrintingsByRelease(cards: readonly NarutoCard[], sets: readonly CardSet[]): NarutoCard[] {
-  const releaseById = new Map(sets.map((set) => [set.id, set.releaseDate]));
-  const compare = (a: CardPrinting, b: CardPrinting): number => {
+function debutComparator(card: NarutoCard, releaseById: ReadonlyMap<string, string>) {
+  return (a: CardPrinting, b: CardPrinting): number => {
+    const idMatch = Number(b.number === card.id) - Number(a.number === card.id);
+    if (idMatch !== 0) return idMatch;
     const ra = releaseById.get(a.setId);
     const rb = releaseById.get(b.setId);
     if (ra === undefined || rb === undefined) return Number(ra === undefined) - Number(rb === undefined);
     return ra.localeCompare(rb);
   };
-  return cards.map((card) => ({ ...card, printings: [...card.printings].sort(compare) }));
+}
+
+/** Stable-sorts every card's printings so printings[0] is the debut printing (see debutComparator). */
+export function orderPrintingsByDebut(cards: readonly NarutoCard[], sets: readonly CardSet[]): NarutoCard[] {
+  const releaseById = new Map(sets.map((set) => [set.id, set.releaseDate]));
+  return cards.map((card) => ({ ...card, printings: [...card.printings].sort(debutComparator(card, releaseById)) }));
 }
 
 export function validateDataset(raw: { cards: unknown; sets: unknown; decks: unknown }): ValidationResult {

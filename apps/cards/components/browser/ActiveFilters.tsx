@@ -97,6 +97,8 @@ export function ActiveFilters({
             className="group inline-flex max-w-full items-center gap-1.5 rounded-full border border-shadow-700 bg-shadow-900 py-1 pl-3 pr-1.5 text-xs transition hover:border-chakra-500/60 hover:bg-shadow-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400"
           >
             <span className="text-ash-400">{chip.label}</span>
+            {/* Keeps the DOM text ("Type Leader") matching the aria-label for voice control. */}
+            <span className="sr-only"> </span>
             {chip.icon}
             <span className="max-w-[14rem] truncate font-semibold text-white">{chip.value}</span>
             <span className="grid h-5 w-5 place-items-center rounded-full text-ash-400 transition group-hover:bg-chakra-500/20 group-hover:text-chakra-400">

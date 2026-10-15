@@ -7,7 +7,7 @@ import cardsJson from "../public/data/cards.json";
 import decksJson from "../public/data/decks.json";
 import setsJson from "../public/data/sets.json";
 import { RARITY_META, compareCollectorNumbers, primaryPrinting, printingKey } from "./meta";
-import { orderPrintingsByRelease, validateDataset, type Dataset } from "./schema";
+import { orderPrintingsByDebut, validateDataset, type Dataset } from "./schema";
 
 function loadDataset(): Dataset {
   const { data, errors, warnings } = validateDataset({ cards: cardsJson, sets: setsJson, decks: decksJson });
@@ -23,7 +23,7 @@ function loadDataset(): Dataset {
   }
   // printings[0] drives the debut set, canonical order, breadcrumbs and pager,
   // so never trust the listed order.
-  return { ...data, cards: orderPrintingsByRelease(data.cards, data.sets) };
+  return { ...data, cards: orderPrintingsByDebut(data.cards, data.sets) };
 }
 
 const dataset = loadDataset();

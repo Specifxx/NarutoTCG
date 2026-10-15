@@ -67,3 +67,4 @@ export {
 } from "./release-schedule";
 export { PLATFORM_APPS, SiteHeader, platformHref } from "./platform";
 export type { PlatformAppKey } from "./platform";
+export { ScrollFadeNav } from "./scroll-fade-nav";

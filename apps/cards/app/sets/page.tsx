@@ -28,8 +28,10 @@ function SetGroup({
     <section aria-labelledby={id} className="mt-10 sm:mt-12">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-shadow-800 pb-3">
         <h2 id={id} className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-          {title}{" "}
-          <span className="ml-1 align-middle text-sm font-medium text-ash-400">
+          {title}
+          {/* A real separator: Chrome drops whitespace-only text before an inline element from the accessible name. */}
+          <span className="sr-only">, </span>
+          <span className="ml-2 align-middle text-sm font-medium text-ash-400">
             {sets.length}
             <span className="sr-only"> {sets.length === 1 ? "set" : "sets"}</span>
           </span>

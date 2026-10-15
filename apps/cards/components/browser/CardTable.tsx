@@ -1,6 +1,6 @@
 "use client";
 
-import type { NarutoCard } from "@naruto-tcg/types";
+import type { CardPrinting, NarutoCard } from "@naruto-tcg/types";
 import Link from "next/link";
 import { memo, useId } from "react";
 import { CardImage } from "@/components/CardImage";
@@ -77,7 +77,7 @@ export function CardTable({
         </thead>
         <tbody className="divide-y divide-shadow-800">
           {hits.map((hit, i) => (
-            <CardRow key={hit.card.id} card={hit.card} tokens={tokens} priority={i < eagerCount} />
+            <CardRow key={hit.card.id} card={hit.card} printing={hit.printing} tokens={tokens} priority={i < eagerCount} />
           ))}
         </tbody>
       </table>
@@ -98,10 +98,12 @@ function NoValue() {
 
 const CardRow = memo(function CardRow({
   card,
+  printing,
   tokens,
   priority,
 }: {
   card: NarutoCard;
+  printing: CardPrinting;
   tokens: readonly string[];
   priority: boolean;
 }) {
@@ -110,7 +112,7 @@ const CardRow = memo(function CardRow({
       <td className="py-2 pl-3 pr-1 align-middle">
         {/* Decorative here: the name column carries the same information. */}
         <div aria-hidden="true" className={`${styles.thumb} w-10`}>
-          <CardImage card={card} priority={priority} className="rounded-[3px] shadow-md shadow-black/50" />
+          <CardImage card={card} printing={printing} priority={priority} className="rounded-[3px] shadow-md shadow-black/50" />
         </div>
       </td>
       <th scope="row" className="max-w-[18rem] px-3 py-2 text-left align-middle font-normal">

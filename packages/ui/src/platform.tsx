@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ScrollFadeNav } from "./scroll-fade-nav";
 
 // Each platform app is deployed separately, so cross-app links are absolute
 // URLs. Literal `process.env.NEXT_PUBLIC_*` reads let Next.js inline them at
@@ -35,7 +36,7 @@ export function SiteHeader({ current, children }: { current: PlatformAppKey; chi
           </svg>
           <span className="sr-only sm:not-sr-only">Naruto TCG</span>
         </a>
-        <nav aria-label="Platform" className="-mx-2 min-w-0 flex-1 overflow-x-auto [mask-image:linear-gradient(to_right,black_80%,transparent)] [scrollbar-width:none] md:[mask-image:none]">
+        <ScrollFadeNav label="Platform" activeKey={current} className="-mx-2 min-w-0 flex-1">
           <ul className="flex items-center gap-1 px-2">
             {PLATFORM_APPS.map((app) => {
               const active = app.key === current;
@@ -56,7 +57,7 @@ export function SiteHeader({ current, children }: { current: PlatformAppKey; chi
               );
             })}
           </ul>
-        </nav>
+        </ScrollFadeNav>
       </div>
       {children && <div className="border-t border-shadow-800">{children}</div>}
     </header>

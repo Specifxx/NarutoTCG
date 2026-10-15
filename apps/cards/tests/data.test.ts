@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CardSet, NarutoCard } from "@naruto-tcg/types";
-import { DECK_SIZE, MAX_COPIES, orderPrintingsByRelease, validateDataset } from "@/lib/schema";
+import { DECK_SIZE, MAX_COPIES, orderPrintingsByDebut, validateDataset } from "@/lib/schema";
 
 // Paths can be overridden to validate staged data before it is merged, e.g.
 // CARDS_JSON=/tmp/new-cards.json pnpm --filter @naruto-tcg/cards validate:data
@@ -219,7 +219,7 @@ describe("validateDataset", () => {
     });
     expect(errors).toEqual([]);
     expect(warnings).toEqual([
-      "cards[T1-001].printings: first entry should be the debut printing (T1 released 2026-01-01, before P1 on 2026-06-01)",
+      "cards[T1-001].printings: first entry should be the debut printing T1 T1-001 (listed first: P1 P-001)",
     ]);
   });
 
@@ -282,7 +282,7 @@ describe("validateDataset", () => {
   });
 });
 
-describe("orderPrintingsByRelease", () => {
+describe("orderPrintingsByDebut", () => {
   const sets: CardSet[] = [
     { id: "ST01", name: "Starter 1", shortName: "ST01", kind: "starter", releaseDate: "2026-03-06", totalCards: 16 },
     { id: "ST02", name: "Starter 2", shortName: "ST02", kind: "starter", releaseDate: "2026-03-06", totalCards: 16 },
@@ -308,13 +308,33 @@ describe("orderPrintingsByRelease", () => {
   };
   const order = (c: NarutoCard | undefined) => c?.printings.map((p) => `${p.setId}:${p.variant}`);
 
-  it("puts the earliest set first, keeps listed order for ties and unknown sets last", () => {
-    const [sorted] = orderPrintingsByRelease([card], sets);
-    expect(order(sorted)).toEqual(["ST02:standard", "ST01:standard", "ST01:parallel", "PR01:promo", "GONE:standard"]);
+  it("puts the card-id printings first, then release order, ties in listed order, unknown sets last", () => {
+    const [sorted] = orderPrintingsByDebut([card], sets);
+    expect(order(sorted)).toEqual(["ST01:standard", "ST01:parallel", "ST02:standard", "PR01:promo", "GONE:standard"]);
+  });
+
+  it("keeps the card-id printing as debut when a pre-release promo is dated earlier", () => {
+    const later: CardSet = { id: "NR04", name: "NR04", shortName: "NR04", kind: "booster", releaseDate: "2027-02-01", totalCards: 60 };
+    const promoFirst: NarutoCard = {
+      ...card,
+      id: "NR04-001",
+      printings: [
+        { setId: "PR01", number: "P-020", rarity: "promo", variant: "promo" },
+        { setId: "NR04", number: "NR04-001", rarity: "rare", variant: "standard" },
+      ],
+    };
+    const [sorted] = orderPrintingsByDebut([promoFirst], [...sets, later]);
+    expect(order(sorted)).toEqual(["NR04:standard", "PR01:promo"]);
+  });
+
+  it("falls back to release order when no printing matches the card id", () => {
+    const exclusive: NarutoCard = { ...card, id: "PR01-010", printings: [card.printings[0]!, card.printings[2]!] };
+    const [sorted] = orderPrintingsByDebut([exclusive], sets);
+    expect(order(sorted)).toEqual(["ST02:standard", "PR01:promo"]);
   });
 
   it("does not mutate its input", () => {
-    orderPrintingsByRelease([card], sets);
+    orderPrintingsByDebut([card], sets);
     expect(order(card)).toEqual(["PR01:promo", "GONE:standard", "ST02:standard", "ST01:standard", "ST01:parallel"]);
   });
 });
@@ -361,9 +381,46 @@ describe("lib/data loading", () => {
 
     expect(warn).toHaveBeenCalledOnce();
     expect(warn.mock.calls[0]?.[0]).toContain(
-      "cards[T1-001].printings: first entry should be the debut printing (T1 released 2026-01-01, before P1 on 2026-06-01)",
+      "cards[T1-001].printings: first entry should be the debut printing T1 T1-001 (listed first: P1 P-001)",
     );
     expect(getCard("T1-001")?.printings.map((p) => p.setId)).toEqual(["T1", "P1"]);
     expect(getSetEntries("P1").map((e) => e.card.id)).toEqual(["T1-001"]);
+  });
+});
+
+describe("scraper hardening", () => {
+  const set = { id: "T1", name: "Test Set", kind: "booster", releaseDate: "2026-01-01", totalCards: 5 };
+  const base = {
+    id: "T1-001",
+    name: "Test Ninja",
+    type: "character",
+    element: "fire",
+    cost: 2,
+    power: 3000,
+    printings: [{ setId: "T1", number: "T1-001", rarity: "common" }],
+  };
+  const validate = (card: Record<string, unknown>) => validateDataset({ cards: [{ ...base, ...card }], sets: [set], decks: [] });
+
+  it("collapses whitespace in keywords outside the glossary", () => {
+    const { data, errors } = validate({ keywords: ["Chakra   Burst", "chakra burst"] });
+    expect(errors).toEqual([]);
+    expect(data.cards[0]?.keywords).toEqual(["Chakra Burst"]);
+  });
+
+  it("rejects image paths that browsers would load from another host", () => {
+    for (const imageUrl of ["//evil.example/x.png", "/\\evil.example/x.png"]) {
+      expect(validate({ imageUrl }).errors.some((e) => e.includes(".imageUrl")), imageUrl).toBe(true);
+    }
+    expect(validate({ imageUrl: "/images/x.png" }).errors).toEqual([]);
+  });
+
+  it("warns when the card-id printing is not listed first", () => {
+    const { warnings } = validate({
+      printings: [
+        { setId: "T1", number: "T1-900", rarity: "promo", variant: "promo" },
+        { setId: "T1", number: "T1-001", rarity: "common" },
+      ],
+    });
+    expect(warnings.some((w) => w.includes("first entry should be the debut printing T1 T1-001"))).toBe(true);
   });
 });

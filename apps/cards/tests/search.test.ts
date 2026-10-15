@@ -620,3 +620,37 @@ describe("phraseQuery", () => {
     expect(phraseQuery('Team "7"')).toBe('"Team 7"');
   });
 });
+
+describe("display printing", () => {
+  const leader: NarutoCard = {
+    id: "X-001",
+    name: "Itachi Uchiha",
+    type: "leader",
+    element: "fire",
+    power: 5000,
+    traits: [],
+    keywords: [],
+    effect: "",
+    printings: [
+      { setId: "NR03", number: "NR03-001", rarity: "super-rare", variant: "standard" },
+      { setId: "NR03", number: "NR03-001", rarity: "parallel-rare", variant: "parallel" },
+      { setId: "PR02", number: "P2-009", rarity: "promo", variant: "promo" },
+    ],
+  };
+  const sets: CardSet[] = [
+    { id: "NR03", name: "NR03", shortName: "NR03", kind: "booster", releaseDate: "2026-11-20", totalCards: 60 },
+    { id: "PR02", name: "PR02", shortName: "PR02", kind: "promo", releaseDate: "2026-12-04", totalCards: 8 },
+  ];
+  const index = buildSearchIndex([leader], sets);
+  const shown = (filters: Partial<CardFilters>) => search(index, { ...EMPTY_FILTERS, ...filters })[0]?.printing;
+
+  it("shows the debut printing without rarity or set filters", () => {
+    expect(shown({})).toBe(leader.printings[0]);
+  });
+
+  it("shows the printing that matched the rarity and set filters", () => {
+    expect(shown({ rarities: ["parallel-rare"] })).toBe(leader.printings[1]);
+    expect(shown({ sets: ["PR02"] })).toBe(leader.printings[2]);
+    expect(shown({ rarities: ["super-rare", "promo"], sets: ["PR02"] })).toBe(leader.printings[2]);
+  });
+});

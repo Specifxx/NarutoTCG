@@ -63,4 +63,25 @@ describe("mergeCards", () => {
     expect(() => mergeCards([sasuke], [{ name: "No id" }], sets)).toThrow(/no string "id"/);
     expect(() => mergeCards([sasuke], "nope", sets)).toThrow(/JSON array/);
   });
+
+  it("orders merged printings debut first, like the validator", () => {
+    const promoFirst = [
+      {
+        id: "NR03-030",
+        printings: [
+          { setId: "PR01", number: "P-030", rarity: "promo", variant: "promo" },
+          { setId: "NR03", number: "NR03-030", rarity: "rare" },
+        ],
+      },
+    ];
+    const merged = mergeCards([sasuke], promoFirst, sets).cards.find((c) => c.id === "NR03-030");
+    expect(merged?.printings).toMatchObject([{ number: "NR03-030" }, { number: "P-030" }]);
+
+    // A later reprint scraped before the debut is moved behind it.
+    const reprint = [{ id: "ST01-002", printings: [{ setId: "PR01", number: "P-007", rarity: "promo", variant: "promo" }] }];
+    const sas = mergeCards([{ ...sasuke, printings: [] }], reprint, sets).cards[0];
+    expect(sas?.printings).toMatchObject([{ number: "P-007" }]);
+    const both = mergeCards([sasuke], reprint, sets).cards[0];
+    expect(both?.printings).toMatchObject([{ number: "ST01-002" }, { number: "P-007" }]);
+  });
 });

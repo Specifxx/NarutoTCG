@@ -15,7 +15,7 @@ import {
   type NarutoCard,
   type Rarity,
 } from "@naruto-tcg/types";
-import { RARITY_META, compareCollectorNumbers } from "./meta";
+import { RARITY_META, compareCollectorNumbers, primaryPrinting } from "./meta";
 
 // ---------------------------------------------------------------------------
 // Filter, sort, and view model
@@ -385,6 +385,11 @@ export interface SearchHit {
   readonly card: NarutoCard;
   readonly score: number;
   readonly bestRarity: Rarity;
+  /**
+   * Printing to display: the first one matching the active rarity/set filters
+   * (so a "Parallel Rare" search shows parallel art), else the debut printing.
+   */
+  readonly printing: CardPrinting;
 }
 
 type Compare = (a: QueryMatch, b: QueryMatch) => number;
@@ -459,7 +464,18 @@ export function applyFilters(result: QueryResult, filters: CardFilters, sort: So
   return result.matches
     .filter((match) => passesAll(match.entry, facets))
     .sort(comparatorFor(sort, result.tokens.length > 0))
-    .map((match) => ({ card: match.entry.card, score: match.score, bestRarity: match.entry.bestRarity }));
+    .map((match) => ({
+      card: match.entry.card,
+      score: match.score,
+      bestRarity: match.entry.bestRarity,
+      printing: displayPrinting(match.entry.card, facets),
+    }));
+}
+
+function displayPrinting(card: NarutoCard, facets: CompiledFacets): CardPrinting {
+  const debut = primaryPrinting(card);
+  if (facets.rarities === null && facets.sets === null) return debut;
+  return card.printings.find((p) => printingPasses(p, facets)) ?? debut;
 }
 
 /** Full search: query + facets + sort. */
