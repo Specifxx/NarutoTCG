@@ -115,6 +115,37 @@ body::before {
   }
 }
 
+/* Playmat: one-screen dashboard when the window is tall enough, otherwise the page scrolls. */
+.playmat-missions {
+  min-height: 540px;
+}
+
+@media (min-width: 1024px) {
+  .playmat-aside {
+    align-self: flex-start;
+    position: sticky;
+    top: 4rem;
+    max-height: calc(100dvh - 4.5rem);
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 820px) {
+  .playmat-fit .playmat-aside {
+    align-self: stretch;
+    position: static;
+    max-height: none;
+  }
+
+  .playmat-fit {
+    height: calc(100dvh - 3.5rem);
+    overflow: hidden;
+  }
+
+  .playmat-fit .playmat-missions {
+    min-height: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

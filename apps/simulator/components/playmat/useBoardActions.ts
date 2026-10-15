@@ -5,18 +5,7 @@ import { useGameStore } from "@/lib/game-engine/store";
 import type { PlayerAction, PlayerId } from "@/lib/game-engine/types";
 import { toast } from "../ui/Toast";
 import { actorOf, canEvolve, useBoardUi } from "./boardUi";
-
-export type DropTarget = { kind: "mission"; index: number; hidden: boolean } | { kind: "char"; id: string };
-
-export function parseDrop(el: Element | null): DropTarget | null {
-  const node = el?.closest("[data-drop]");
-  const raw = node?.getAttribute("data-drop");
-  if (!raw) return null;
-  const [kind, a, b] = raw.split(":");
-  if (kind === "mission") return { kind: "mission", index: Number(a), hidden: b === "hidden" };
-  if (kind === "char") return { kind: "char", id: a };
-  return null;
-}
+import { actionFor, dropReason, type Zone } from "./dropZones";
 
 /** Turns clicks, intents and drops into engine actions. */
 export function useBoardActions() {
@@ -74,21 +63,19 @@ export function useBoardActions() {
     [perform],
   );
 
-  /** A hand card was dropped somewhere on the board. */
+  /** A hand card was dropped on a zone. */
   const drop = useCallback(
-    (handId: string, target: DropTarget | null) => {
+    (handId: string, zone: Zone | null) => {
       const p = actor();
-      if (p === null || !target) return;
       const { game: g, ctx } = useGameStore.getState();
-      if (!g || !ctx) return;
-      const card = ctx.cards[g.instances[handId].cardId];
-      if (target.kind === "mission") {
-        if (card.type === "character") perform({ type: "PLAY_CHARACTER", player: p, handId, missionIndex: target.index, hidden: target.hidden });
-        else if (card.type === "jutsu") perform({ type: "PLAY_JUTSU", player: p, handId, missionIndex: target.index });
-        else toast("Drop items onto one of your face-up characters.", "info");
-      } else if (card.type === "item") perform({ type: "ATTACH_ITEM", player: p, handId, targetId: target.id });
-      else if (card.type === "character") perform({ type: "EVOLVE", player: p, handId, targetId: target.id });
-      else toast("Drop jutsu onto a mission.", "info");
+      if (p === null || !zone || !g || !ctx) return;
+      const action = actionFor(g, ctx, p, handId, zone);
+      if (!action) {
+        const reason = dropReason(g, ctx, p, handId, zone);
+        if (reason) toast(reason, "info");
+        return;
+      }
+      perform(action);
     },
     [perform],
   );

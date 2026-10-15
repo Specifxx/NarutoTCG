@@ -15,6 +15,9 @@ export function BoardCard({
   size = "sm",
   ownerVisible,
   targetable,
+  hovered = false,
+  passThrough = false,
+  zone,
   dimmed,
   onClick,
   onHover,
@@ -26,6 +29,12 @@ export function BoardCard({
   /** The local user may see this card's face even while hidden. */
   ownerVisible: boolean;
   targetable: boolean;
+  /** A dragged card is over this character and may be dropped here. */
+  hovered?: boolean;
+  /** Let clicks fall through to the zone underneath (while a hand card is being placed). */
+  passThrough?: boolean;
+  /** Drop-zone key when this character can receive Evolve/Equip drops. */
+  zone?: string;
   dimmed: boolean;
   onClick: () => void;
   onHover: (hovering: boolean) => void;
@@ -40,9 +49,9 @@ export function BoardCard({
   return (
     <motion.div
       layoutId={id}
-      data-drop={`char:${id}`}
+      data-zone={zone}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="relative"
+      className={cx("relative", passThrough && "pointer-events-none")}
       style={{ perspective: 800 }}
       onPointerEnter={() => onHover(true)}
       onPointerLeave={() => onHover(false)}
@@ -55,7 +64,8 @@ export function BoardCard({
         aria-label={showFace ? `${fullName(card)}${inst.faceDown ? " (hidden)" : ""}, power ${pb.total}` : "Hidden character"}
         className={cx(
           "card-3d relative block rounded-[0.75em] focus:outline-none focus-visible:ring-2 focus-visible:ring-chakra-400",
-          targetable && "ring-2 ring-chakra-400 ring-offset-2 ring-offset-shadow-950 animate-pulse-slow",
+          targetable && !hovered && "ring-2 ring-chakra-400 ring-offset-2 ring-offset-shadow-950 animate-pulse-slow",
+          hovered && "ring-4 ring-jade-400 ring-offset-2 ring-offset-shadow-950 scale-105",
           dimmed && "opacity-40",
         )}
         initial={justRevealed && !ownerVisible ? { rotateY: 180 } : false}

@@ -2,6 +2,7 @@ import "@fontsource-variable/inter";
 import "@fontsource/chakra-petch/500.css";
 import "@fontsource/chakra-petch/600.css";
 import "@fontsource/chakra-petch/700.css";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { TopNav } from "@/components/nav/TopNav";
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           images are © their respective owners and shown from the official card gallery.
         </footer>
         <ToastViewport />
+        <Analytics />
       </body>
     </html>
   );

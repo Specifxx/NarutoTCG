@@ -3,161 +3,206 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { EyeOff, Trophy } from "lucide-react";
 import { FORMAT, MISSION_RANKS, RANK_BONUS, type MissionRank } from "@/lib/game-engine/format";
-import { validateAction } from "@/lib/game-engine/legal";
 import { missionTotals, projectedWinner } from "@/lib/game-engine/power";
 import { useGameStore } from "@/lib/game-engine/store";
 import type { EngineContext, GameState, PlayerId } from "@/lib/game-engine/types";
 import { CardText } from "../cards/CardText";
 import { cx } from "../ui/Button";
 import { BoardCard } from "./BoardCard";
-import { actorOf, legalCharacters, legalMissions, useBoardUi } from "./boardUi";
+import { actorOf, legalCharacters, legalMissions, useBoardUi, type Intent } from "./boardUi";
+import { actionFor, dropReason, zoneKey, type Zone } from "./dropZones";
 import { useBoardActions } from "./useBoardActions";
 
 export const RANK_COLORS: Record<MissionRank, string> = { D: "#5fd0a0", C: "#4aa8ff", B: "#c27bff", A: "#ffcf4a" };
 export const PLAYER_COLORS: [string, string] = ["#3987e5", "#d95926"];
 
+/** The hand card being placed: dragged, or selected with a click. */
+function placingCard(intent: Intent, dragging: string | null): string | null {
+  if (dragging) return dragging;
+  if (intent.kind === "card" || intent.kind === "play" || intent.kind === "jutsu" || intent.kind === "item" || intent.kind === "evolve") return intent.handId;
+  return null;
+}
+
+/** One mission as a vertical column: enemy hidden row, enemy characters, mission, your characters, your hidden row. */
 export function MissionLane({ index }: { index: number }) {
   const game = useGameStore((s) => s.game)!;
   const ctx = useGameStore((s) => s.ctx)!;
   const intent = useBoardUi((s) => s.intent);
-  const dragging = useBoardUi((s) => s.dragging);
   const mission = game.missions[index];
   const actor = actorOf(game);
-  const card = ctx.cards[game.instances[mission.instanceId].cardId];
   const rank = MISSION_RANKS[index];
+  const missionTarget = actor !== null && (intent.kind === "technique" || intent.kind === "jutsu") && legalMissions(game, ctx, actor, intent).includes(index);
 
-  const intentTarget = actor !== null && legalMissions(game, ctx, actor, intent).includes(index);
-  const cardIntent = intent.kind === "card" ? intent.handId : null;
-  const handId = dragging ?? cardIntent;
-  const legalFor = (hidden: boolean) => {
-    if (actor === null || !handId) return false;
-    const c = ctx.cards[game.instances[handId].cardId];
-    if (c.type === "character")
-      return validateAction(game, ctx, { type: "PLAY_CHARACTER", player: actor, handId, missionIndex: index, hidden }) === null;
-    if (c.type === "jutsu" && !hidden) return validateAction(game, ctx, { type: "PLAY_JUTSU", player: actor, handId, missionIndex: index }) === null;
-    return false;
-  };
-  const faceUpDrop = intentTarget || legalFor(false);
-  const hiddenDrop = (intent.kind === "play" && intent.hidden && intentTarget) || legalFor(true);
+  if (!mission.revealed) {
+    return (
+      <div className="panel flex h-full w-[132px] shrink-0 snap-start flex-col items-center justify-center gap-3 p-3 text-center opacity-70">
+        <RankBadge rank={rank} dim />
+        <p className="font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-ash-400">Mission {rank}</p>
+        <p className="text-[11px] leading-snug text-ash-500">Revealed in round {index + 1}</p>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={cx("panel flex min-w-0 flex-col transition-shadow", !mission.revealed && "opacity-60")}
-      style={{ boxShadow: intentTarget ? `0 0 0 1px ${RANK_COLORS[rank]}, 0 0 28px -8px ${RANK_COLORS[rank]}` : undefined }}
+      className="panel scroll-thin flex h-full min-w-[250px] flex-1 basis-[300px] snap-start flex-col gap-1 overflow-y-auto p-1.5"
+      style={{ boxShadow: missionTarget ? `0 0 0 1px ${RANK_COLORS[rank]}, 0 0 28px -8px ${RANK_COLORS[rank]}` : undefined }}
+      aria-label={`Mission ${rank}`}
     >
-      <Side game={game} ctx={ctx} index={index} player={1} actor={actor} faceUpDrop={faceUpDrop && actor === 1} hiddenDrop={hiddenDrop && actor === 1} />
-      <MissionBanner game={game} ctx={ctx} index={index} clickable={intentTarget} />
-      <Side game={game} ctx={ctx} index={index} player={0} actor={actor} faceUpDrop={faceUpDrop && actor === 0} hiddenDrop={hiddenDrop && actor === 0} />
-      <span className="sr-only">
-        Mission {rank}: {card.name}
-      </span>
+      <HiddenRow game={game} ctx={ctx} index={index} player={1} actor={actor} />
+      <FaceUpArea game={game} ctx={ctx} index={index} player={1} actor={actor} />
+      <MissionBanner game={game} ctx={ctx} index={index} clickable={missionTarget} />
+      <FaceUpArea game={game} ctx={ctx} index={index} player={0} actor={actor} />
+      <HiddenRow game={game} ctx={ctx} index={index} player={0} actor={actor} />
     </div>
   );
 }
 
-function Side({
-  game,
-  ctx,
-  index,
-  player,
-  actor,
-  faceUpDrop,
-  hiddenDrop,
-}: {
+interface SideProps {
   game: GameState;
   ctx: EngineContext;
   index: number;
   player: PlayerId;
   actor: PlayerId | null;
-  faceUpDrop: boolean;
-  hiddenDrop: boolean;
-}) {
+}
+
+/** Drop-zone state for this side's face-up or hidden area. */
+function useZone({ game, ctx, index, player, actor }: SideProps, hidden: boolean) {
   const intent = useBoardUi((s) => s.intent);
+  const dragging = useBoardUi((s) => s.dragging);
+  const hoverZone = useBoardUi((s) => s.hoverZone);
+  const { perform } = useBoardActions();
+  const zone: Zone = { kind: "mission", index, hidden };
+  const mine = actor === player;
+  const handId = mine ? placingCard(intent, dragging) : null;
+  const intentMismatch = intent.kind === "play" && !dragging && intent.hidden !== hidden;
+  const reason = handId && !intentMismatch ? dropReason(game, ctx, player, handId, zone) : null;
+  const active = !!handId && !intentMismatch;
+  const legal = active && reason === null;
+  const hovered = hoverZone === zoneKey(zone);
+
+  const onClick = (e: React.MouseEvent) => {
+    if ((e.target as Element).closest("button")) return;
+    if (!handId || !legal) return;
+    const action = actionFor(game, ctx, player, handId, zone);
+    if (action) perform(action);
+  };
+
+  return { zoneAttr: mine ? zoneKey(zone) : undefined, active, legal, hovered, reason, onClick };
+}
+
+function useCardRenderer({ game, ctx, player, actor }: SideProps) {
+  const intent = useBoardUi((s) => s.intent);
+  const dragging = useBoardUi((s) => s.dragging);
+  const hoverZone = useBoardUi((s) => s.hoverZone);
   const setIntent = useBoardUi((s) => s.setIntent);
   const setInspect = useBoardUi((s) => s.setInspect);
-  const { chooseMission, chooseCharacter } = useBoardActions();
-  const mission = game.missions[index];
-  const ids = mission.characters[player];
-  const faceUp = ids.filter((id) => !game.instances[id].faceDown);
-  const hidden = ids.filter((id) => game.instances[id].faceDown);
+  const { chooseCharacter } = useBoardActions();
   const ownerVisible = game.players[player].controller === "human";
-  const targets = actor !== null ? legalCharacters(game, ctx, actor, intent) : [];
+  const mine = actor === player;
+  const intentTargets = actor !== null ? legalCharacters(game, ctx, actor, intent) : [];
+  const dragId = mine ? placingCard(intent, dragging) : null;
   const targeting = intent.kind === "evolve" || intent.kind === "item" || intent.kind === "token";
-  const top = player === 1;
 
   const onCardClick = (id: string) => {
     if (chooseCharacter(id)) return;
     const inst = game.instances[id];
     setInspect({ cardId: inst.cardId, instanceId: id });
     if (actor === null || inst.owner !== actor) return;
-    if (inst.faceDown) setIntent({ kind: "reveal", instanceId: id });
-    else setIntent({ kind: "unit", instanceId: id });
+    setIntent(inst.faceDown ? { kind: "reveal", instanceId: id } : { kind: "unit", instanceId: id });
   };
 
-  const renderCard = (id: string, size: "xs" | "sm" = "sm") => (
-    <BoardCard
-      key={id}
-      game={game}
-      ctx={ctx}
-      id={id}
-      size={size}
-      ownerVisible={ownerVisible}
-      targetable={targets.includes(id)}
-      dimmed={targeting && actor === player && !targets.includes(id)}
-      onClick={() => onCardClick(id)}
-      onHover={(h) => h && setInspect({ cardId: ownerVisible || !game.instances[id].faceDown ? game.instances[id].cardId : null, instanceId: id })}
-    />
-  );
+  return (id: string, size: "xs" | "sm", passThrough = false) => {
+    const inst = game.instances[id];
+    const charZone: Zone = { kind: "char", id };
+    const dropTarget = mine && !inst.faceDown;
+    const dragLegal = !!dragging && dropTarget && dragId !== null && dropReason(game, ctx, player, dragId, charZone) === null;
+    return (
+      <BoardCard
+        key={id}
+        game={game}
+        ctx={ctx}
+        id={id}
+        size={size}
+        ownerVisible={ownerVisible}
+        zone={dropTarget ? zoneKey(charZone) : undefined}
+        targetable={intentTargets.includes(id) || dragLegal}
+        hovered={hoverZone === zoneKey(charZone) && dragLegal}
+        passThrough={passThrough}
+        dimmed={targeting && mine && !intentTargets.includes(id)}
+        onClick={() => onCardClick(id)}
+        onHover={(h) => h && setInspect({ cardId: ownerVisible || !inst.faceDown ? inst.cardId : null, instanceId: id })}
+      />
+    );
+  };
+}
 
-  const faceUpZone = (
-    <div
-      data-drop={faceUpDrop ? `mission:${index}:faceup` : undefined}
-      onClick={(e) => {
-        if (faceUpDrop && e.target === e.currentTarget) chooseMission(index, false);
-      }}
-      className={cx(
-        "flex min-h-[118px] flex-wrap content-center items-center justify-center gap-x-2.5 gap-y-3.5 rounded-lg px-1.5 py-2 transition-colors",
-        faceUpDrop && "drop-zone-active cursor-pointer",
-      )}
-    >
-      {faceUp.map((id) => renderCard(id))}
-      {faceUp.length === 0 && (
-        <span className="pointer-events-none text-[10px] uppercase tracking-[0.18em] text-ash-500/70">{faceUpDrop ? "Play here" : ""}</span>
-      )}
-    </div>
-  );
-
-  const hiddenZone = (
-    <div
-      data-drop={hiddenDrop ? `mission:${index}:hidden` : undefined}
-      onClick={(e) => {
-        if (hiddenDrop && e.target === e.currentTarget) chooseMission(index, true);
-      }}
-      className={cx(
-        "flex min-h-[46px] flex-wrap items-center gap-1.5 rounded-lg border border-dashed px-2 py-1.5 transition-colors",
-        hiddenDrop ? "cursor-pointer border-yin-400/80 bg-yin-500/10" : "border-yin-400/20 bg-yin-500/[0.03]",
-      )}
-      title="Hidden slot — face-down characters (1 Chakra, 0 Power)"
-    >
-      <span className="pointer-events-none flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-yin-400/70">
-        <EyeOff className="h-3 w-3" /> {hidden.length || ""}
-      </span>
-      <div className="flex flex-wrap gap-1.5">{hidden.map((id) => renderCard(id, "xs"))}</div>
-    </div>
-  );
+function FaceUpArea(props: SideProps) {
+  const { game, index, player, actor } = props;
+  const z = useZone(props, false);
+  const render = useCardRenderer(props);
+  const ids = game.missions[index].characters[player].filter((id) => !game.instances[id].faceDown);
+  const mine = actor === player;
 
   return (
-    <div className={cx("flex flex-col gap-1.5 p-2", top ? "pb-1" : "pt-1")} aria-label={`${game.players[player].name} in Mission ${MISSION_RANKS[index]}`}>
-      {top ? (
-        <>
-          {hiddenZone}
-          {faceUpZone}
-        </>
-      ) : (
-        <>
-          {faceUpZone}
-          {hiddenZone}
-        </>
+    <div
+      data-zone={z.zoneAttr}
+      onClick={z.onClick}
+      className={cx(
+        "scroll-thin relative flex min-h-[112px] flex-1 flex-wrap content-center items-center justify-center gap-x-2 gap-y-3 overflow-y-auto rounded-lg border px-1 py-2 transition-all duration-150",
+        z.active && z.legal && !z.hovered && "cursor-pointer border-dashed border-chakra-400/70 bg-chakra-500/[0.06]",
+        z.active && z.legal && z.hovered && "border-solid border-chakra-300 bg-chakra-500/15 shadow-[inset_0_0_30px_rgba(255,122,26,0.25)]",
+        z.active && !z.legal && z.hovered && "border-blood-500/70 bg-blood-500/10",
+        (!z.active || (!z.legal && !z.hovered)) && "border-transparent",
+      )}
+      aria-label={`${game.players[player].name} face-up characters in Mission ${MISSION_RANKS[index]}`}
+    >
+      {ids.map((id) => render(id, "sm"))}
+      {ids.length === 0 && mine && (
+        <span className="pointer-events-none font-display text-[10px] uppercase tracking-[0.2em] text-ash-500/70">
+          {z.active && z.legal ? "Drop to play face-up" : "Face-up"}
+        </span>
+      )}
+      {z.active && z.hovered && !z.legal && z.reason && (
+        <span className="pointer-events-none absolute inset-x-1 bottom-1 rounded bg-shadow-950/90 px-1.5 py-0.5 text-center text-[10px] text-blood-400">{z.reason}</span>
+      )}
+    </div>
+  );
+}
+
+function HiddenRow(props: SideProps) {
+  const { game, index, player, actor } = props;
+  const z = useZone(props, true);
+  const render = useCardRenderer(props);
+  const ids = game.missions[index].characters[player].filter((id) => game.instances[id].faceDown);
+  const mine = actor === player;
+
+  return (
+    <div
+      data-zone={z.zoneAttr}
+      onClick={z.onClick}
+      title="Hidden — face-down characters: 1 Chakra, 0 Power, revealed later for their full cost (AMBUSH)"
+      className={cx(
+        "scroll-thin relative flex min-h-[86px] shrink-0 items-center gap-1.5 overflow-x-auto rounded-lg border border-dashed px-2 py-1.5 transition-all duration-150",
+        z.active && z.legal && !z.hovered && "cursor-pointer border-yin-400/90 bg-yin-500/15",
+        z.active && z.legal && z.hovered && "border-solid border-yin-400 bg-yin-500/25 shadow-[inset_0_0_30px_rgba(154,107,255,0.35)]",
+        z.active && !z.legal && z.hovered && "border-blood-500/70 bg-blood-500/10",
+        (!z.active || (!z.legal && !z.hovered)) && "border-yin-400/20 bg-yin-500/[0.03]",
+      )}
+      aria-label={`${game.players[player].name} hidden characters in Mission ${MISSION_RANKS[index]}`}
+    >
+      <span className="pointer-events-none flex shrink-0 flex-col items-center gap-0.5 font-display text-[9px] font-semibold uppercase tracking-[0.16em] text-yin-400/80">
+        <EyeOff className="h-3.5 w-3.5" />
+        {ids.length > 0 ? ids.length : mine ? `${FORMAT.hiddenCost}◉` : ""}
+      </span>
+      {ids.map((id) => render(id, "xs", z.active))}
+      {ids.length === 0 && mine && (
+        <span className="pointer-events-none font-display text-[10px] uppercase tracking-[0.2em] text-yin-400/60">
+          {z.active && z.legal ? "Drop to hide" : "Hidden"}
+        </span>
+      )}
+      {z.active && z.hovered && !z.legal && z.reason && (
+        <span className="pointer-events-none absolute inset-x-1 bottom-1 rounded bg-shadow-950/90 px-1.5 py-0.5 text-center text-[10px] text-blood-400">{z.reason}</span>
       )}
     </div>
   );
@@ -202,7 +247,7 @@ function MissionBanner({ game, ctx, index, clickable }: { game: GameState; ctx: 
       }}
       onPointerEnter={() => setInspect({ cardId: card.id, instanceId: mission.instanceId })}
       className={cx(
-        "relative mx-2 my-1 overflow-hidden rounded-lg border bg-gradient-to-r from-shadow-950 via-shadow-850 to-shadow-950 px-3 py-2 text-left",
+        "relative shrink-0 overflow-hidden rounded-lg border bg-gradient-to-r from-shadow-950 via-shadow-850 to-shadow-950 px-3 py-2 text-left",
         clickable ? "cursor-pointer" : "cursor-default",
       )}
       style={{ borderColor: `${color}55` }}
@@ -226,7 +271,7 @@ function MissionBanner({ game, ctx, index, clickable }: { game: GameState; ctx: 
         </div>
       </div>
       {card.text && (
-        <div className="mt-1.5 text-[10px]">
+        <div className="mt-1.5 line-clamp-2 text-[10px]" title={card.text}>
           <CardText card={card} compact />
         </div>
       )}

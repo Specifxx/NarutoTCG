@@ -28,6 +28,9 @@ interface BoardUi {
   inspect: Inspect | null;
   graveyard: PlayerId | null;
   dragging: string | null;
+  /** Zone key under the pointer while dragging. */
+  hoverZone: string | null;
+  setHoverZone: (zone: string | null) => void;
   setIntent: (intent: Intent) => void;
   setInspect: (inspect: Inspect | null) => void;
   setGraveyard: (p: PlayerId | null) => void;
@@ -40,11 +43,13 @@ export const useBoardUi = create<BoardUi>((set) => ({
   inspect: null,
   graveyard: null,
   dragging: null,
+  hoverZone: null,
+  setHoverZone: (hoverZone) => set({ hoverZone }),
   setIntent: (intent) => set({ intent }),
   setInspect: (inspect) => set({ inspect }),
   setGraveyard: (graveyard) => set({ graveyard }),
   setDragging: (dragging) => set({ dragging }),
-  reset: () => set({ intent: { kind: "none" }, inspect: null, graveyard: null, dragging: null }),
+  reset: () => set({ intent: { kind: "none" }, inspect: null, graveyard: null, dragging: null, hoverZone: null }),
 }));
 
 /** The player the local user may act for right now, if any. */

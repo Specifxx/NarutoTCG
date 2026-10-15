@@ -64,7 +64,7 @@ const FILTERS: Record<Filter, { label: string; kinds: LogKind[] | null }> = {
 
 const NO_LOG: LogEntry[] = [];
 
-export function ActionLog() {
+export function ActionLog({ fill = false }: { fill?: boolean }) {
   const log = useGameStore((s) => s.game?.log ?? NO_LOG);
   const setInspect = useBoardUi((s) => s.setInspect);
   const [filter, setFilter] = useState<Filter>("all");
@@ -80,7 +80,7 @@ export function ActionLog() {
   }, [entries.length]);
 
   return (
-    <div className="panel flex min-h-0 flex-col p-3">
+    <div className={`panel flex min-h-0 flex-col p-3 ${fill ? "lg:min-h-[200px] lg:flex-1" : ""}`}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="panel-title">Action log</span>
         <span className="text-[10px] text-ash-500">{log.length} events</span>
@@ -92,7 +92,7 @@ export function ActionLog() {
           </Chip>
         ))}
       </div>
-      <div ref={scroller} className="scroll-thin h-72 overflow-y-auto pr-1 xl:h-[min(46vh,520px)]" role="log" aria-live="polite">
+      <div ref={scroller} className={`scroll-thin h-72 overflow-y-auto pr-1 ${fill ? "lg:h-auto lg:min-h-0 lg:flex-1" : "xl:h-[min(46vh,520px)]"}`} role="log" aria-live="polite">
         <ul className="space-y-0.5">
           <AnimatePresence initial={false}>
             {entries.map((e) => (
